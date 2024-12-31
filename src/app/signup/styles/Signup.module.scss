@@ -1,0 +1,34 @@
+.container {
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+  
+    h1 {
+      margin-bottom: 20px;
+      color: #0070f3;
+    }
+  
+    form {
+      display: flex;
+      flex-direction: column;
+  
+      input {
+        margin: 10px 0;
+        padding: 10px;
+        font-size: 1em;
+      }
+  
+      button {
+        background-color: #0070f3;
+        color: white;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+  
+        &:hover {
+          background-color: #005bb5;
+        }
+      }
+    }
+  }
+  
