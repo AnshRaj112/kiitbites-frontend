@@ -1,34 +1,101 @@
 .container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full-screen height */
+  background-color: #f0f4f8; /* Subtle background color for contrast */
+
+  .box {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px; /* Curved corners */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Floating box shadow */
     max-width: 400px;
-    margin: 50px auto;
+    width: 90%; /* Responsive width */
     text-align: center;
-  
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateY(-5px); /* Subtle lift effect on hover */
+    }
+
     h1 {
       margin-bottom: 20px;
-      color: #0070f3;
+      color: #333;
     }
-  
+
     form {
       display: flex;
       flex-direction: column;
-  
+
       input {
         margin: 10px 0;
-        padding: 10px;
+        padding: 12px;
         font-size: 1em;
+        border-radius: 8px; /* Curved input fields */
+        border: 1px solid #ddd;
+        outline: none;
+        transition: box-shadow 0.2s;
+
+        &:focus {
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
+          border-color: #4ea199;
+        }
       }
-  
-      button {
-        background-color: #0070f3;
+
+      .googleButtonDiv {
+        background-color: #4ea199;
         color: white;
         padding: 10px;
-        border: none;
+        border-radius: 5px;
         cursor: pointer;
-  
+        text-align: center;
+        width: 100%;
+        margin-top: 10px;
+    
         &:hover {
-          background-color: #005bb5;
+          background-color: #01796f;
+        }
+      }
+      
+
+      button {
+        background-color: #4ea199;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px; /* Match input curvature */
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #01796f;
+        }
+      }
+
+      .passwordField {
+        display: flex;
+        align-items: center;
+        position: relative;
+
+        input {
+          flex-grow: 1;
+          padding-right: 40px; /* Space for eye icon */
+        }
+
+        .eyeIcon {
+          position: absolute;
+          right: 10px;
+          cursor: pointer;
+          font-size: 1.2em;
+          color: #4ea199; /* Match the button color */
+        }
+
+        .eyeIcon:hover {
+          color: #01796f;
         }
       }
     }
   }
-  
+}
