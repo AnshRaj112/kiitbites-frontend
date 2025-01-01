@@ -41,7 +41,7 @@ export default function LoginPage() {
         </div>
         <div className={styles.register}>
           <p className={styles["text-black"]}>
-            Don't have an account? <a href="/signup">Sign Up</a>
+          Don&apos;t have an account? <a href="/signup">Sign Up</a>
           </p>
         </div>
       </div>
