@@ -47,7 +47,7 @@
 
       button {
         background-color: #4ea199;
-        color: white;
+        color: black;
         padding: 12px;
         border: none;
         border-radius: 8px; /* Match input curvature */
@@ -104,20 +104,19 @@
       }
     }
 
-    .googleContainer {
-      button {
-        background-color: #4ea199;
-        color: white;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1em;
-        transition: background-color 0.2s;
+    .googleSignUp {
+      background-color: #4ea199;
+      color: black;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      text-align: center;
+      margin: 10px 0;
+      transition: background-color 0.2s;
 
-        &:hover {
-          background-color: #01796f;
-        }
+      &:hover {
+        background-color: #01796f;
       }
     }
 

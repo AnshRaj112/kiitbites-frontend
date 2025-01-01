@@ -34,16 +34,14 @@ export default function SignupPage() {
         <div className={styles.divider}>
           <span>OR</span>
         </div>
-        <div className={styles.googleContainer}>
-          <button onClick={() => signIn("google")} className={styles.googleButton}>
-            Sign Up with Google
-          </button>
+        <div className={styles.googleSignUp} onClick={() => signIn("google")}>
+          Sign Up with Google
         </div>
         <p className={styles.alreadyAccount}>
           Already have an account?{" "}
-          <span className={styles.loginLink} onClick={() => signIn()}>
-            Log in
-          </span>
+          <a href="/login" className={styles.loginLink}>
+            Login
+          </a>
         </p>
       </div>
     </div>
