@@ -31,11 +31,19 @@ export default function SignupPage() {
           </div>
           <button type="submit">Sign Up</button>
         </form>
-        <button onClick={() => signIn("google")} className={styles.googleButton}>
+        <div className={styles.divider}>
+          <span>OR</span>
+        </div>
+        <div className={styles.googleSignUp} onClick={() => signIn("google")}>
           Sign Up with Google
-        </button>
+        </div>
+        <p className={styles.alreadyAccount}>
+          Already have an account?{" "}
+          <a href="/login" className={styles.loginLink}>
+            Login
+          </a>
+        </p>
       </div>
     </div>
   );
 }
-  
