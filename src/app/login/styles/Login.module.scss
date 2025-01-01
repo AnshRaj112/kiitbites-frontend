@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Full-screen height */
+  height: 88.25vh; /* Full-screen height */
   background-color: #f0f4f8; /* Subtle background color for contrast */
 
   .box {
@@ -19,9 +19,14 @@
       transform: translateY(-5px); /* Subtle lift effect on hover */
     }
 
+    .text-black {
+      color: black;
+    }
+
     h1 {
       margin-bottom: 20px;
       color: #333;
+      font-size: 30px;
     }
 
     form {
@@ -40,37 +45,6 @@
         &:focus {
           box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
           border-color: #4ea199;
-        }
-      }
-
-      .googleButtonDiv {
-        background-color: #4ea199;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        text-align: center;
-        width: 100%;
-        margin-top: 10px;
-    
-        &:hover {
-          background-color: #01796f;
-        }
-      }
-      
-
-      button {
-        background-color: #4ea199;
-        color: white;
-        padding: 12px;
-        border: none;
-        border-radius: 8px; /* Match input curvature */
-        cursor: pointer;
-        font-size: 1em;
-        transition: background-color 0.2s;
-
-        &:hover {
-          background-color: #01796f;
         }
       }
 
@@ -96,6 +70,83 @@
           color: #01796f;
         }
       }
+
+      button {
+        background-color: #4ea199;
+        color: black;
+        padding: 12px;
+        border: none;
+        border-radius: 8px; /* Match input curvature */
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #01796f;
+        }
+      }
     }
+
+    .divider {
+      margin: 15px 0;
+      position: relative;
+      font-size: 14px;      
+      font-weight: bold;
+      color: #666;
+
+      &:before,
+      &:after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 40%;
+        height: 1px;
+        background-color: #ddd;
+      }
+
+      &:before {
+        left: 0;
+      }
+
+      &:after {
+        right: 0;
+      }
+    }
+
+    .googleLogin {
+      background-color: #4ea199;
+      color: black;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      text-align: center;
+      margin: 10px 0;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #01796f;
+      }
+    }
+
+    .register {
+      margin-top: 20px;
+
+      a {
+        color: #4ea199;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #01796f;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .container {
+    height: 91.6vh; /* Full-screen height */
   }
 }

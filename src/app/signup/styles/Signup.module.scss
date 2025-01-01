@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 88.25vh; /* Full-screen height */
+  height: 100vh; /* Full-screen height */
   background-color: #f0f4f8; /* Subtle background color for contrast */
 
   .box {
@@ -28,6 +28,7 @@
     form {
       display: flex;
       flex-direction: column;
+      margin-top: -1.5rem;
 
       input {
         margin: 10px 0;
@@ -59,23 +60,6 @@
         }
       }
 
-      .googleButton {
-        background-color: #4285F4;
-        color: white;
-        padding: 10px;
-        font-size: 16px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        width: 100%;
-        margin-top: 15px;
-      }
-      
-      .googleButton:hover {
-        background-color: #357ae8;
-      }
-      
-
       .passwordField {
         display: flex;
         align-items: center;
@@ -99,9 +83,62 @@
         }
       }
     }
+
+    .divider {
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      text-align: center;
+
+      span {
+        color: #666;
+        font-weight: bold;
+        padding: 0 10px;
+      }
+
+      &::before,
+      &::after {
+        content: "";
+        flex: 1;
+        border-top: 1px solid #ddd;
+      }
+    }
+
+    .googleContainer {
+      button {
+        background-color: #4ea199;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #01796f;
+        }
+      }
+    }
+
+    .alreadyAccount {
+      margin-top: 20px;
+      font-size: 14px;
+      color: black;
+
+      .loginLink {
+        cursor: pointer;
+        color: #4ea199;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #01796f;
+        }
+      }
+    }
   }
 }
-
 
 @media screen and (max-width: 1024px) {
   .container {
