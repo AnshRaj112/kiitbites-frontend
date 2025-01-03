@@ -12,7 +12,7 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.box}>
         <h1>Login</h1>
-        <form>
+        <form action={"/login"} method="POST">
           <input
             type="text"
             placeholder="Email or Username"
