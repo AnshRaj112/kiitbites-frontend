@@ -5,7 +5,6 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 let logoutTimer;
 
 const AuthContext = React.createContext({
-  token: "",
   isLoggedIn: false,
   user: {
     name: "",
@@ -16,7 +15,7 @@ const AuthContext = React.createContext({
     college: "",
     contactNo: "",
     year: "",
-    extra:{},
+    extra: {},
     access: "",
     editProfileCount: "",
     regForm: [],
@@ -84,6 +83,7 @@ export const AuthContextProvider = (props) => {
     setTarget(t);
   };
 
+  // Memoize the logout handler
   const logoutHandler = useCallback(() => {
     setToken(null);
     setUserIsLoggedIn(false);
@@ -96,89 +96,97 @@ export const AuthContextProvider = (props) => {
     }
   }, []);
 
-  const loginHandler = (
-    name,
-    email,
-    img,
-    rollNumber,
-    school,
-    college,
-    contactNo,
-    year,
-    access,
-    editProfileCount,
-    regForm,
-    blurhash,
-    token
-  ) => {
-    localStorage.setItem("token", token);
-    const setuserdata = {
-      name: name,
-      img: img,
-      email: email,
-      rollNumber: rollNumber,
-      school: school,
-      college: college,
-      contactNo: contactNo,
-      year: year,
-      extra: {},
-      access: access,
-      editProfileCount: editProfileCount,
-      regForm: regForm,
-      blurhash: blurhash,
-      token: token,
-    };
+  // Memoize the login handler to prevent unnecessary rerenders
+  const loginHandler = useCallback(
+    (
+      name,
+      email,
+      img,
+      rollNumber,
+      school,
+      college,
+      contactNo,
+      year,
+      access,
+      editProfileCount,
+      regForm,
+      blurhash,
+      token
+    ) => {
+      localStorage.setItem("token", token);
+      const setuserdata = {
+        name: name,
+        img: img,
+        email: email,
+        rollNumber: rollNumber,
+        school: school,
+        college: college,
+        contactNo: contactNo,
+        year: year,
+        extra: {},
+        access: access,
+        editProfileCount: editProfileCount,
+        regForm: regForm,
+        blurhash: blurhash,
+        token: token,
+      };
 
-    localStorage.setItem("user", JSON.stringify(setuserdata));
+      localStorage.setItem("user", JSON.stringify(setuserdata));
 
-    const nowTime = new Date().getTime();
-    const exptime = nowTime + 7 * 24 * 60 * 60 * 1000; // 7 days
-    const remainingTime = calculateRemainingTime(exptime);
-    localStorage.setItem("expirationTime", exptime);
+      const nowTime = new Date().getTime();
+      const exptime = nowTime + 7 * 24 * 60 * 60 * 1000; // 7 days
+      const remainingTime = calculateRemainingTime(exptime);
+      localStorage.setItem("expirationTime", exptime);
 
-    logoutTimer = setTimeout(logoutHandler, remainingTime);
-    setUser(setuserdata);
-    setToken(token);
-    setUserIsLoggedIn(true);
-    setIsAdmin(access === "0");
-  };
+      logoutTimer = setTimeout(logoutHandler, remainingTime);
+      setUser(setuserdata);
+      setToken(token);
+      setUserIsLoggedIn(true);
+      setIsAdmin(access === "0");
+    },
+    [logoutHandler]
+  );
 
-  const updateHandler = (
-    name,
-    email,
-    img,
-    rollNumber,
-    school,
-    college,
-    contactNo,
-    year,
-    access,
-    editProfileCount,
-    regForm,
-    blurhash,
-    token
-  ) => {
-    const setuserdata = {
-      name: name,
-      img: img,
-      email: email,
-      rollNumber: rollNumber,
-      school: school,
-      college: college,
-      contactNo: contactNo,
-      year: year,
-      extra: {},
-      access: access,
-      editProfileCount: editProfileCount,
-      regForm: regForm,
-      blurhash: blurhash,
-      token: token,
-    };
+  // Memoize the update handler
+  const updateHandler = useCallback(
+    (
+      name,
+      email,
+      img,
+      rollNumber,
+      school,
+      college,
+      contactNo,
+      year,
+      access,
+      editProfileCount,
+      regForm,
+      blurhash,
+      token
+    ) => {
+      const setuserdata = {
+        name: name,
+        img: img,
+        email: email,
+        rollNumber: rollNumber,
+        school: school,
+        college: college,
+        contactNo: contactNo,
+        year: year,
+        extra: {},
+        access: access,
+        editProfileCount: editProfileCount,
+        regForm: regForm,
+        blurhash: blurhash,
+        token: token,
+      };
 
-    localStorage.setItem("user", JSON.stringify(setuserdata));
-    setUser(setuserdata);
-    setIsAdmin(access === "0");
-  };
+      localStorage.setItem("user", JSON.stringify(setuserdata));
+      setUser(setuserdata);
+      setIsAdmin(access === "0");
+    },
+    []
+  );
 
   useEffect(() => {
     if (tokenData) {
@@ -203,7 +211,7 @@ export const AuthContextProvider = (props) => {
       memberData: null,
       croppedImageFile: null,
     }),
-    [token, userIsLoggedIn, user, target, isAdmin, loginHandler, logoutHandler]
+    [token, userIsLoggedIn, user, target, isAdmin, loginHandler, logoutHandler, updateHandler]
   );
 
   return (
