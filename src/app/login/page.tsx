@@ -8,11 +8,16 @@ import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import styles from "./styles/Login.module.scss";
 
+// Define the Google token response type
+interface GoogleTokenResponse {
+  access_token: string;
+}
+
 export default function LoginPage() {
-  const [identifier, setIdentifier] = useState(""); // Accepts username, email, or phone
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [identifier, setIdentifier] = useState<string>(""); // Accepts username, email, or phone
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
   const authCtx = useContext(AuthContext);
@@ -25,11 +30,11 @@ export default function LoginPage() {
 
   // Google OAuth Login Handler
   const googleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => handleGoogleLogin(tokenResponse),
+    onSuccess: (tokenResponse: GoogleTokenResponse) => handleGoogleLogin(tokenResponse),
     onError: (error) => console.error("Google login failed:", error),
   });
 
-  const handleGoogleLogin = async (tokenResponse: any) => {
+  const handleGoogleLogin = async (tokenResponse: GoogleTokenResponse) => {
     setIsLoading(true);
     try {
       const response = await axios.post("http://localhost:5000/api/auth/googleAuth", {
