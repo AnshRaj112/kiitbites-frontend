@@ -167,7 +167,11 @@ export default function LoginPage() {
             <button type="submit">Login</button>
           </form>
           <div className={styles.divider}>OR</div>
-          <div className={styles.googleLogin} onClick={googleLogin}>
+          {/* Wrap the googleLogin call inside an anonymous function */}
+          <div
+            className={styles.googleLogin}
+            onClick={() => googleLogin()}
+          >
             {isLoading ? "Logging in..." : "Login with Google"}
           </div>
           <div className={styles.register}>
