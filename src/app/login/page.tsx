@@ -8,44 +8,46 @@ import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import styles from "./styles/Login.module.scss";
 
-// Define the Google token response type
-interface GoogleTokenResponse {
-  access_token: string;
-}
-
 export default function LoginPage() {
-  const [identifier, setIdentifier] = useState<string>(""); // Accepts username, email, or phone
+  const authCtx = useContext(AuthContext); // Ensure AuthProvider wraps this component
+  const router = useRouter();
+
+  const [identifier, setIdentifier] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
-  const authCtx = useContext(AuthContext);
-  const router = useRouter();
 
-  // Load Google Client ID from environment variables
   useEffect(() => {
     setGoogleClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || null);
   }, []);
 
-  // Google OAuth Login Handler
+  if (!authCtx) {
+    console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
+    return <p>Error: Authentication context not available.</p>;
+  }
+
   const googleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse: GoogleTokenResponse) => handleGoogleLogin(tokenResponse),
+    onSuccess: async (tokenResponse) => {
+      await handleGoogleLogin(tokenResponse);
+    },
     onError: (error) => console.error("Google login failed:", error),
   });
 
-  const handleGoogleLogin = async (tokenResponse: GoogleTokenResponse) => {
+  const handleGoogleLogin = async (tokenResponse) => {
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/googleAuth", {
-        access_token: tokenResponse.access_token,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/googleAuth`,
+        { access_token: tokenResponse.access_token },
+        { withCredentials: true }
+      );
 
       if (response.status === 200 || response.status === 201) {
         const user = response.data.user;
         setAlert("Login successful!");
 
-        localStorage.setItem("token", response.data.token);
         authCtx.login(
           user.name,
           user.email,
@@ -68,8 +70,6 @@ export default function LoginPage() {
         }, 800);
 
         sessionStorage.removeItem("prevPage");
-      } else {
-        console.error("Unexpected response:", response.status);
       }
     } catch (error) {
       setAlert("There was an error logging in. Please try again.");
@@ -79,41 +79,58 @@ export default function LoginPage() {
     }
   };
 
-  // Email/Password Login Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!identifier || !password) {
-      alert("Please fill all the fields.");
+      setAlert("Please fill all the fields.");
       return;
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({ identifier, password }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        console.log("Login successful:", data);
         setAlert("Login successful!");
-        localStorage.setItem("token", data.token);
-        router.push("/");
+
+        authCtx.login(
+          data.user.name,
+          data.user.email,
+          data.user.img,
+          data.user.rollNumber,
+          data.user.school,
+          data.user.college,
+          data.user.contactNo,
+          data.user.year,
+          data.user.access,
+          data.user.editProfileCount,
+          data.user.regForm,
+          data.user.blurhash,
+          data.token,
+          9600000
+        );
+
+        setTimeout(() => router.push("/"), 800);
       } else {
         const errorData = await res.json();
-        alert(errorData.message || "Login failed. Please try again.");
+        setAlert(errorData.message || "Login failed. Please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred. Please try again.");
+      setAlert("An error occurred. Please try again.");
     }
   };
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId || ""}>
+    <GoogleOAuthProvider clientId={googleClientId || "your-default-client-id"}>
       <div className={styles.container}>
         <div className={styles.box}>
           <h1>Login</h1>
@@ -143,11 +160,11 @@ export default function LoginPage() {
             <button type="submit">Login</button>
           </form>
           <div className={styles.divider}>OR</div>
-          <div className={styles.googleLogin} onClick={() => googleLogin()}>
+          <div className={styles.googleLogin} onClick={googleLogin}>
             {isLoading ? "Logging in..." : "Login with Google"}
           </div>
           <div className={styles.register}>
-            <p className={styles["text-black"]}>
+            <p>
               Don&apos;t have an account? <a href="/signup">Sign Up</a>
             </p>
           </div>

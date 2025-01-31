@@ -1,7 +1,10 @@
-import Header from './components/Header';
-import Footer from './components/Footer';
-import './globals.css'; // Optional global styles
-import { GoogleOAuthProvider } from '@react-oauth/google';
+"use client";
+
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import "./globals.css"; // Optional global styles
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 
 export default function RootLayout({
   children,
@@ -14,9 +17,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <GoogleOAuthProvider clientId={googleClientId}>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <AuthProvider> 
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </AuthProvider>
         </GoogleOAuthProvider>
       </body>
     </html>
