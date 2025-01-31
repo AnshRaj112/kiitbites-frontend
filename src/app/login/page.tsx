@@ -23,20 +23,17 @@ export default function LoginPage() {
   const [alert, setAlert] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
 
-  // Fetch googleClientId from environment variables
+  // Fetch googleClientId from environment variables on the client-side
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      setAlert("Google client ID is missing. Please check your environment variables.");
-      return;
+    if (typeof window !== "undefined") {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setAlert("Google client ID is missing. Please check your environment variables.");
+        return;
+      }
+      setGoogleClientId(clientId);  // Ensure clientId is correctly fetched
     }
-    setGoogleClientId(clientId);
   }, []);
-
-  // If googleClientId is missing, show loading spinner or alert
-  if (!googleClientId) {
-    return <div>Loading...</div>;
-  }
 
   // Ensure googleLogin hook is called unconditionally
   const googleLogin = useGoogleLogin({
@@ -46,9 +43,12 @@ export default function LoginPage() {
     onError: (error) => console.error("Google login failed:", error),
   });
 
-  if (!authCtx) {
-    console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
-    return <p>Error: Authentication context not available.</p>;
+  // If googleClientId is missing or the context is not available, show a loading state
+  if (!googleClientId || !authCtx) {
+    if (!authCtx) {
+      console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
+    }
+    return <div>Loading...</div>;
   }
 
   // Handle Google login logic
@@ -87,9 +87,11 @@ export default function LoginPage() {
         }, 800);
 
         sessionStorage.removeItem("prevPage");
+      } else {
+        setAlert("Google authentication failed. Please try again.");
       }
     } catch (error) {
-      setAlert("There was an error logging in. Please try again.");
+      setAlert("There was an error logging in with Google. Please try again.");
       console.error("Google Auth API error:", error);
     } finally {
       setIsLoading(false);
