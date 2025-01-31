@@ -8,13 +8,12 @@ import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import styles from "./styles/Login.module.scss";
 
-// Define the type for the Google login response
 interface GoogleTokenResponse {
   access_token: string;
 }
 
 export default function LoginPage() {
-  const authCtx = useContext(AuthContext); // Ensure AuthProvider wraps this component
+  const authCtx = useContext(AuthContext);
   const router = useRouter();
 
   const [identifier, setIdentifier] = useState<string>("");
@@ -24,8 +23,16 @@ export default function LoginPage() {
   const [alert, setAlert] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
 
+  // Fetch googleClientId from environment variables on the client-side
   useEffect(() => {
-    setGoogleClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || null);
+    if (typeof window !== "undefined") {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setAlert("Google client ID is missing. Please check your environment variables.");
+        return;
+      }
+      setGoogleClientId(clientId);  // Ensure clientId is correctly fetched
+    }
   }, []);
 
   // Ensure googleLogin hook is called unconditionally
@@ -36,12 +43,15 @@ export default function LoginPage() {
     onError: (error) => console.error("Google login failed:", error),
   });
 
-  if (!authCtx) {
-    console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
-    return <p>Error: Authentication context not available.</p>;
+  // If googleClientId is missing or the context is not available, show a loading state
+  if (!googleClientId || !authCtx) {
+    if (!authCtx) {
+      console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
+    }
+    return <div>Loading...</div>;
   }
 
-  // Define the function to handle Google login
+  // Handle Google login logic
   const handleGoogleLogin = async (tokenResponse: GoogleTokenResponse) => {
     setIsLoading(true);
     try {
@@ -77,15 +87,18 @@ export default function LoginPage() {
         }, 800);
 
         sessionStorage.removeItem("prevPage");
+      } else {
+        setAlert("Google authentication failed. Please try again.");
       }
     } catch (error) {
-      setAlert("There was an error logging in. Please try again.");
+      setAlert("There was an error logging in with Google. Please try again.");
       console.error("Google Auth API error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle normal login form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -137,7 +150,7 @@ export default function LoginPage() {
   };
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId || "your-default-client-id"}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <div className={styles.container}>
         <div className={styles.box}>
           <h1>Login</h1>
@@ -167,11 +180,7 @@ export default function LoginPage() {
             <button type="submit">Login</button>
           </form>
           <div className={styles.divider}>OR</div>
-          {/* Wrap the googleLogin call inside an anonymous function */}
-          <div
-            className={styles.googleLogin}
-            onClick={() => googleLogin()}
-          >
+          <div className={styles.googleLogin} onClick={() => googleLogin()}>
             {isLoading ? "Logging in..." : "Login with Google"}
           </div>
           <div className={styles.register}>
