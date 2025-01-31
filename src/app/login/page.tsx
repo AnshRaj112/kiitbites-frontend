@@ -23,17 +23,18 @@ export default function LoginPage() {
     setGoogleClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || null);
   }, []);
 
-  if (!authCtx) {
-    console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
-    return <p>Error: Authentication context not available.</p>;
-  }
-
+  // Ensure googleLogin hook is called unconditionally
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       await handleGoogleLogin(tokenResponse);
     },
     onError: (error) => console.error("Google login failed:", error),
   });
+
+  if (!authCtx) {
+    console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
+    return <p>Error: Authentication context not available.</p>;
+  }
 
   const handleGoogleLogin = async (tokenResponse) => {
     setIsLoading(true);
