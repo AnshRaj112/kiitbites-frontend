@@ -156,8 +156,8 @@ export default function SignupPage() {
             <button type="submit">Sign Up</button>
           </form>
           <div className={styles.divider}>OR</div>
-          <button className={styles.google_btn} onClick={() => googleSignup()}>{isLoading ? "Signing up..." : "Sign up with Google"}</button>
-          <p>Already have an account? <a href="/login">Login</a></p>
+          <div className={styles.googleSignUp} onClick={() => googleSignup()}>{isLoading ? "Signing up..." : "Sign up with Google"}</div>
+          <p className={styles.alreadyAccount}>Already have an account? <a href="/login" className={styles.loginLink}>Login</a></p>
         </div>
       </div>
     </GoogleOAuthProvider>
