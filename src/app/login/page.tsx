@@ -8,6 +8,11 @@ import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import styles from "./styles/Login.module.scss";
 
+// Define the type for the Google login response
+interface GoogleTokenResponse {
+  access_token: string;
+}
+
 export default function LoginPage() {
   const authCtx = useContext(AuthContext); // Ensure AuthProvider wraps this component
   const router = useRouter();
@@ -36,7 +41,8 @@ export default function LoginPage() {
     return <p>Error: Authentication context not available.</p>;
   }
 
-  const handleGoogleLogin = async (tokenResponse) => {
+  // Define the function to handle Google login
+  const handleGoogleLogin = async (tokenResponse: GoogleTokenResponse) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
