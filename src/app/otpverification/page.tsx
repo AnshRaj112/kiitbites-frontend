@@ -1,12 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import OtpVerificationClient from "./OtpVerificationClient";
 
-import OtpVerification from "./OtpVerification";
-
-
-export default function OtpPage() {
+export default function OtpVerification() {
   return (
-    <div>
-      <OtpVerification />
-    </div>
+    <Suspense fallback={<p>Loading...</p>}>
+      <OtpVerificationClient />
+    </Suspense>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/OtpVerification.module.scss";
 
-export default function OtpVerification() {
+export default function OtpVerificationClient() {
   const [email, setEmail] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,11 +18,7 @@ export default function OtpVerification() {
     }
   }, [searchParams, router]);
 
-  return (
-    <Suspense fallback={<p>Loading...</p>}>
-      {email ? <OtpForm email={email} /> : <p>Loading...</p>}
-    </Suspense>
-  );
+  return email ? <OtpForm email={email} /> : <p>Loading...</p>;
 }
 
 function OtpForm({ email }: { email: string }) {
