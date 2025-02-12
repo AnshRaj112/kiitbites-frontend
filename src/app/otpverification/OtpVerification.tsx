@@ -11,7 +11,7 @@ export default function OtpVerification() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email");
+  const email = searchParams.get("email") ?? ""; // Ensure email is always a string
 
   useEffect(() => {
     if (!email) {
@@ -19,10 +19,11 @@ export default function OtpVerification() {
     }
   }, [email, router]);
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
   const handleChange = (index: number, value: string) => {
-    if (/[^0-9]/.test(value)) return;
+    if (!/^\d?$/.test(value)) return; // Only allow numbers
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -35,12 +36,8 @@ export default function OtpVerification() {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").slice(0, 6).split("");
-    const newOtp = ["", "", "", "", "", ""];
-    pastedData.forEach((char, index) => {
-      if (!/[^0-9]/.test(char)) {
-        newOtp[index] = char;
-      }
-    });
+    const newOtp = otp.map((_, index) => pastedData[index] ?? ""); // Fill OTP fields safely
+
     setOtp(newOtp);
     inputRefs.current[newOtp.length - 1]?.focus();
   };
@@ -66,7 +63,7 @@ export default function OtpVerification() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push(`/resetpassword?email=${encodeURIComponent(email ?? "")}`);
+        router.push(`/resetpassword?email=${encodeURIComponent(email)}`);
       } else {
         setError(data.message || "Invalid OTP. Try again.");
       }
@@ -88,7 +85,9 @@ export default function OtpVerification() {
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
                 type="text"
                 maxLength={1}
                 value={digit}
@@ -96,6 +95,9 @@ export default function OtpVerification() {
                 onPaste={handlePaste}
                 className={styles.otpInput}
                 required
+                aria-label={`OTP Digit ${index + 1}`}
+                title={`OTP Digit ${index + 1}`}
+                placeholder="•" // Placeholder with a bullet for better UX
               />
             ))}
           </div>
