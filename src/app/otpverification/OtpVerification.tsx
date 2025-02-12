@@ -66,7 +66,7 @@ export default function OtpVerification() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push(`/resetpassword?email=${encodeURIComponent(email)}`);
+        router.push(`/resetpassword?email=${encodeURIComponent(email ?? "")}`);
       } else {
         setError(data.message || "Invalid OTP. Try again.");
       }
