@@ -90,7 +90,7 @@
     .divider {
       margin: 15px 0;
       position: relative;
-      font-size: 14px;      
+      font-size: 14px;
       font-weight: bold;
       color: #666;
 
@@ -126,6 +126,18 @@
 
       &:hover {
         background-color: #01796f;
+      }
+    }
+
+    .forgotPassword {
+      color: #4ea199;
+      text-decoration: none;
+      transition: color 0.2s;
+      margin-bottom: 10px;
+      text-align: right;
+
+      &:hover {
+        color: #01796f;
       }
     }
 
