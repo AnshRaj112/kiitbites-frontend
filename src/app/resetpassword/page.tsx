@@ -1,13 +1,12 @@
-
 "use client";
 
+import { Suspense } from "react";
 import ResetPassword from "./ResetPassword";
 
-
-export default function OtpPage() {
+export default function ResetPasswordPage() {
   return (
-    <div>
+    <Suspense fallback={<p>Loading...</p>}>
       <ResetPassword />
-    </div>
+    </Suspense>
   );
 }

@@ -13,7 +13,7 @@ export default function ResetPassword() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();

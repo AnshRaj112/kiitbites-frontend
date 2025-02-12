@@ -22,7 +22,7 @@ export default function OtpVerificationClient() {
 }
 
 function OtpForm({ email }: { email: string }) {
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -43,7 +43,7 @@ function OtpForm({ email }: { email: string }) {
     const pastedData = e.clipboardData.getData("text").slice(0, 6).split("");
     const newOtp = otp.map((_, index) => pastedData[index] ?? "");
     setOtp(newOtp);
-    inputRefs.current[newOtp.length - 1]?.focus();
+    inputRefs.current[Math.min(newOtp.length, 5)]?.focus();
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -87,9 +87,7 @@ function OtpForm({ email }: { email: string }) {
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
+                ref={(el) => (inputRefs.current[index] = el)}
                 type="text"
                 maxLength={1}
                 value={digit}
