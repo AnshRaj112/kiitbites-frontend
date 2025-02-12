@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/OtpVerification.module.scss";
 
 export default function OtpVerification() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const inputRefs = useRef([]);
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -21,18 +21,18 @@ export default function OtpVerification() {
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const handleChange = (index, value) => {
+  const handleChange = (index: number, value: string) => {
     if (/[^0-9]/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    
+
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").slice(0, 6).split("");
     const newOtp = ["", "", "", "", "", ""];
@@ -45,7 +45,7 @@ export default function OtpVerification() {
     inputRefs.current[newOtp.length - 1]?.focus();
   };
 
-  const handleVerifyOtp = async (e) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
