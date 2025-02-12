@@ -86,19 +86,21 @@ function OtpForm({ email }: { email: string }) {
           <div className={styles.otpContainer}>
             {otp.map((digit, index) => (
               <input
-                key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
-                type="text"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(index, e.target.value)}
-                onPaste={handlePaste}
-                className={styles.otpInput}
-                required
-                aria-label={`OTP Digit ${index + 1}`}
-                title={`OTP Digit ${index + 1}`}
-                placeholder="•"
-              />
+              key={index}
+              ref={(el) => {
+                inputRefs.current[index] = el; // ✅ Fixed: No return statement
+              }}
+              type="text"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(index, e.target.value)}
+              onPaste={handlePaste}
+              className={styles.otpInput}
+              required
+              aria-label={`OTP Digit ${index + 1}`}
+              title={`OTP Digit ${index + 1}`}
+              placeholder="•"
+            />            
             ))}
           </div>
           <button type="submit" disabled={isLoading}>
