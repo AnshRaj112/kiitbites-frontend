@@ -1,43 +1,51 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/OtpVerification.module.scss";
 
 export default function OtpVerification() {
+  const [email, setEmail] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+    } else {
+      router.push("/forgotpassword");
+    }
+  }, [searchParams, router]);
+
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      {email ? <OtpForm email={email} /> : <p>Loading...</p>}
+    </Suspense>
+  );
+}
+
+function OtpForm({ email }: { email: string }) {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") ?? ""; // Ensure email is always a string
-
-  useEffect(() => {
-    if (!email) {
-      router.push("/forgotpassword");
-    }
-  }, [email, router]);
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
   const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return; // Only allow numbers
-
+    if (!/^\d?$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").slice(0, 6).split("");
-    const newOtp = otp.map((_, index) => pastedData[index] ?? ""); // Fill OTP fields safely
-
+    const newOtp = otp.map((_, index) => pastedData[index] ?? "");
     setOtp(newOtp);
     inputRefs.current[newOtp.length - 1]?.focus();
   };
@@ -45,7 +53,6 @@ export default function OtpVerification() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     const otpValue = otp.join("");
     if (otpValue.length !== 6) {
       setError("Please enter a valid 6-digit OTP.");
@@ -61,7 +68,6 @@ export default function OtpVerification() {
       });
 
       const data = await res.json();
-
       if (res.ok) {
         router.push(`/resetpassword?email=${encodeURIComponent(email)}`);
       } else {
@@ -97,7 +103,7 @@ export default function OtpVerification() {
                 required
                 aria-label={`OTP Digit ${index + 1}`}
                 title={`OTP Digit ${index + 1}`}
-                placeholder="•" // Placeholder with a bullet for better UX
+                placeholder="•"
               />
             ))}
           </div>
