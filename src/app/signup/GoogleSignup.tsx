@@ -3,29 +3,20 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthContext from "../context/AuthContext";
 import axios from "axios";
-// import styles from "./styles/GoogleSignup.module.scss";
-
-interface GoogleTokenResponse {
-  access_token: string;
-}
 
 export default function GoogleSignup() {
   const authCtx = useContext(AuthContext);
   const router = useRouter();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
-  
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
       if (!clientId) {
-        setAlert("Google client ID is missing. Please check your environment variables.");
+        console.error("Google client ID is missing. Check environment variables.");
         return;
       }
       setGoogleClientId(clientId);
@@ -46,7 +37,7 @@ export default function GoogleSignup() {
     return <div>Loading...</div>;
   }
 
-  const handleGoogleSignup = async (tokenResponse: GoogleTokenResponse) => {
+  const handleGoogleSignup = async (tokenResponse: { access_token: string }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
@@ -57,7 +48,6 @@ export default function GoogleSignup() {
 
       if (response.status === 200 || response.status === 201) {
         const user = response.data.user;
-        setAlert("Signup successful! Logged in.");
 
         authCtx.login(
           user.name,
@@ -77,13 +67,14 @@ export default function GoogleSignup() {
         );
 
         setTimeout(() => {
-          router.push("/");
+          router.push(sessionStorage.getItem("prevPage") || "/");
         }, 800);
+
+        sessionStorage.removeItem("prevPage");
       } else {
-        setAlert("Google signup failed. Please try again.");
+        console.error("Google authentication failed.");
       }
     } catch (error) {
-      setAlert("Error during Google signup. Please try again.");
       console.error("Google Auth API error:", error);
     } finally {
       setIsLoading(false);
@@ -91,8 +82,10 @@ export default function GoogleSignup() {
   };
 
   return (
-    <div onClick={() => googleSignup()}>
-      {isLoading ? "Signing up..." : "Sign up with Google"}
-    </div>
-  );  
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <div onClick={() => googleSignup()}>
+        {isLoading ? "Signing up..." : "Sign up with Google"}
+      </div>
+    </GoogleOAuthProvider>
+  );
 }

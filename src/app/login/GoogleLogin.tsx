@@ -18,7 +18,9 @@ export default function GoogleLogin() {
     if (typeof window !== "undefined") {
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
       if (!clientId) {
-        console.error("Google client ID is missing. Check environment variables.");
+        console.error(
+          "Google client ID is missing. Check environment variables."
+        );
         return;
       }
       setGoogleClientId(clientId);
@@ -34,7 +36,9 @@ export default function GoogleLogin() {
 
   if (!googleClientId || !authCtx) {
     if (!authCtx) {
-      console.error("AuthContext is undefined. Ensure AuthProvider is wrapping this component.");
+      console.error(
+        "AuthContext is undefined. Ensure AuthProvider is wrapping this component."
+      );
     }
     return <div>Loading...</div>;
   }
@@ -85,7 +89,7 @@ export default function GoogleLogin() {
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-      <div onClick={() => googleLogin()} >
+      <div onClick={() => googleLogin()}>
         {isLoading ? "Logging in..." : "Login with Google"}
       </div>
     </GoogleOAuthProvider>
