@@ -131,7 +131,7 @@ BACKEND_URL=your_backend_url
    ```
 4. **Create a new branch** following the naming convention:
    - For new features: `features/feature-name`
-   - For bug fixes: `fixes/fix-name`
+   - For bug fixes: `fixes/fix-name/feature-name`
    ```bash
    git checkout -b features/your-feature-name
    ```
