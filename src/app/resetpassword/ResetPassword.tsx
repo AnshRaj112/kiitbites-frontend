@@ -3,29 +3,48 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/ResetPassword.module.scss";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const validatePassword = (password) =>
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[@$!%*?&]/.test(password) &&
+    !/\s/.test(password);
+
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    setError("");
+
+    if (!email) {
+      toast.error("Invalid reset link. Please try again.");
+      return;
+    }
 
     if (!password || !confirmPassword) {
-      setError("Please fill all fields.");
+      toast.error("Please fill all fields.");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      toast.error("Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -40,13 +59,14 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push("/login");
+        toast.success("Password reset successfully!");
+        setTimeout(() => router.push("/login"), 2000);
       } else {
-        setError(data.message || "Failed to reset password.");
+        toast.error(data.message || "Failed to reset password.");
       }
     } catch (error) {
       console.error("Error:", error);
-      setError("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -57,28 +77,46 @@ export default function ResetPassword() {
       <div className={styles.box}>
         <h1>Reset Password</h1>
         <form onSubmit={handleResetPassword}>
-          <input
-            type="password"
-            placeholder="New Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ color: "black" }}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            style={{ color: "black" }}
-          />
+          <div className={styles.passwordField}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="New Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ color: "black" }}
+            />
+            <span
+              className={styles.eyeIcon}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </span>
+          </div>
+
+          <div className={styles.passwordField}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              style={{ color: "black" }}
+            />
+            <span
+              className={styles.eyeIcon}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </span>
+          </div>
+
           <button type="submit" disabled={isLoading}>
             {isLoading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
-        {error && <p className={styles.error}>{error}</p>}
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 }
