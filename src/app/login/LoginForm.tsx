@@ -1,46 +1,64 @@
-"use client";
-
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import GoogleLogin from "./GoogleLogin";
-import styles from "./styles/Login.module.scss";
 import Link from "next/link";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import styles from "./styles/Login.module.scss";
+import GoogleLogin from "./GoogleLogin";
 
 export default function LoginForm() {
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    identifier: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const notify = (message: string, type: "success" | "error") => {
+    toast[type](message, { position: "bottom-right", autoClose: 3000 });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!identifier || !password) {
-      alert("Please fill all the fields.");
+    if (!formData.identifier || !formData.password) {
+      notify("Please fill all the fields.", "error");
+      return;
+    }
+
+    if (!BACKEND_URL) {
+      notify("Server configuration error. Please contact support.", "error");
       return;
     }
 
     try {
       setIsLoading(true);
+
       const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Login successful:", data);
-      } else {
-        const errorData = await res.json();
-        alert(errorData.message || "Login failed. Please try again.");
+      if (!res.ok) {
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
+        notify(errorData.message || "Login failed. Please try again.", "error");
+        return;
       }
+
+      notify("Login successful!", "success");
     } catch (error) {
-      console.error("Error during login:", error);
-      alert("An error occurred. Please try again.");
+      console.error("Login error:", error);
+      notify("An unexpected error occurred. Please try again.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -53,18 +71,20 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
+            name="identifier"
             placeholder="Username, Email, or Phone"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
+            value={formData.identifier}
+            onChange={handleInputChange}
             required
             style={{ color: "black" }}
           />
           <div className={styles.passwordField}>
             <input
               type={showPassword ? "text" : "password"}
+              name="password"
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleInputChange}
               required
               style={{ color: "black" }}
             />
@@ -112,6 +132,7 @@ export default function LoginForm() {
           </p>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }
