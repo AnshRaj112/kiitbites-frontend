@@ -31,7 +31,7 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   // const [isUsernameValid, setIsUsernameValid] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
   // const [checkingUsername, setCheckingUsername] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -167,10 +167,10 @@ export default function SignupForm() {
       notify("Passwords do not match!", "error");
       return;
     }
-    if (!isUsernameValid) {
-      notify("Please choose a valid username.", "error");
-      return;
-    }
+    // if (!isUsernameValid) {
+    //   notify("Please choose a valid username.", "error");
+    //   return;
+    // }
 
     try {
       setIsLoading(true);
