@@ -17,7 +17,7 @@ export default function ResetPassword() {
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-  const validatePassword = (password) =>
+  const validatePassword = (password: string): boolean =>
     password.length >= 8 &&
     /[A-Z]/.test(password) &&
     /[a-z]/.test(password) &&
@@ -25,7 +25,7 @@ export default function ResetPassword() {
     /[@$!%*?&]/.test(password) &&
     !/\s/.test(password);
 
-  const handleResetPassword = async (e) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email) {
@@ -39,7 +39,9 @@ export default function ResetPassword() {
     }
 
     if (!validatePassword(password)) {
-      toast.error("Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.");
+      toast.error(
+        "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character."
+      );
       return;
     }
 
