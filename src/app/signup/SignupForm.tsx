@@ -7,7 +7,6 @@ import GoogleSignup from "./GoogleSignup";
 
 interface SignupFormState {
   fullName: string;
-  username: string;
   email: string;
   phone: string;
   gender: string;
@@ -18,7 +17,6 @@ interface SignupFormState {
 export default function SignupForm() {
   const [formData, setFormData] = useState<SignupFormState>({
     fullName: "",
-    username: "",
     email: "",
     phone: "",
     gender: "",
@@ -52,52 +50,6 @@ export default function SignupForm() {
     toast[type](message, { position: "bottom-right", autoClose: 3000 });
   };
 
-  //This will be working after the backend starts to make sure that the username is unique for everyone
-  // const checkUsernameAvailability = async (username: string) => {
-  //   setCheckingUsername(true);
-  //   try {
-  //     const res = await fetch("http://localhost:5000/api/auth/check-username", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ username }),
-  //     });
-  //     const data = await res.json();
-  //     if (res.ok && data?.available !== undefined) {
-  //       setIsUsernameValid(data.available);
-  //       if (!data.available) notify("Username already taken!", "error");
-  //     } else {
-  //       notify("Could not check username availability.", "error");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error checking username:", error);
-  //     notify("Could not check username availability.", "error");
-  //   } finally {
-  //     setCheckingUsername(false);
-  //   }
-  // };
-
-  // const debouncedCheckUsername = debounce(checkUsernameAvailability, 500);
-
-  //the commented code is till here
-
-  //this is the actual code for handle input change
-  // const handleInputChange = useCallback(
-  //   (e: React.ChangeEvent<HTMLInputElement>) => {
-  //     const { name, value } = e.target;
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       [name]:
-  //         name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
-  //     }));
-
-  //      if (name === "username" && validateUsername(value)) {
-  //        debouncedCheckUsername(value);
-  //      }
-  //    },
-  //    [debouncedCheckUsername]
-  // );
-
-  //this is code we are using until we have a backend will be deleted later on
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -107,17 +59,11 @@ export default function SignupForm() {
           name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
       }));
 
-      // if (name === "username" && validateUsername(value)) {
-      //   debouncedCheckUsername(value);
-      // }
+ 
     },
     [setFormData] // Fixed the dependency array
   );
 
-  //uncomment this code after adding backend
-  // useEffect(() => {
-  //   return () => debouncedCheckUsername.cancel();
-  // }, []);
 
   const handleGenderSelection = (gender: string) => {
     setFormData((prev) => ({ ...prev, gender }));
@@ -128,7 +74,6 @@ export default function SignupForm() {
     e.preventDefault();
     const {
       fullName,
-      username,
       email,
       phone,
       gender,
@@ -138,7 +83,6 @@ export default function SignupForm() {
 
     if (
       !fullName ||
-      !username ||
       !email ||
       !phone ||
       !gender ||
@@ -167,10 +111,6 @@ export default function SignupForm() {
       notify("Passwords do not match!", "error");
       return;
     }
-    // if (!isUsernameValid) {
-    //   notify("Please choose a valid username.", "error");
-    //   return;
-    // }
 
     try {
       setIsLoading(true);
@@ -185,7 +125,6 @@ export default function SignupForm() {
         notify("Signup successful!", "success");
         setFormData({
           fullName: "",
-          username: "",
           email: "",
           phone: "",
           gender: "",
@@ -218,15 +157,6 @@ export default function SignupForm() {
             onChange={handleInputChange}
             type="text"
             placeholder="Full Name"
-            required
-          />
-          <input
-            name="username"
-            value={formData.username}
-            style={{ color: "black" }}
-            onChange={handleInputChange}
-            type="text"
-            placeholder="Username"
             required
           />
           <input
