@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/Login.module.scss";
@@ -12,18 +13,18 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const notify = (message, type) => {
+  const notify = (message: string, type: "success" | "error") => {
     toast[type](message, { position: "bottom-right", autoClose: 3000 });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.identifier || !formData.password) {
@@ -31,8 +32,14 @@ export default function LoginForm() {
       return;
     }
 
+    if (!BACKEND_URL) {
+      notify("Server configuration error. Please contact support.", "error");
+      return;
+    }
+
     try {
       setIsLoading(true);
+
       const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,19 +47,18 @@ export default function LoginForm() {
         body: JSON.stringify(formData),
       });
 
-      const responseData = await res.json();
-
-      if (res.ok) {
-        notify("Login successful!", "success");
-      } else {
-        notify(
-          responseData.message || "Login failed. Please try again.",
-          "error"
-        );
+      if (!res.ok) {
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
+        notify(errorData.message || "Login failed. Please try again.", "error");
+        return;
       }
+
+      notify("Login successful!", "success");
     } catch (error) {
-      console.error("Error during login:", error);
-      notify("An error occurred. Please try again.", "error");
+      console.error("Login error:", error);
+      notify("An unexpected error occurred. Please try again.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -63,28 +69,35 @@ export default function LoginForm() {
       <div className={styles.box}>
         <h1>Login</h1>
         <form onSubmit={handleSubmit}>
-          {Object.keys(formData).map((field) => (
+          <input
+            type="text"
+            name="identifier"
+            placeholder="Username, Email, or Phone"
+            value={formData.identifier}
+            onChange={handleInputChange}
+            required
+            style={{ color: "black" }}
+          />
+          <div className={styles.passwordField}>
             <input
-              key={field}
-              name={field}
-              type={field === "password" && !showPassword ? "password" : "text"}
-              placeholder={
-                field === "identifier"
-                  ? "Username, Email, or Phone"
-                  : "Password"
-              }
-              value={formData[field]}
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
               onChange={handleInputChange}
               required
               style={{ color: "black" }}
             />
-          ))}
-          <span
-            className={styles.eyeIcon}
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <FaEye /> : <FaEyeSlash />}
-          </span>
+            <span
+              className={styles.eyeIcon}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </span>
+          </div>
+          <div className={styles.forgotPassword}>
+            <Link href="/forgotpassword">Forgot Password?</Link>
+          </div>
           <button type="submit" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
           </button>
@@ -119,7 +132,7 @@ export default function LoginForm() {
           </p>
         </div>
       </div>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer />
     </div>
   );
 }
