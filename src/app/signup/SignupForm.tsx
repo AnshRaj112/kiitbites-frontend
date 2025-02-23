@@ -210,7 +210,6 @@ export default function SignupForm() {
     <div className={styles.container}>
       <div className={styles.box}>
         <h1>Sign Up</h1>
-        {error && <p className={styles.error}>{error}</p>}
         <form onSubmit={handleSubmit}>
           <input
             name="fullName"
