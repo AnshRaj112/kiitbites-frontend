@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Full-screen height */
+  height: 150vh; /* Full-screen height */
   background-color: #f0f4f8; /* Subtle background color for contrast */
 
   .box {
@@ -37,6 +37,7 @@
         border-radius: 8px; /* Curved input fields */
         border: 1px solid #ddd;
         outline: none;
+        color: black;
         transition: box-shadow 0.2s;
 
         &:focus {
@@ -57,6 +58,57 @@
 
         &:hover {
           background-color: #01796f;
+        }
+      }
+
+      .genderField {
+        display: flex;
+        align-items: center;
+        position: relative;
+        border-radius: 8px;
+
+        input {
+          flex-grow: 1;
+          padding-right: 40px; /* Space for eye icon */
+        }
+
+        .dropdownIcon {
+          position: absolute;
+          right: 10px;
+          cursor: pointer;
+          font-size: 1.2em;
+          color: #4ea199; /* Match the button color */
+        }
+
+        .dropdownIcon:hover {
+          color: #01796f;
+        }
+
+        ul {
+          list-style: none;
+          padding: 0;
+          margin-top: 140px; // Add space below the input
+          width: 100%; // Ensure full width below input
+          color: black;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
+          display: block; // Initially hide it
+          position: absolute;
+          z-index: 10;
+      
+          li {
+            padding: 10px;
+            cursor: pointer;
+            text-align: left;
+            display: block; // Ensure it takes full width
+            width: 100%; // Make it occupy full width
+            border-radius: 8px;
+      
+            &:hover {
+              background: #f0f4f8;
+            }
+          }
         }
       }
 
@@ -141,6 +193,6 @@
 
 @media screen and (max-width: 1024px) {
   .container {
-    height: 91.6vh; /* Full-screen height */
+    height: 110.6vh; /* Full-screen height */
   }
 }
