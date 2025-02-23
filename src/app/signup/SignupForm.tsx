@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { FaEye, FaEyeSlash, FaCheck, FaChevronDown } from "react-icons/fa";
+import React, { useState, useCallback, useRef } from "react";
+import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
-import { debounce } from "lodash";
+// import { debounce } from "lodash";
 import styles from "./styles/Signup.module.scss";
 import GoogleSignup from "./GoogleSignup";
 
@@ -30,14 +30,14 @@ export default function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
-  const [isUsernameValid, setIsUsernameValid] = useState(true);
+  // const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
+  // const [checkingUsername, setCheckingUsername] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const validateUsername = (username: string) =>
-    /^[A-Za-z0-9_]+$/.test(username);
+  // const validateUsername = (username: string) =>
+  //   /^[A-Za-z0-9_]+$/.test(username);
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePassword = (password: string) =>
