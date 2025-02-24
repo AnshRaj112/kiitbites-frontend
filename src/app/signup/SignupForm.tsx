@@ -58,28 +58,21 @@ export default function SignupForm() {
         [name]:
           name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
       }));
-
- 
     },
     [setFormData] // Fixed the dependency array
   );
-
 
   const handleGenderSelection = (gender: string) => {
     setFormData((prev) => ({ ...prev, gender }));
     setShowGenderDropdown(false);
   };
 
+  const BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const {
-      fullName,
-      email,
-      phone,
-      gender,
-      password,
-      confirmPassword,
-    } = formData;
+    const { fullName, email, phone, gender, password, confirmPassword } =
+      formData;
 
     if (
       !fullName ||
@@ -112,9 +105,14 @@ export default function SignupForm() {
       return;
     }
 
+    if (!BACKEND_URL) {
+      notify("Server configuration error. Please contact support.", "error");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
