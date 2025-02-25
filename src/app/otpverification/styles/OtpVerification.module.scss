@@ -1,0 +1,95 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 88.25dvh;
+    background-color: #f0f4f8;
+    padding: 20px;
+
+    .box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        transition: transform 0.2s ease-in-out;
+
+        &:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 28px;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+
+            .otpContainer {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 20px;
+
+                @media (max-width: 480px) {
+                    gap: 8.75px; // Reduced gap for smaller screens
+                }
+
+                .otpInput {
+                    width: 45px;
+                    height: 50px;
+                    text-align: center;
+                    font-size: 20px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                    outline: none;
+                    transition: box-shadow 0.2s, border-color 0.2s;
+
+                    &:focus {
+                        box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
+                        border-color: #4ea199;
+                    }
+
+                    @media (max-width: 480px) {
+                        width: 40px; // Reduced gap for smaller screens
+                        height: 45px; // Reduced gap for smaller screens
+                    }
+                }
+            }
+
+            button {
+                background-color: #4ea199;
+                color: white;
+                padding: 12px 20px;
+                font-size: 16px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background 0.2s;
+                width: 100%;
+
+                &:hover {
+                    background-color: #3b847f;
+                }
+
+                &:disabled {
+                    background-color: #a1cfc9;
+                    cursor: not-allowed;
+                }
+            }
+        }
+    }
+}

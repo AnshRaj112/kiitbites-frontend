@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/OtpVerification.module.scss";
 
 export default function OtpVerificationClient() {
-  const [email, setEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>("test@example.com"); // Temporarily set a default email for testing
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Temporarily disabled for CSS testing
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -17,6 +20,8 @@ export default function OtpVerificationClient() {
       router.push("/forgotpassword");
     }
   }, [searchParams, router]);
+  
+//
 
   return email ? <OtpForm email={email} /> : <p>Loading...</p>;
 }
@@ -24,7 +29,6 @@ export default function OtpVerificationClient() {
 function OtpForm({ email }: { email: string }) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
 
@@ -48,10 +52,9 @@ function OtpForm({ email }: { email: string }) {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    const otpValue = otp.join("");
-    if (otpValue.length !== 6) {
-      setError("Please enter a valid 6-digit OTP.");
+
+    if (!otp) {
+      toast.error("Please enter the OTP.");
       return;
     }
 
@@ -60,18 +63,20 @@ function OtpForm({ email }: { email: string }) {
       const res = await fetch(`${BACKEND_URL}/api/auth/verifyotp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpValue }),
+        body: JSON.stringify({ otp }),
       });
 
       const data = await res.json();
+
       if (res.ok) {
-        router.push(`/resetpassword?email=${encodeURIComponent(email)}`);
+        toast.success("OTP verified successfully!");
+        setTimeout(() => router.push("/dashboard"), 2000);
       } else {
-        setError(data.message || "Invalid OTP. Try again.");
+        toast.error(data.message || "Failed to verify OTP.");
       }
     } catch (error) {
       console.error("Error:", error);
-      setError("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -86,29 +91,30 @@ function OtpForm({ email }: { email: string }) {
           <div className={styles.otpContainer}>
             {otp.map((digit, index) => (
               <input
-              key={index}
-              ref={(el) => {
-                inputRefs.current[index] = el; // ✅ Fixed: No return statement
-              }}
-              type="text"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onPaste={handlePaste}
-              className={styles.otpInput}
-              required
-              aria-label={`OTP Digit ${index + 1}`}
-              title={`OTP Digit ${index + 1}`}
-              placeholder="•"
-            />            
+                key={index}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                type="text"
+                maxLength={1}
+                value={digit}
+                style={{ color: "black" }}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onPaste={handlePaste}
+                className={styles.otpInput}
+                required
+                aria-label={`OTP Digit ${index + 1}`}
+                title={`OTP Digit ${index + 1}`}
+                placeholder=" "
+              />
             ))}
           </div>
           <button type="submit" disabled={isLoading}>
             {isLoading ? "Verifying..." : "Verify OTP"}
           </button>
         </form>
-        {error && <p className={styles.error}>{error}</p>}
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 }
