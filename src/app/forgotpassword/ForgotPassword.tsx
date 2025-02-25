@@ -1,23 +1,23 @@
-"use client";  // ✅ Ensures it's a client component
+"use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ Use this for Next.js App Router
+import { useRouter } from "next/navigation";
 import styles from "./styles/ForgotPassword.module.scss";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter(); // ✅ Ensures Next.js router is available
+  const router = useRouter();
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage("");
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/forgotpassword`, // ✅ Uses env variable
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/forgotpassword`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -34,13 +34,14 @@ export default function ForgotPassword() {
       }
 
       if (response.ok) {
-        router.push(`/verifyotp?email=${encodeURIComponent(email)}`); // ✅ Redirects on success
+        toast.success("OTP sent successfully! Check your email.");
+        setTimeout(() => router.push(`/verifyotp?email=${encodeURIComponent(email)}`), 2000);
       } else {
-        setMessage(data?.message || "Failed to send reset email.");
+        toast.error(data?.message || "Failed to send reset email.");
       }
     } catch (error) {
       console.error("Forgot Password Error:", error);
-      setMessage("Something went wrong. Try again.");
+      toast.error("Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +65,8 @@ export default function ForgotPassword() {
             {isLoading ? "Sending OTP..." : "Send OTP"}
           </button>
         </form>
-        {message && <p className={styles.message}>{message}</p>}
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 }
