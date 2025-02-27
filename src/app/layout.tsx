@@ -1,10 +1,9 @@
-"use client";
-
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import "./globals.css"; // Optional global styles
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({
   children,
@@ -23,6 +22,7 @@ export default function RootLayout({
             <Footer />
           </AuthProvider>
         </GoogleOAuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
