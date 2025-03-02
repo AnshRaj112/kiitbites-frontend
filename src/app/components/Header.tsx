@@ -43,7 +43,7 @@ const Header = () => {
 
         <div className={styles.navItem} onClick={() => router.push("/login")}>
           <IoPersonOutline size={20} />
-          <span>LogIn</span>
+          <span>Login</span>
         </div>
 
         <div className={styles.navItem} onClick={() => router.push("/cart")}>
