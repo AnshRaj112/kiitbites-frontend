@@ -1,25 +1,42 @@
 .header {
-    background-color: #0070f3;
-    padding: 10px 20px;
-  
-    nav ul {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-  
-      li {
-        margin-right: 20px;
-  
-        a {
-          color: white;
-          text-decoration: none;
-  
-          &:hover {
-            text-decoration: underline;
-          }
-        }
-      }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  transition: background-color 0.3s ease-in-out;
+
+  &.scrolled {
+    background-color: transparent; // Dark background on scroll
+  }
+
+  .logoContainer {
+    display: flex;
+    align-items: center;
+  }
+
+  .navOptions {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+  }
+
+  .navItem {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    gap: 5px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    color: black;
+
+    &:hover {
+      color: #01796f;
     }
   }
-  
+}

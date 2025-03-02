@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function Home() {
+export default function Landing() {
   return (
     <div style={{ textAlign: 'center', padding: '50px' }}>
       <h1>Welcome to KIITBites</h1>
