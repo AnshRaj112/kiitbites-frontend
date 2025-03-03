@@ -246,7 +246,14 @@ export default function SignupForm() {
               </div>
               <div className={styles.googleSignUp}>
                 <GoogleSignup />
-              </div>
+              </div> 
+
+              <p className={styles.alreadyAccount}>
+          Already have an account?{" "}
+          <a href="/login" className={styles.loginLink}>
+            Login
+          </a>
+        </p>
             </>
           )}
         </form>
