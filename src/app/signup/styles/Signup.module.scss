@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 120vh; /* Full-screen height */
+  height: 100dvh; /* Full-screen height */
   background-color: #f0f4f8; /* Subtle background color for contrast */
 
   .box {
@@ -39,6 +39,7 @@
         outline: none;
         color: black;
         transition: box-shadow 0.2s;
+        cursor: pointer;
 
         &:focus {
           box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
@@ -155,6 +156,52 @@
         border-top: 1px solid #ddd;
       }
     }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+
+    
+      .stepButton {
+        background-color: #4ea199;
+        color: black;
+        padding: 12px;
+        border: none;
+        border-radius: 8px; /* Match input curvature */
+        cursor: pointer;
+        font-size: 1em;
+        width: 100%;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #01796f;
+        }
+      }
+    }
+    
+    .buttonsSpaced {
+      display: flex;
+      justify-content: space-between;
+      gap: 10%;
+      margin-top: 20px;
+    
+      .stepButton {
+        background-color: #4ea199;
+        color: black;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+        width: 40%;
+    
+        &:hover {
+          background-color: #01796f;
+        }
+      }
+    }
+    
 
     .googleSignUp {
       background-color: #4ea199;
