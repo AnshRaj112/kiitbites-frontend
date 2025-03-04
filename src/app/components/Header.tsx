@@ -11,10 +11,10 @@ import { FaBars } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import styles from "./styles/Header.module.scss";
 
-const Header = () => {
+const Header: React.FC = () => {
   const router = useRouter();
-  const [scrolling, setScrolling] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolling, setScrolling] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   // Handle Scroll Effect
   useEffect(() => {
@@ -32,14 +32,11 @@ const Header = () => {
     return () => document.body.classList.remove("menu-open");
   }, [menuOpen]);
 
-  // Handle Navigation with useCallback
-  const handleNavigation = useCallback(
-    (path) => {
-      router.push(path);
-      setMenuOpen(false);
-    },
-    [router]
-  );
+  // Handle Navigation with Type Annotation
+  const handleNavigation = useCallback((path: string) => {
+    router.push(path);
+    setMenuOpen(false);
+  }, [router]);
 
   return (
     <header className={`${styles.header} ${scrolling ? styles.scrolled : ""}`}>
