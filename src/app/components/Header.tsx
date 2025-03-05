@@ -8,6 +8,7 @@ import { IoHelp, IoPersonOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
 import { FaBars } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "./styles/Header.module.scss";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -17,6 +18,18 @@ const Header: React.FC = () => {
   const [scrolling, setScrolling] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [userFullName, setUserFullName] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Track screen width
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 770);
+    };
+
+    handleResize(); // Set initial state
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle Scroll Effect
   useEffect(() => {
@@ -46,7 +59,6 @@ const Header: React.FC = () => {
     const fetchUser = async () => {
       try {
         if (!BACKEND_URL) {
-          // Mock user data (REMOVE THIS WHEN BACKEND IS READY)
           setUserFullName("Demo User");
           return;
         }
@@ -95,46 +107,99 @@ const Header: React.FC = () => {
       </div>
 
       {/* Overlay for Mobile Menu */}
-      <div
-        className={`${styles.overlay} ${menuOpen ? styles.showOverlay : ""}`}
-        onClick={() => setMenuOpen(false)}
-      ></div>
+      {menuOpen && isMobile && (
+        <motion.div
+          className={styles.overlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          onClick={() => setMenuOpen(false)}
+        ></motion.div>
+      )}
 
-      {/* Navigation Options */}
-      <nav className={`${styles.navOptions} ${menuOpen ? styles.open : ""}`}>
-        <div className={styles.menuBox}>
-          <div
-            className={styles.navItem}
-            onClick={() => handleNavigation("/search")}
-          >
-            <IoMdSearch size={24} />
-            <span>Search</span>
+      {/* Navigation for Mobile and Desktop */}
+      {isMobile ? (
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.nav
+              className={styles.navOptions}
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <div className={styles.menuBox}>
+                <div
+                  className={styles.navItem}
+                  onClick={() => handleNavigation("/search")}
+                >
+                  <IoMdSearch size={24} />
+                  <span>Search</span>
+                </div>
+                <div
+                  className={styles.navItem}
+                  onClick={() => handleNavigation("/help")}
+                >
+                  <IoHelp size={24} />
+                  <span>Help</span>
+                </div>
+                <div
+                  className={styles.navItem}
+                  onClick={() =>
+                    handleNavigation(userFullName ? "/profile" : "/login")
+                  }
+                >
+                  <IoPersonOutline size={24} />
+                  <span>{userFullName || "Login"}</span>
+                </div>
+                <div
+                  className={styles.navItem}
+                  onClick={() => handleNavigation("/cart")}
+                >
+                  <PiShoppingCartSimpleBold size={24} />
+                  <span>Cart</span>
+                </div>
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
+      ) : (
+        <nav className={styles.navOptions}>
+          <div className={styles.menuBox}>
+            <div
+              className={styles.navItem}
+              onClick={() => handleNavigation("/search")}
+            >
+              <IoMdSearch size={24} />
+              <span>Search</span>
+            </div>
+            <div
+              className={styles.navItem}
+              onClick={() => handleNavigation("/help")}
+            >
+              <IoHelp size={24} />
+              <span>Help</span>
+            </div>
+            <div
+              className={styles.navItem}
+              onClick={() =>
+                handleNavigation(userFullName ? "/profile" : "/login")
+              }
+            >
+              <IoPersonOutline size={24} />
+              <span>{userFullName || "Login"}</span>
+            </div>
+            <div
+              className={styles.navItem}
+              onClick={() => handleNavigation("/cart")}
+            >
+              <PiShoppingCartSimpleBold size={24} />
+              <span>Cart</span>
+            </div>
           </div>
-          <div
-            className={styles.navItem}
-            onClick={() => handleNavigation("/help")}
-          >
-            <IoHelp size={24} />
-            <span>Help</span>
-          </div>
-          <div
-            className={styles.navItem}
-            onClick={() =>
-              handleNavigation(userFullName ? "/profile" : "/login")
-            }
-          >
-            <IoPersonOutline size={24} />
-            <span>{userFullName || "Login"}</span>
-          </div>
-          <div
-            className={styles.navItem}
-            onClick={() => handleNavigation("/cart")}
-          >
-            <PiShoppingCartSimpleBold size={24} />
-            <span>Cart</span>
-          </div>
-        </div>
-      </nav>
+        </nav>
+      )}
     </header>
   );
 };
