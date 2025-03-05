@@ -114,18 +114,3 @@
 body.menu-open {
   overflow: hidden;
 }
-
-@media (max-width: 768px) {
-  :global(::-webkit-scrollbar) {
-    width: 0px;
-    height: 0px;
-  }
-
-  :global(html) {
-    scrollbar-width: none;
-  }
-
-  :global(body) {
-    -ms-overflow-style: none;
-  }
-}
