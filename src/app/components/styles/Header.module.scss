@@ -116,19 +116,16 @@ body.menu-open {
 }
 
 @media (max-width: 768px) {
-  /* Hide scrollbar while keeping scrolling */
-  ::-webkit-scrollbar {
+  :global(::-webkit-scrollbar) {
     width: 0px;
     height: 0px;
   }
 
-  /* For Firefox */
-  html {
+  :global(html) {
     scrollbar-width: none;
   }
 
-  /* For Internet Explorer/Edge */
-  body {
+  :global(body) {
     -ms-overflow-style: none;
   }
 }
