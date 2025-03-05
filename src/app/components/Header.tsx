@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { IoMdSearch } from "react-icons/io";
 import { IoHelp, IoPersonOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
@@ -11,10 +10,13 @@ import { FaBars } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import styles from "./styles/Header.module.scss";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 const Header: React.FC = () => {
   const router = useRouter();
   const [scrolling, setScrolling] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [userFullName, setUserFullName] = useState<string | null>(null);
 
   // Handle Scroll Effect
   useEffect(() => {
@@ -26,23 +28,69 @@ const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Toggle Body Class for Menu
+  // Lock/Unlock Scrolling when Menu Opens
   useEffect(() => {
-    document.body.classList.toggle("menu-open", menuOpen);
-    return () => document.body.classList.remove("menu-open");
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [menuOpen]);
 
+  // Fetch User Data or Use Mock User
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        if (!BACKEND_URL) {
+          // Mock user data (REMOVE THIS WHEN BACKEND IS READY)
+          setUserFullName("Demo User");
+          return;
+        }
+
+        const response = await fetch(`${BACKEND_URL}/api/user`, {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserFullName(data.fullName);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   // Handle Navigation with Type Annotation
-  const handleNavigation = useCallback((path: string) => {
-    router.push(path);
-    setMenuOpen(false);
-  }, [router]);
+  const handleNavigation = useCallback(
+    (path: string) => {
+      router.push(path);
+      setMenuOpen(false);
+    },
+    [router]
+  );
 
   return (
     <header className={`${styles.header} ${scrolling ? styles.scrolled : ""}`}>
+      {/* Mobile Menu Toggle */}
+      <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>
+        {menuOpen ? (
+          <RxCross2 size={24} className={styles.menuToggleIcon} />
+        ) : (
+          <FaBars size={24} />
+        )}
+      </div>
+
+      {/* KIITBites Logo */}
       <div className={styles.logoContainer}>
         <Link href="/">
-          <Image src="/logo.png" alt="Logo" width={100} height={40} priority />
+          <p>KIITBites</p>
         </Link>
       </div>
 
@@ -55,29 +103,38 @@ const Header: React.FC = () => {
       {/* Navigation Options */}
       <nav className={`${styles.navOptions} ${menuOpen ? styles.open : ""}`}>
         <div className={styles.menuBox}>
-          <div className={styles.navItem} onClick={() => handleNavigation("/search")}>
+          <div
+            className={styles.navItem}
+            onClick={() => handleNavigation("/search")}
+          >
             <IoMdSearch size={24} />
             <span>Search</span>
           </div>
-          <div className={styles.navItem} onClick={() => handleNavigation("/help")}>
+          <div
+            className={styles.navItem}
+            onClick={() => handleNavigation("/help")}
+          >
             <IoHelp size={24} />
             <span>Help</span>
           </div>
-          <div className={styles.navItem} onClick={() => handleNavigation("/login")}>
+          <div
+            className={styles.navItem}
+            onClick={() =>
+              handleNavigation(userFullName ? "/profile" : "/login")
+            }
+          >
             <IoPersonOutline size={24} />
-            <span>Login</span>
+            <span>{userFullName || "Login"}</span>
           </div>
-          <div className={styles.navItem} onClick={() => handleNavigation("/cart")}>
+          <div
+            className={styles.navItem}
+            onClick={() => handleNavigation("/cart")}
+          >
             <PiShoppingCartSimpleBold size={24} />
             <span>Cart</span>
           </div>
         </div>
       </nav>
-
-      {/* Mobile Menu Toggle */}
-      <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? <RxCross2 size={24} className={styles.crossIcon} /> : <FaBars size={24} />}
-      </div>
     </header>
   );
 };
