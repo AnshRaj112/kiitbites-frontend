@@ -1,7 +1,10 @@
-import React, { useState, useCallback } from "react";
+"use client";
+
+import React, { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Ensure Toastify works properly
+import "react-toastify/dist/ReactToastify.css";
 import styles from "./styles/Signup.module.scss";
 import GoogleSignup from "./GoogleSignup";
 
@@ -24,6 +27,8 @@ export default function SignupForm() {
     confirmPassword: "",
   });
 
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
@@ -31,6 +36,10 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,6 +73,14 @@ export default function SignupForm() {
       const data = await res.json();
       if (res.ok) {
         notify("Signup successful!", "success");
+
+        setTimeout(() => {
+          if (isClient) {
+            router.push("/otpverification");
+          } else {
+            window.location.href = "/otpverification";
+          }
+        }, 2000);
       } else {
         notify(data.message || "Signup failed. Try again.", "error");
       }
@@ -77,13 +94,26 @@ export default function SignupForm() {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!formData.fullName || !validateEmail(formData.email) || formData.phone.length !== 10) {
-        notify("Please enter a valid name, email, and 10-digit phone number.", "error");
+      if (
+        !formData.fullName ||
+        !validateEmail(formData.email) ||
+        formData.phone.length !== 10
+      ) {
+        notify(
+          "Please enter a valid name, email, and 10-digit phone number.",
+          "error"
+        );
         return;
       }
     } else if (step === 2) {
-      if (!validatePassword(formData.password) || formData.password !== formData.confirmPassword) {
-        notify("Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.", "error");
+      if (
+        !validatePassword(formData.password) ||
+        formData.password !== formData.confirmPassword
+      ) {
+        notify(
+          "Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.",
+          "error"
+        );
         return;
       }
     } else if (step === 3 && !formData.gender) {
@@ -107,7 +137,8 @@ export default function SignupForm() {
       const { name, value } = e.target;
       setFormData((prev) => ({
         ...prev,
-        [name]: name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
+        [name]:
+          name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
       }));
     },
     []
@@ -246,14 +277,14 @@ export default function SignupForm() {
               </div>
               <div className={styles.googleSignUp}>
                 <GoogleSignup />
-              </div> 
+              </div>
 
               <p className={styles.alreadyAccount}>
-          Already have an account?{" "}
-          <a href="/login" className={styles.loginLink}>
-            Login
-          </a>
-        </p>
+                Already have an account?{" "}
+                <a href="/login" className={styles.loginLink}>
+                  Login
+                </a>
+              </p>
             </>
           )}
         </form>

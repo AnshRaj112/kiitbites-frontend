@@ -7,26 +7,31 @@ import styles from "./styles/OtpVerification.module.scss";
 
 export default function OtpVerificationClient() {
   const [email, setEmail] = useState<string | null>("test@example.com"); // Temporarily set a default email for testing
+  const [fromPage, setFromPage] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Temporarily disabled for CSS testing
-
   useEffect(() => {
     const emailParam = searchParams.get("email");
+    const fromParam = searchParams.get("from");
+    
+    //comment to check css
     if (emailParam) {
       setEmail(emailParam);
     } else {
       router.push("/forgotpassword");
     }
+    // till here
+    
+    if (fromParam) {
+      setFromPage(fromParam);
+    }
   }, [searchParams, router]);
-  
-//
 
-  return email ? <OtpForm email={email} /> : <p>Loading...</p>;
+  return email ? <OtpForm email={email} fromPage={fromPage} /> : <p>Loading...</p>;
 }
 
-function OtpForm({ email }: { email: string }) {
+function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -70,7 +75,15 @@ function OtpForm({ email }: { email: string }) {
 
       if (res.ok) {
         toast.success("OTP verified successfully!");
-        setTimeout(() => router.push("/dashboard"), 2000);
+        setTimeout(() => {
+          if (fromPage === "signup") {
+            router.push("/home");
+          } else if (fromPage === "forgotpassword") {
+            router.push("/resetpassword");
+          } else {
+            router.push("/"); // Default fallback
+          }
+        }, 2000);
       } else {
         toast.error(data.message || "Failed to verify OTP.");
       }
