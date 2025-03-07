@@ -55,7 +55,7 @@ export default function SignupForm() {
     toast[type](message, { position: "bottom-right", autoClose: 3000 });
   };
 
-  const handleSignup = async () => {
+  const fetchUser  = async () => {
     if (!BACKEND_URL) {
       notify("Server configuration error. Please contact support.", "error");
       return;
@@ -124,7 +124,7 @@ export default function SignupForm() {
     if (step < 3) {
       setStep((prevStep) => prevStep + 1);
     } else {
-      handleSignup();
+      fetchUser ();
     }
   };
 
