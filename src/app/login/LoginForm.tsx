@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -63,6 +65,27 @@ export default function LoginForm() {
       setIsLoading(false);
     }
   };
+
+    // Auto-refresh token on visit
+    const checkSession = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+          method: "GET",
+          credentials: "include",
+        });
+  
+        if (!res.ok) {
+          console.log("Session expired, user needs to log in again.");
+        }
+      } catch (error) {
+        console.error("Error refreshing session:", error);
+      }
+    };
+  
+    // Refresh session on component mount
+    useEffect(() => {
+      checkSession();
+    }, []);
 
   return (
     <div className={styles.container}>
