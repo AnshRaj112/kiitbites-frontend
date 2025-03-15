@@ -35,7 +35,7 @@ export default function ForgotPassword() {
 
       if (response.ok) {
         toast.success("OTP sent successfully! Check your email.");
-        setTimeout(() => router.push(`/verifyotp?email=${encodeURIComponent(email)}`), 2000);
+        setTimeout(() => router.push(`/otpverification?email=${encodeURIComponent(email)}`), 2000);
       } else {
         toast.error(data?.message || "Failed to send reset email.");
       }

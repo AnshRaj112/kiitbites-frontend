@@ -76,7 +76,7 @@ export default function SignupForm() {
 
         setTimeout(() => {
           router.push(
-            `/verifyotp?email=${encodeURIComponent(formData.email)}&from=signup`
+            `/otpverification?email=${encodeURIComponent(formData.email)}&from=signup`
           );
         }, 2000);
       } else {

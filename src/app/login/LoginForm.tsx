@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // For App Router (Next.js 13+)
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/Login.module.scss";
@@ -14,6 +15,7 @@ export default function LoginForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -49,15 +51,28 @@ export default function LoginForm() {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+
+      if (res.status === 400 && data.redirectTo) {
+        // If user is unverified, redirect them to /otpverification
+        toast.error("Account not verified. OTP sent to email.");
+        setTimeout(() => {
+          router.push(
+            `/otpverification?email=${encodeURIComponent(
+              formData.identifier
+            )}&from=login`
+          );
+        }, 2000);
+        return;
+      }
+
       if (!res.ok) {
-        const errorData = await res
-          .json()
-          .catch(() => ({ message: "Unknown error" }));
-        notify(errorData.message || "Login failed. Please try again.", "error");
+        notify(data.message || "Login failed. Please try again.", "error");
         return;
       }
 
       notify("Login successful!", "success");
+      setTimeout(() => router.push("/home"), 2000);
     } catch (error) {
       console.error("Login error:", error);
       notify("An unexpected error occurred. Please try again.", "error");
