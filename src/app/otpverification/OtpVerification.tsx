@@ -14,7 +14,7 @@ export default function OtpVerificationClient() {
   useEffect(() => {
     const emailParam = searchParams.get("email");
     const fromParam = searchParams.get("from");
-  
+
     if (emailParam) {
       setEmail(emailParam);
     } else {
@@ -22,20 +22,29 @@ export default function OtpVerificationClient() {
       if (fromParam === "forgotpassword") {
         router.push("/forgotpassword");
       } else if (fromParam === "signup" || fromParam === "login") {
-        router.push("/verifyotp");
+        router.push("/otpverification");
       }
     }
-  
+
     if (fromParam) {
       setFromPage(fromParam);
     }
   }, [searchParams, router]);
-  
 
-  return email ? <OtpForm email={email} fromPage={fromPage} /> : <p>Loading...</p>;
+  return email ? (
+    <OtpForm email={email} fromPage={fromPage} />
+  ) : (
+    <p>Loading...</p>
+  );
 }
 
-function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }) {
+function OtpForm({
+  email,
+  fromPage,
+}: {
+  email: string;
+  fromPage: string | null;
+}) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -62,17 +71,19 @@ function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!otp) {
+    const otpString = otp.join(""); // Convert OTP array to a string
+
+    if (!otpString) {
       toast.error("Please enter the OTP.");
       return;
     }
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${BACKEND_URL}/api/auth/verifyotp`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/otpverification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ email, otp: otpString }), // Send as a string
       });
 
       const data = await res.json();
