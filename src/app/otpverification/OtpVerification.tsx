@@ -14,19 +14,23 @@ export default function OtpVerificationClient() {
   useEffect(() => {
     const emailParam = searchParams.get("email");
     const fromParam = searchParams.get("from");
-    
-    //comment to check css
+  
     if (emailParam) {
       setEmail(emailParam);
     } else {
-      router.push("/forgotpassword");
+      // Instead of pushing directly to /forgotpassword, check where the user is coming from
+      if (fromParam === "forgotpassword") {
+        router.push("/forgotpassword");
+      } else if (fromParam === "signup" || fromParam === "login") {
+        router.push("/verifyotp");
+      }
     }
-    // till here
-    
+  
     if (fromParam) {
       setFromPage(fromParam);
     }
   }, [searchParams, router]);
+  
 
   return email ? <OtpForm email={email} fromPage={fromPage} /> : <p>Loading...</p>;
 }

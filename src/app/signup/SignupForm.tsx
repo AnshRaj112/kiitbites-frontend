@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -28,7 +28,7 @@ export default function SignupForm() {
   });
 
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
+  // const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
@@ -37,9 +37,9 @@ export default function SignupForm() {
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsClient(true);
+  // }, []);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -55,7 +55,7 @@ export default function SignupForm() {
     toast[type](message, { position: "bottom-right", autoClose: 3000 });
   };
 
-  const fetchUser  = async () => {
+  const fetchUser = async () => {
     if (!BACKEND_URL) {
       notify("Server configuration error. Please contact support.", "error");
       return;
@@ -75,11 +75,9 @@ export default function SignupForm() {
         notify("Signup successful!", "success");
 
         setTimeout(() => {
-          if (isClient) {
-            router.push("/otpverification");
-          } else {
-            window.location.href = "/otpverification";
-          }
+          router.push(
+            `/verifyotp?email=${encodeURIComponent(formData.email)}&from=signup`
+          );
         }, 2000);
       } else {
         notify(data.message || "Signup failed. Try again.", "error");
@@ -91,6 +89,9 @@ export default function SignupForm() {
       setIsLoading(false);
     }
   };
+
+  console.log("Making request to:", `${BACKEND_URL}/api/auth/signup`);
+  console.log("Request body:", formData);
 
   const handleNext = () => {
     if (step === 1) {
@@ -124,7 +125,7 @@ export default function SignupForm() {
     if (step < 3) {
       setStep((prevStep) => prevStep + 1);
     } else {
-      fetchUser ();
+      fetchUser();
     }
   };
 
