@@ -28,7 +28,7 @@ export default function SignupForm() {
   });
 
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
+  // const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
@@ -37,9 +37,9 @@ export default function SignupForm() {
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsClient(true);
+  // }, []);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
