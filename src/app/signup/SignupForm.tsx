@@ -55,7 +55,7 @@ export default function SignupForm() {
     toast[type](message, { position: "bottom-right", autoClose: 3000 });
   };
 
-  const fetchUser  = async () => {
+  const fetchUser = async () => {
     if (!BACKEND_URL) {
       notify("Server configuration error. Please contact support.", "error");
       return;
@@ -75,11 +75,9 @@ export default function SignupForm() {
         notify("Signup successful!", "success");
 
         setTimeout(() => {
-          if (isClient) {
-            router.push("/otpverification");
-          } else {
-            window.location.href = "/otpverification";
-          }
+          router.push(
+            `/verifyotp?email=${encodeURIComponent(formData.email)}&from=signup`
+          );
         }, 2000);
       } else {
         notify(data.message || "Signup failed. Try again.", "error");
@@ -91,6 +89,9 @@ export default function SignupForm() {
       setIsLoading(false);
     }
   };
+
+  console.log("Making request to:", `${BACKEND_URL}/api/auth/signup`);
+  console.log("Request body:", formData);
 
   const handleNext = () => {
     if (step === 1) {
@@ -124,7 +125,7 @@ export default function SignupForm() {
     if (step < 3) {
       setStep((prevStep) => prevStep + 1);
     } else {
-      fetchUser ();
+      fetchUser();
     }
   };
 
