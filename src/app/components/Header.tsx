@@ -58,13 +58,12 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        if (!BACKEND_URL) {
-          setUserFullName("Demo User");
-          return;
-        }
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-        const response = await fetch(`${BACKEND_URL}/api/user`, {
+        const response = await fetch(`${BACKEND_URL}/api/auth/user`, {
           credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
@@ -147,7 +146,7 @@ const Header: React.FC = () => {
                 <div
                   className={styles.navItem}
                   onClick={() =>
-                    handleNavigation(userFullName ? "/profile" : "/login")
+                    router.push(userFullName ? "/profile" : "/login")
                   }
                 >
                   <IoPersonOutline size={24} />

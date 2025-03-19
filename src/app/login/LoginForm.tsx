@@ -71,6 +71,8 @@ export default function LoginForm() {
         return;
       }
 
+      localStorage.setItem("token", data.token);
+
       notify("Login successful!", "success");
       setTimeout(() => router.push("/home"), 2000);
     } catch (error) {
@@ -88,18 +90,31 @@ export default function LoginForm() {
         method: "GET",
         credentials: "include",
       });
-
-      if (!res.ok) {
-        console.log("Session expired, user needs to log in again.");
+  
+      if (res.ok) {
+        console.log("✅ Session refreshed successfully");
+      } else if (res.status === 401 || res.status === 403) {
+        console.log("🔴 Session expired, redirecting to login...");
+        localStorage.removeItem("token"); // Clear stored token (if any)
+        router.push("/login"); // Redirect to login page
+      } else {
+        console.log("⚠️ Unexpected response from server");
       }
     } catch (error) {
-      console.error("Error refreshing session:", error);
+      console.error("❌ Error refreshing session:", error);
     }
-  }, [BACKEND_URL]);
+  }, [BACKEND_URL, router]);
+  
 
   // Refresh session on component mount
   useEffect(() => {
-    checkSession();
+    checkSession(); // Refresh on page load
+  
+    const interval = setInterval(() => {
+      checkSession();
+    }, 60 * 60 * 1000); // Refresh every 1 hour
+  
+    return () => clearInterval(interval); // Cleanup on unmount
   }, [checkSession]);
 
   return (

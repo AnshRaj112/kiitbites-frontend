@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -28,7 +28,6 @@ export default function SignupForm() {
   });
 
   const router = useRouter();
-  // const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
@@ -36,10 +35,6 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  // useEffect(() => {
-  //   setIsClient(true);
-  // }, []);
 
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -74,6 +69,8 @@ export default function SignupForm() {
       if (res.ok) {
         notify("Signup successful!", "success");
 
+        localStorage.setItem("token", data.token);
+
         setTimeout(() => {
           router.push(
             `/otpverification?email=${encodeURIComponent(formData.email)}&from=signup`
@@ -89,6 +86,39 @@ export default function SignupForm() {
       setIsLoading(false);
     }
   };
+
+  const checkSession = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+        method: "GET",
+        credentials: "include",
+      });
+  
+      if (res.ok) {
+        console.log("✅ Session refreshed successfully");
+      } else if (res.status === 401 || res.status === 403) {
+        console.log("🔴 Session expired, redirecting to login...");
+        localStorage.removeItem("token"); // Clear stored token (if any)
+        router.push("/login"); // Redirect to login page
+      } else {
+        console.log("⚠️ Unexpected response from server");
+      }
+    } catch (error) {
+      console.error("❌ Error refreshing session:", error);
+    }
+  }, [BACKEND_URL, router]);
+  
+
+  // Refresh session on component mount
+  useEffect(() => {
+    checkSession(); // Refresh on page load
+  
+    const interval = setInterval(() => {
+      checkSession();
+    }, 60 * 60 * 1000); // Refresh every 1 hour
+  
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [checkSession]);
 
   console.log("Making request to:", `${BACKEND_URL}/api/auth/signup`);
   console.log("Request body:", formData);
