@@ -10,7 +10,7 @@ const Footer = () => {
           <h4>Company</h4>
           <ul>
             <li><a href="#">About Us</a></li>
-            <li><a href="#">Team</a></li>
+            <li><a href="/team">Team</a></li>
             <li><a href="#">Food Courts</a></li>
             <li><a href="#">KIIT Kafe</a></li>
             <li><a href="#">Central Canteen</a></li>
@@ -20,7 +20,7 @@ const Footer = () => {
         <div className={styles.section}>
           <h4>Contact Us</h4>
           <ul>
-            {/* <li><a href="#">Help & Support</a></li> */}
+            <li><a href="/help">Help</a></li>
           </ul>
         </div>
         <div className={styles.section}>
