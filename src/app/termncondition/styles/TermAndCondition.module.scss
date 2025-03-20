@@ -1,0 +1,80 @@
+.termscontainer {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 50px;
+  border-radius: 10px;
+  font-family: "Arial", sans-serif;
+
+  .box {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); 
+    text-align: center;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateY(-5px); 
+    }
+
+    h1 {
+      text-align: center;
+      color: #4ea199;
+      font-size: 28px;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .termssection {
+      margin-top: 20px;
+      padding: 15px;
+      border-left: 4px solid #4ea199;
+      background: #f8f9fa;
+      border-radius: 5px;
+
+      &:hover {
+        transform: translateY(-5px); 
+      }
+
+      h2 {
+        font-size: 22px;
+        color: #4ea199;
+        margin-bottom: 10px;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+
+        li {
+          padding: 8px 0;
+          font-size: 16px;
+          color: #555;
+
+          strong {
+            color: #4ea199;
+          }
+
+          a {
+            color: #0275d8;
+            text-decoration: none;
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .footernote {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 14px;
+    color: #777;
+  }
+}
