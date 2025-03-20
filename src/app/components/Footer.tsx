@@ -9,7 +9,7 @@ const Footer = () => {
         <div className={styles.section}>
           <h4>Company</h4>
           <ul>
-            <li><a href="#">About Us</a></li>
+            <li><a href="/about">About Us</a></li>
             <li><a href="/team">Team</a></li>
             <li><a href="#">Food Courts</a></li>
             <li><a href="#">KIIT Kafe</a></li>
