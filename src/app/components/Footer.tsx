@@ -26,8 +26,8 @@ const Footer = () => {
         <div className={styles.section}>
           <h4>Legal</h4>
           <ul>
-            {/* <li><a href="#">Terms & Conditions</a></li>
-            <li><a href="#">Cookie Policy</a></li>
+            <li><a href="/termncondition">Terms & Conditions</a></li>
+            {/* <li><a href="#">Cookie Policy</a></li>
             <li><a href="#">Privacy Policy</a></li> */}
           </ul>
         </div>
