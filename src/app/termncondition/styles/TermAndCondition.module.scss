@@ -1,9 +1,9 @@
-.termscontainer {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 50px;
-  border-radius: 10px;
-  font-family: "Arial", sans-serif;
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 155dvh; /* Full-screen height */
+  background-color: #f0f4f8; /* Subtle background color for contrast */
 
   .box {
     background-color: white;
@@ -76,5 +76,11 @@
     text-align: center;
     font-size: 14px;
     color: #777;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .container {
+    height: 215.6vh; /* Full-screen height */
   }
 }

@@ -1,11 +1,13 @@
+"use client";
+
 import React from "react";
 import styles from "./styles/TermAndCondition.module.scss";
 
-const TermsAndConditions: React.FC = () => {
+export default function TermAndCondition() {
   return (
-    <div className={styles.termscontainer}>
+    <div className={styles.container}>
       <div className={styles.box}>
-        <h1>Terms and Conditions</h1>
+        <h1>Term & Conditions</h1>
         <p>
           Welcome to <strong>KIITBites</strong>. By using our services, you
           agree to the following terms and conditions. Please read them
@@ -78,6 +80,4 @@ const TermsAndConditions: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default TermsAndConditions;
+}
