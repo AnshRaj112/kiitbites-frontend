@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"; // For App Router (Next.js 13+)
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/Login.module.scss";
-import GoogleLogin from "./GoogleLogin";
+// import GoogleLogin from "./GoogleLogin";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({

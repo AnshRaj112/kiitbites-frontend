@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./styles/Signup.module.scss";
-import GoogleSignup from "./GoogleSignup";
+// import GoogleSignup from "./GoogleSignup";
 
 interface SignupFormState {
   fullName: string;
