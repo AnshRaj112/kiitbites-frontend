@@ -75,6 +75,9 @@ export default function LoginForm() {
 
       notify("Login successful!", "success");
       setTimeout(() => router.push("/home"), 2000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2500);
     } catch (error) {
       console.error("Login error:", error);
       notify("An unexpected error occurred. Please try again.", "error");
@@ -112,7 +115,7 @@ export default function LoginForm() {
   
     const interval = setInterval(() => {
       checkSession();
-    }, 60 * 60 * 1000); // Refresh every 1 hour
+    },  60 * 60 * 1000); // Refresh every 1 hour
   
     return () => clearInterval(interval); // Cleanup on unmount
   }, [checkSession]);
@@ -155,7 +158,7 @@ export default function LoginForm() {
             {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <div className={styles.divider}>
+        {/* <div className={styles.divider}>
           <span>OR</span>
         </div>
         <div
@@ -178,7 +181,7 @@ export default function LoginForm() {
           }
         >
           <GoogleLogin />
-        </div>
+        </div> */}
         <div className={styles.register}>
           <p className={styles["text-black"]}>
             Don&apos;t have an account? <a href="/signup">Sign Up</a>
