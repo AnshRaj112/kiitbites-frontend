@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect } from 'react'
 import styles from "./styles/About.module.scss";
 
 export default function AboutPage() {

@@ -3,5 +3,9 @@
 import AboutPage from "./About"; // Adjust the path if necessary
 
 export default function About() {
-  return <AboutPage />;
+  return (
+    <div> 
+      <AboutPage />
+    </div>
+  );
 }
