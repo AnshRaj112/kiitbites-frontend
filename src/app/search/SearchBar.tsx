@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/Search.module.scss";
+
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const SearchBar: React.FC = () => {
@@ -12,10 +13,8 @@ const SearchBar: React.FC = () => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const searchValue = searchParams.get("search");
-    if (searchValue) {
-      setQuery(searchValue);
-    }
+    // Lazy loading the search parameter
+    setQuery(searchParams.get("search") || "");
   }, [searchParams]);
 
   // Fetch suggestions from the backend
@@ -43,22 +42,11 @@ const SearchBar: React.FC = () => {
   };
 
   // Handle search selection
-//   const handleSelectSuggestion = (foodName: string) => {
-//     setQuery(foodName);
-//     router.push(`?search=${foodName}`, undefined);
-//     setSuggestions([]);
-
-//     // Store search count in localStorage for prioritization
-//     const storedCounts = JSON.parse(localStorage.getItem("searchCounts") || "{}");
-//     storedCounts[foodName] = (storedCounts[foodName] || 0) + 1;
-//     localStorage.setItem("searchCounts", JSON.stringify(storedCounts));
-//   };
-
   const handleSelectSuggestion = async (foodName: string) => {
     setQuery(foodName);
     router.push(`?search=${foodName}`, undefined);
     setSuggestions([]);
-  
+
     try {
       await fetch(`${BACKEND_URL}/api/increase-search`, {
         method: "POST",
@@ -69,33 +57,34 @@ const SearchBar: React.FC = () => {
       console.error("Error updating search count:", error);
     }
   };
-  
 
   return (
-    <div className={styles.container}>
-    <div className="relative w-full max-w-md mx-auto">
-      <input
-        type="text"
-        value={query}
-        onChange={handleInputChange}
-        placeholder="Search for food..."
-        className="w-full p-2 border border-gray-300 rounded"
-      />
-      {suggestions.length > 0 && (
-        <ul className="absolute left-0 w-full bg-white border border-gray-300 rounded shadow-md">
-          {suggestions.map((food) => (
-            <li
-              key={food}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => handleSelectSuggestion(food)}
-            >
-              {food}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className={styles.container}>
+        <div className="relative w-full max-w-md mx-auto">
+          <input
+            type="text"
+            value={query}
+            onChange={handleInputChange}
+            placeholder="Search for food..."
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          {suggestions.length > 0 && (
+            <ul className="absolute left-0 w-full bg-white border border-gray-300 rounded shadow-md">
+              {suggestions.map((food) => (
+                <li
+                  key={food}
+                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleSelectSuggestion(food)}
+                >
+                  {food}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </Suspense>
   );
 };
 
