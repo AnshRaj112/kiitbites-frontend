@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./styles/help.module.scss";
+import styles from "./styles/help.module.scss";
 import Form from "../components/HelpMessage"; // Import the Form component
 
 const Help: React.FC = () => {
@@ -60,7 +60,7 @@ const Help: React.FC = () => {
   };
 
   return (
-    <div className="help-container">
+    <div className={styles.container}>
       <h1>Help Page</h1>
       <p>Find answers to common questions here.</p>
       <Form
