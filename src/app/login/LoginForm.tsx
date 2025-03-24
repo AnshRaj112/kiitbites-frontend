@@ -77,7 +77,7 @@ export default function LoginForm() {
       setTimeout(() => router.push("/home"), 2000);
       setTimeout(() => {
         window.location.reload();
-      }, 2500);
+      }, 3000);
     } catch (error) {
       console.error("Login error:", error);
       notify("An unexpected error occurred. Please try again.", "error");
