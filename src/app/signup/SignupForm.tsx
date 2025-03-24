@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./styles/Signup.module.scss";
-import GoogleSignup from "./GoogleSignup";
+// import GoogleSignup from "./GoogleSignup";
 
 interface SignupFormState {
   fullName: string;
@@ -97,9 +97,9 @@ export default function SignupForm() {
       if (res.ok) {
         console.log("✅ Session refreshed successfully");
       } else if (res.status === 401 || res.status === 403) {
-        console.log("🔴 Session expired, redirecting to login...");
+        console.log("🔴 Session expired, redirecting ...");
         localStorage.removeItem("token"); // Clear stored token (if any)
-        router.push("/login"); // Redirect to login page
+        router.push("/signup"); // Redirect to login page
       } else {
         console.log("⚠️ Unexpected response from server");
       }
@@ -303,12 +303,12 @@ export default function SignupForm() {
 
           {step === 1 && (
             <>
-              <div className={styles.divider}>
+              {/* <div className={styles.divider}>
                 <span> OR </span>{" "}
               </div>
               <div className={styles.googleSignUp}>
                 <GoogleSignup />
-              </div>
+              </div> */}
 
               <p className={styles.alreadyAccount}>
                 Already have an account?{" "}
