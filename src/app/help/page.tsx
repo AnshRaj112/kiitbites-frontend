@@ -1,7 +1,13 @@
-"use client";
+import Help from "./help";
+const HelpPage = () => {
 
-import HelpPage from "./help"; // Adjust the path if necessary
+  return (
+   
+      <Help/>
+      
 
-export default function Help() {
-  return <HelpPage />;
-}
+   
+  );
+};
+
+export default HelpPage;
