@@ -1,11 +1,13 @@
 [
     {
       "name": "John Doe",
+      "image": "https://res.cloudinary.com/dt45pu5mx/image/upload/v1742975199/1708155734063-Photoroom_ljgfi6.png",
       "github": "https://github.com/johndoe",
       "linkedin": "https://linkedin.com/in/johndoe"
     },
     {
       "name": "Jane Smith",
+      "image": "https://res.cloudinary.com/dt45pu5mx/image/upload/v1742975199/1708155734063-Photoroom_ljgfi6.png",
       "github": "https://github.com/janesmith",
       "linkedin": "https://linkedin.com/in/janesmith"
     }
