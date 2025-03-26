@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import TeamCard from "../components/TeamCard";
 import styles from "./styles/Team.module.scss";
 
-// Define the type for team members
 interface TeamMember {
   name: string;
+  image: string;
   github: string;
   linkedin: string;
 }
@@ -13,7 +13,7 @@ const TeamPage: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
-    fetch("../data/teamCard.json")
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/team`) // Fetching from .env
       .then((res) => res.json())
       .then((data: TeamMember[]) => setTeamMembers(data))
       .catch((error) => console.error("Error loading team data:", error));
