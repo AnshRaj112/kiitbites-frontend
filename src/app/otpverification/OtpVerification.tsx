@@ -1,80 +1,72 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation"; // ✅ Removed useRouter (not used here)
+import { useRouter } from "next/navigation"; // ✅ Only used in OtpForm
 import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/OtpVerification.module.scss";
 
 export default function OtpVerificationClient() {
-  const [email, setEmail] = useState<string | null>("test@example.com"); // Temporarily set a default email for testing
+  const [email, setEmail] = useState<string | null>(null);
   const [fromPage, setFromPage] = useState<string | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
     const fromParam = searchParams.get("from");
 
-    if (emailParam) {
-      setEmail(emailParam);
-    } else {
-      // Instead of pushing directly to /forgotpassword, check where the user is coming from
-      if (fromParam === "forgotpassword") {
-        router.push("/forgotpassword");
-      } else if (fromParam === "signup" || fromParam === "login") {
-        router.push("/otpverification");
-      }
-    }
+    console.log("Extracted email:", emailParam);
+    console.log("Extracted fromPage:", fromParam);
+    console.log("All search params:", Object.fromEntries(searchParams.entries()));
 
-    if (fromParam) {
-      setFromPage(fromParam);
-    }
-  }, [searchParams, router]);
+    if (emailParam) setEmail(emailParam);
+    if (fromParam) setFromPage(fromParam);
+  }, [searchParams]);
 
-  return email ? (
-    <OtpForm email={email} fromPage={fromPage} />
-  ) : (
-    <p>Loading...</p>
-  );
+  return email ? <OtpForm email={email} fromPage={fromPage} /> : <p>Loading...</p>;
 }
 
-function OtpForm({
-  email,
-  fromPage,
-}: {
-  email: string;
-  fromPage: string | null;
-}) {
+function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router = useRouter();
-
+  const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
+  const router = useRouter(); // ✅ Correctly using router here
+  
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
   const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
+    if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+
+    if (value && index < inputRefs.current.length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 6).split("");
-    const newOtp = otp.map((_, index) => pastedData[index] ?? "");
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pastedData = event.clipboardData.getData("text").slice(0, 6);
+    if (!/^\d{6}$/.test(pastedData)) return;
+
+    const newOtp = pastedData.split("");
     setOtp(newOtp);
-    inputRefs.current[Math.min(newOtp.length, 5)]?.focus();
+    
+    newOtp.forEach((num, idx) => {
+      if (inputRefs.current[idx]) {
+        inputRefs.current[idx]!.value = num;
+      }
+    });
+    inputRefs.current[5]?.focus();
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    const otpString = otp.join("");
 
-    const otpString = otp.join(""); // Convert OTP array to a string
-
-    if (!otpString) {
-      toast.error("Please enter the OTP.");
+    if (!otpString || otpString.length !== 6) {
+      toast.error("Please enter a 6-digit OTP.");
       return;
     }
 
@@ -83,20 +75,27 @@ function OtpForm({
       const res = await fetch(`${BACKEND_URL}/api/auth/otpverification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpString }), // Send as a string
+        body: JSON.stringify({ email, otp: otpString }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         toast.success("OTP verified successfully!");
+        console.log("Redirecting based on fromPage:", fromPage);
+        console.log("fromPage type:", typeof fromPage);
+        console.log("fromPage === 'forgotpassword':", fromPage === "forgotpassword");
+
         setTimeout(() => {
-          if (fromPage === "signup") {
-            router.push("/home");
-          } else if (fromPage === "forgotpassword") {
-            router.push("/resetpassword");
+          if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
+            console.log("Redirecting to resetpassword");
+            router.replace(`/resetpassword?email=${encodeURIComponent(email)}`);
+          } else if (fromPage === "signup" || fromPage === "login") {
+            console.log("Redirecting to home");
+            router.replace("/home");
           } else {
-            router.push("/"); // Default fallback
+            console.log("Default redirect to home");
+            router.replace("/home");
           }
         }, 2000);
       } else {
@@ -120,9 +119,7 @@ function OtpForm({
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
+                ref={(el) => (inputRefs.current[index] = el)}
                 type="text"
                 maxLength={1}
                 value={digit}
