@@ -17,21 +17,34 @@ export default function OtpVerificationClient() {
 
     console.log("Extracted email:", emailParam);
     console.log("Extracted fromPage:", fromParam);
-    console.log("All search params:", Object.fromEntries(searchParams.entries()));
+    console.log(
+      "All search params:",
+      Object.fromEntries(searchParams.entries())
+    );
 
     if (emailParam) setEmail(emailParam);
     if (fromParam) setFromPage(fromParam);
   }, [searchParams]);
 
-  return email ? <OtpForm email={email} fromPage={fromPage} /> : <p>Loading...</p>;
+  return email ? (
+    <OtpForm email={email} fromPage={fromPage} />
+  ) : (
+    <p>Loading...</p>
+  );
 }
 
-function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }) {
+function OtpForm({
+  email,
+  fromPage,
+}: {
+  email: string;
+  fromPage: string | null;
+}) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const router = useRouter(); // ✅ Correctly using router here
-  
+
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
   const handleChange = (index: number, value: string) => {
@@ -52,7 +65,7 @@ function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }
 
     const newOtp = pastedData.split("");
     setOtp(newOtp);
-    
+
     newOtp.forEach((num, idx) => {
       if (inputRefs.current[idx]) {
         inputRefs.current[idx]!.value = num;
@@ -84,7 +97,10 @@ function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }
         toast.success("OTP verified successfully!");
         console.log("Redirecting based on fromPage:", fromPage);
         console.log("fromPage type:", typeof fromPage);
-        console.log("fromPage === 'forgotpassword':", fromPage === "forgotpassword");
+        console.log(
+          "fromPage === 'forgotpassword':",
+          fromPage === "forgotpassword"
+        );
 
         setTimeout(() => {
           if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
@@ -119,7 +135,9 @@ function OtpForm({ email, fromPage }: { email: string; fromPage: string | null }
             {otp.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
                 type="text"
                 maxLength={1}
                 value={digit}
