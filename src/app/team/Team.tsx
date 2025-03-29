@@ -13,7 +13,7 @@ const TeamPage: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/team`) // Fetching from .env
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/team`)
       .then((res) => res.json())
       .then((data: TeamMember[]) => setTeamMembers(data))
       .catch((error) => console.error("Error loading team data:", error));
@@ -21,11 +21,13 @@ const TeamPage: React.FC = () => {
 
   return (
     <div className={styles.teamPage}>
-      <h1 className={styles.title}>Meet Our Team</h1>
-      <div className={styles.grid}>
-        {teamMembers.map((member, index) => (
-          <TeamCard key={index} {...member} />
-        ))}
+      <div className={styles.box}>
+        <h1 className={styles.h1}>Meet Our Team</h1>
+        <div className={styles.grid}>
+          {teamMembers.map((member, index) => (
+            <TeamCard key={index} {...member} />
+          ))}
+        </div>
       </div>
     </div>
   );
