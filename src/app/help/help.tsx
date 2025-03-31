@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./styles/help.module.scss";
-import Form from "../components/HelpMessage"; // Import the Form component
+import Form from "../components/HelpMessage"; 
+
 
 const Help: React.FC = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -60,18 +61,20 @@ const Help: React.FC = () => {
   };
 
   return (
+    
     <div className={styles.container}>
-      <h1>Help Page</h1>
-      <p>Find answers to common questions here.</p>
-      <Form
-        formData={formData}
-        handleChange={handleChange}
-        handleSubmit={handleSubmit}
-        errors={errors}
-      />
-      <ToastContainer position="bottom-right" autoClose={3000} />
-    </div>
+   
+    <Form
+      formData={formData}
+      handleChange={handleChange}
+      handleSubmit={handleSubmit}
+      errors={errors}
+    />
+    <ToastContainer position="bottom-right" autoClose={3000} />
+  </div>
   );
+  
+  
 };
 
 export default Help;

@@ -128,7 +128,7 @@ export default function LoginForm() {
           <input
             type="text"
             name="identifier"
-            placeholder="Email, or Phone"
+            placeholder="Email or Phone"
             value={formData.identifier}
             onChange={handleInputChange}
             required
