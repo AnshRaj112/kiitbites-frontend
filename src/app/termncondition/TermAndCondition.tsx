@@ -24,7 +24,7 @@ export default function TermAndCondition() {
               Once registered, users <strong>cannot</strong> modify their
               personal details (such as name, contact information, or other
               credentials). If you face any issues, kindly reach out via the{" "}
-              <a href="/contact">Contact Us</a> page.
+              <a href="/help">Contact Us</a> page.
             </li>
             <li>
               Users must not misrepresent their <strong>gender</strong> or any
@@ -69,7 +69,7 @@ export default function TermAndCondition() {
             </li>
             <li>
               For any disputes or queries, please visit our{" "}
-              <a href="/contact">Contact Us</a> page.
+              <a href="/help">Contact Us</a> page.
             </li>
           </ul>
         </section>
