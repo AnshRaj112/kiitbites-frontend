@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./styles/help.module.scss";
-import Form from "../components/HelpMessage"; // Import the Form component
+import Form from "../components/HelpMessage"; 
+
 
 const Help: React.FC = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -60,56 +61,17 @@ const Help: React.FC = () => {
   };
 
   return (
+    
     <div className={styles.container}>
-      <div className={styles.formContainer}>
-        <h2>Get Help</h2>
-        <form onSubmit={handleSubmit}>
-          {/* Name Input */}
-          <div className={styles.inputGroup}>
-            <input
-              type="text"
-              placeholder="Your Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={errors.name ? styles.inputError : ""}
-            />
-            {errors.name && <p className={styles.error}>{errors.name}</p>}
-          </div>
-  
-          {/* Email Input */}
-          <div className={styles.inputGroup}>
-            <input
-              type="email"
-              placeholder="Your Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? styles.inputError : ""}
-            />
-            {errors.email && <p className={styles.error}>{errors.email}</p>}
-          </div>
-  
-          {/* Message Input */}
-          <div className={styles.inputGroup}>
-            <textarea
-              placeholder="Your Message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              className={errors.message ? styles.inputError : ""}
-            />
-            {errors.message && <p className={styles.error}>{errors.message}</p>}
-          </div>
-  
-          {/* Submit Button */}
-          <button type="submit" className={styles.submitButton}>Submit</button>
-        </form>
-      </div>
-  
-      {/* Toast Notifications */}
-      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar closeOnClick />
-    </div>
+   
+    <Form
+      formData={formData}
+      handleChange={handleChange}
+      handleSubmit={handleSubmit}
+      errors={errors}
+    />
+    <ToastContainer position="bottom-right" autoClose={3000} />
+  </div>
   );
   
   
