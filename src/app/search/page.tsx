@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import SearchBar from "./SearchBar";
+import SearchBar from "../components/SearchBar";
 
 export default function SearchBarPage() {
   return (
