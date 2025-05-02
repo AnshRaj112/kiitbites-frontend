@@ -2,6 +2,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 115.25dvh; /* Full-screen height */
-    background-color: #f0f4f8; /* Subtle background color for contrast */
+    height: 30.25dvh; /* Full-screen height */
+    background-color: #f0f4f8; /* Subtle background color for
+     contrast */
+
+    input {
+        // margin: 10px 0;
+        // padding: 12px;
+        font-size: 1em;
+        border-radius: 8px; /* Curved input fields */
+        border: 1px solid #ddd;
+        outline: none;
+        color: black;
+        transition: box-shadow 0.2s;
+        cursor: pointer;
+
+        &:focus {
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
+          border-color: #4ea199;
+        }
+      }
+
 }  
