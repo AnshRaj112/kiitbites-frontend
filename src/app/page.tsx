@@ -8,3 +8,6 @@ export default function Landing() {
       <nav>
         <Link href="/home">Home</Link> | <Link href="/login">Login</Link> | <Link href="/signup">Sign Up</Link>
       </nav>
+    </div>	
+  );	
+}
