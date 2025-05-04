@@ -1,4 +1,4 @@
-import Dishes from "../components/DishCard";
+import DishCard from "../components/DishCard";
 import RestaurantComponent from "../components/RestaurantCard";
 
 export default function TestPage(){
