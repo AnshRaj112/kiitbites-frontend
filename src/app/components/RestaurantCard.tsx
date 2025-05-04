@@ -19,7 +19,6 @@ const RestaurantCard: React.FC<Props> = ({
   description,
   cuisine,
   location,
-  priceForTwo,
   distance,
   rating,
   variant = "default",
