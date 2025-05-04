@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import styles from "./dishes.module.scss";
 type Props = {
   dishName: string;
   price: number;
