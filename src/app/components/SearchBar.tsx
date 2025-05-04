@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { IoMdSearch } from "react-icons/io";
 import styles from "./styles/Search.module.scss";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -61,14 +62,18 @@ const SearchBar: React.FC = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className={styles.container}>
-        <div className="relative w-full max-w-md mx-auto">
-          <input
-            type="text"
-            value={query}
-            onChange={handleInputChange}
-            placeholder="Search for food..."
-            className="w-full p-2 border border-gray-300 rounded"
-          />
+        <div className="relative w-[500px] max-w-md mx-auto">
+        <div className="relative w-[500px] max-w-full">
+  <input
+    type="text"
+    value={query}
+    onChange={handleInputChange}
+    placeholder="Search for food..."
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+  <IoMdSearch className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" size={25}/>
+</div>
+
           {suggestions.length > 0 && (
             <ul className="absolute left-0 w-full bg-white border border-gray-300 rounded shadow-md">
               {suggestions.map((food) => (
