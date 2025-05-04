@@ -8,7 +8,6 @@ type Props = {
   description?: string;
   cuisine: string;
   location: string;
-  priceForTwo: string;
   distance: string;
   rating: number;
   variant?: "default" | "highlight" | "landing";
