@@ -52,7 +52,11 @@ const Profile = () => {
       });
 
       localStorage.removeItem("token"); // Remove token from localStorage
-      router.push("/login"); // Redirect to login page
+      // router.push("/login"); 
+      setTimeout(() => router.push("/login"), 1000);// Redirect to login page
+      setTimeout(() => {
+        window.location.reload(); // Refresh the page to update the header
+      }, 2000);
     } catch (error) {
       console.error("Logout failed:", error);
     }
