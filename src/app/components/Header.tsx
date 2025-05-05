@@ -10,6 +10,7 @@ import { FaBars } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./styles/Header.module.scss";
+import { usePathname } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -19,6 +20,7 @@ const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [userFullName, setUserFullName] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const pathname = usePathname();
 
   // Track screen width
   useEffect(() => {
@@ -130,30 +132,40 @@ const Header: React.FC = () => {
             >
               <div className={styles.menuBox}>
                 <div
-                  className={styles.navItem}
+                  className={`${styles.navItem} ${
+                    pathname === "/search" ? styles.activeNavItem : ""
+                  }`}
                   onClick={() => handleNavigation("/search")}
                 >
                   <IoMdSearch size={24} />
                   <span>Search</span>
                 </div>
                 <div
-                  className={styles.navItem}
+                  className={`${styles.navItem} ${
+                    pathname === "/help" ? styles.activeNavItem : ""
+                  }`}
                   onClick={() => handleNavigation("/help")}
                 >
                   <IoHelp size={24} />
                   <span>Help</span>
                 </div>
                 <div
-                  className={styles.navItem}
+                  className={`${styles.navItem} ${
+                    pathname === "/profile" || pathname === "/login"
+                      ? styles.activeNavItem
+                      : ""
+                  }`}
                   onClick={() =>
-                    router.push(userFullName ? "/profile" : "/login")
+                    handleNavigation(userFullName ? "/profile" : "/login")
                   }
                 >
                   <IoPersonOutline size={24} />
                   <span>{userFullName || "Login"}</span>
                 </div>
                 <div
-                  className={styles.navItem}
+                  className={`${styles.navItem} ${
+                    pathname === "/cart" ? styles.activeNavItem : ""
+                  }`}
                   onClick={() => handleNavigation("/cart")}
                 >
                   <PiShoppingCartSimpleBold size={24} />
@@ -167,21 +179,29 @@ const Header: React.FC = () => {
         <nav className={styles.navOptions}>
           <div className={styles.menuBox}>
             <div
-              className={styles.navItem}
+              className={`${styles.navItem} ${
+                pathname === "/search" ? styles.activeNavItem : ""
+              }`}
               onClick={() => handleNavigation("/search")}
             >
               <IoMdSearch size={24} />
               <span>Search</span>
             </div>
             <div
-              className={styles.navItem}
+              className={`${styles.navItem} ${
+                pathname === "/help" ? styles.activeNavItem : ""
+              }`}
               onClick={() => handleNavigation("/help")}
             >
               <IoHelp size={24} />
               <span>Help</span>
             </div>
             <div
-              className={styles.navItem}
+              className={`${styles.navItem} ${
+                pathname === "/profile" || pathname === "/login"
+                  ? styles.activeNavItem
+                  : ""
+              }`}
               onClick={() =>
                 handleNavigation(userFullName ? "/profile" : "/login")
               }
@@ -190,7 +210,9 @@ const Header: React.FC = () => {
               <span>{userFullName || "Login"}</span>
             </div>
             <div
-              className={styles.navItem}
+              className={`${styles.navItem} ${
+                pathname === "/cart" ? styles.activeNavItem : ""
+              }`}
               onClick={() => handleNavigation("/cart")}
             >
               <PiShoppingCartSimpleBold size={24} />
