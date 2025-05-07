@@ -95,16 +95,22 @@ function OtpForm({
       const data = await res.json();
 
       if (res.ok) {
+        // Store token first
+        localStorage.setItem("token", data.token);
+        
         // After successful OTP verification, get user data and token
         const userRes = await fetch(`${BACKEND_URL}/api/auth/user`, {
+          method: "GET",
           credentials: "include",
-          headers: { Authorization: `Bearer ${data.token}` },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${data.token}`
+          },
         });
 
         if (userRes.ok) {
           const userData = await userRes.json();
-          // Store token and user data
-          localStorage.setItem("token", data.token);
+          // Store user data
           localStorage.setItem("user", JSON.stringify(userData));
           
           toast.success("OTP verified successfully!");
