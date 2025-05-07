@@ -98,7 +98,7 @@ function OtpForm({
         // Store token first
         localStorage.setItem("token", data.token);
         
-        // After successful OTP verification, get user data and token
+        // After successful OTP verification, get user data
         const userRes = await fetch(`${BACKEND_URL}/api/auth/user`, {
           method: "GET",
           credentials: "include",
@@ -130,7 +130,9 @@ function OtpForm({
             }
           }, 2000);
         } else {
-          toast.error("Failed to fetch user data after verification.");
+          const errorData = await userRes.json();
+          console.error("User data fetch error:", errorData);
+          toast.error(errorData.message || "Failed to fetch user data after verification.");
         }
       } else {
         toast.error(data.message || "Failed to verify OTP.");
