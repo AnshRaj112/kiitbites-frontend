@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"; // For App Router (Next.js 13+)
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import styles from "./styles/Login.module.scss";
-import GoogleLogin from "./GoogleLogin";
+// import GoogleLogin from "./GoogleLogin";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -75,6 +75,9 @@ export default function LoginForm() {
 
       notify("Login successful!", "success");
       setTimeout(() => router.push("/home"), 2000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       console.error("Login error:", error);
       notify("An unexpected error occurred. Please try again.", "error");
@@ -112,7 +115,7 @@ export default function LoginForm() {
   
     const interval = setInterval(() => {
       checkSession();
-    }, 60 * 60 * 1000); // Refresh every 1 hour
+    },  60 * 60 * 1000); // Refresh every 1 hour
   
     return () => clearInterval(interval); // Cleanup on unmount
   }, [checkSession]);
@@ -125,7 +128,7 @@ export default function LoginForm() {
           <input
             type="text"
             name="identifier"
-            placeholder="Email, or Phone"
+            placeholder="Email or Phone"
             value={formData.identifier}
             onChange={handleInputChange}
             required
@@ -155,7 +158,7 @@ export default function LoginForm() {
             {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <div className={styles.divider}>
+        {/* <div className={styles.divider}>
           <span>OR</span>
         </div>
         <div
@@ -178,7 +181,7 @@ export default function LoginForm() {
           }
         >
           <GoogleLogin />
-        </div>
+        </div> */}
         <div className={styles.register}>
           <p className={styles["text-black"]}>
             Don&apos;t have an account? <a href="/signup">Sign Up</a>

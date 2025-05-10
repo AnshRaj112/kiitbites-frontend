@@ -1,60 +1,48 @@
+
+
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import { IoMdSearch } from "react-icons/io";
 import { IoHelp, IoPersonOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
-import { FaBars } from "react-icons/fa";
-import { RxCross2 } from "react-icons/rx";
-import { motion, AnimatePresence } from "framer-motion";
+import { LuArrowUpRight } from "react-icons/lu";
+import { FaUserCircle } from "react-icons/fa";
+
 import styles from "./styles/Header.module.scss";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  showGetApp?: boolean;
+  showProfile?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({
+  showGetApp = true,
+  showProfile = true,
+}) => {
   const router = useRouter();
-  const [scrolling, setScrolling] = useState<boolean>(false);
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const pathname = usePathname();
+  const isLandingPage = pathname === "/";
+
+  const [scrolling, setScrolling] = useState(false);
   const [userFullName, setUserFullName] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Track screen width
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 770);
-    };
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    handleResize(); // Set initial state
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Handle Scroll Effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolling(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Lock/Unlock Scrolling when Menu Opens
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [menuOpen]);
-
-  // Fetch User Data or Use Mock User
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -63,7 +51,9 @@ const Header: React.FC = () => {
 
         const response = await fetch(`${BACKEND_URL}/api/auth/user`, {
           credentials: "include",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
@@ -78,91 +68,71 @@ const Header: React.FC = () => {
     fetchUser();
   }, []);
 
-  // Handle Navigation with Type Annotation
   const handleNavigation = useCallback(
     (path: string) => {
       router.push(path);
-      setMenuOpen(false);
     },
     [router]
   );
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <header className={`${styles.header} ${scrolling ? styles.scrolled : ""}`}>
-      {/* Mobile Menu Toggle */}
-      <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? (
-          <RxCross2 size={24} className={styles.menuToggleIcon} />
-        ) : (
-          <FaBars size={24} />
-        )}
-      </div>
-
-      {/* KIITBites Logo */}
       <div className={styles.logoContainer}>
         <Link href="/">
           <p>KIITBites</p>
         </Link>
       </div>
 
-      {/* Overlay for Mobile Menu */}
-      {menuOpen && isMobile && (
-        <motion.div
-          className={styles.overlay}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: "easeInOut" }}
-          onClick={() => setMenuOpen(false)}
-        ></motion.div>
-      )}
-
-      {/* Navigation for Mobile and Desktop */}
-      {isMobile ? (
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.nav
-              className={styles.navOptions}
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <div className={styles.menuBox}>
-                <div
-                  className={styles.navItem}
-                  onClick={() => handleNavigation("/search")}
-                >
-                  <IoMdSearch size={24} />
-                  <span>Search</span>
-                </div>
-                <div
-                  className={styles.navItem}
-                  onClick={() => handleNavigation("/help")}
-                >
-                  <IoHelp size={24} />
-                  <span>Help</span>
-                </div>
-                <div
-                  className={styles.navItem}
-                  onClick={() =>
-                    router.push(userFullName ? "/profile" : "/login")
-                  }
-                >
-                  <IoPersonOutline size={24} />
-                  <span>{userFullName || "Login"}</span>
-                </div>
-                <div
-                  className={styles.navItem}
-                  onClick={() => handleNavigation("/cart")}
-                >
-                  <PiShoppingCartSimpleBold size={24} />
-                  <span>Cart</span>
-                </div>
+      {isLandingPage ? (
+        <div className={styles.navOptions}>
+          <div className={styles.menuBox}>
+            {showGetApp && (
+              <div
+                className={styles.navItem}
+                onClick={() => handleNavigation("/login")}
+              >
+                <LuArrowUpRight size={18} />
+                <span>GET THE APP</span>
               </div>
-            </motion.nav>
-          )}
-        </AnimatePresence>
+            )}
+
+            {showProfile && (
+              <div className={styles.profileContainer} ref={dropdownRef}>
+                <div
+                  className={styles.profileIcon}
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                >
+                  <FaUserCircle size={32} />
+                </div>
+                {showDropdown && (
+                    <div className={styles.dropdownWrapper}>
+    <div className={styles.dropdownArrow}></div>
+                  <div className={styles.dropdownMenu}>
+                    <a href="/profile">Profile</a>
+                    <a href="/orders">Orders</a>
+                    <a href="/favourites">Favourites</a>
+                    <a href="/logout">Logout</a>
+                  </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       ) : (
         <nav className={styles.navOptions}>
           <div className={styles.menuBox}>

@@ -1,15 +1,98 @@
-.container {
-    text-align: center;
-    padding: 50px;
-  
-    h1 {
-      color: #0070f3;
-      font-size: 2.5em;
-    }
-  
-    p {
-      color: #333;
-      font-size: 1.2em;
+
+body, html {
+  overflow-x: hidden;
+}
+
+.homepage {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.pageWrapper {
+  padding: 2rem;
+  max-width: 100vw;
+  box-sizing: border-box;
+  position: relative; 
+}
+
+.greeting {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+}
+
+.headerRow {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  position: absolute;
+  //top: 50%;
+  top: 1rem;
+  left: 0;
+  //right: 0;
+  right: 1rem;
+  gap: 0.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  pointer-events: none; 
+ // z-index: 5;
+  flex-direction: row;
+  z-index: 10;
+
+  button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #000;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    color: #000; 
+    cursor: pointer;
+    font-size: 1.2rem;
+    pointer-events: all; 
+    z-index: 1005;
+
+    &:hover {
+      background-color: #e0e0e0;
     }
   }
-  
+}
+
+.outerWrapper {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.scrollWrapper {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1rem;
+  padding: 1rem 0;
+  max-width: 100vw;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.disabledButton {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: default;
+}
+.foodScrollArea {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
