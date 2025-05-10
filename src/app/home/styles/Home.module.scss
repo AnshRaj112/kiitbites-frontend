@@ -1,61 +1,23 @@
 .homepage {
   overflow-x: hidden;
   width: 100%;
+  margin-top: 70px;
 }
 
-.pageWrapper {
-  padding: 2rem;
-  max-width: 100vw;
-  box-sizing: border-box;
-  position: relative; 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
 }
 
 .greeting {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #1a1a1a;
-  background-color: pink;
-}
-
-.scrollContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.scrollButton {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: #000;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
-  color: #fff; 
-  cursor: pointer;
   font-size: 1.2rem;
-  z-index: 10;
-
-  &:hover {
-    background-color: #e0e0e0;
-  }
-}
-
-.leftButton {
-  position: absolute;
-  left: 10px;
-}
-
-.rightButton {
-  position: absolute;
-  right: 10px;
-}
-
-.disabledButton {
-  opacity: 0.4;
-  pointer-events: none;
-  cursor: default;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-radius: 8px;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .scrollWrapper {
@@ -67,4 +29,15 @@
   max-width: 100vw;
   box-sizing: border-box;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.pageWrapper {
+  padding: 2rem;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: visible; // Ensure contents aren't clipped
 }
