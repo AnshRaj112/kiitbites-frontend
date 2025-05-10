@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { IoMdSearch } from "react-icons/io";
 import { IoHelp, IoPersonOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
+import { FaBars } from "react-icons/fa";
+import { RxCross2 } from "react-icons/rx";
 import { LuArrowUpRight } from "react-icons/lu";
 import { FaUserCircle } from "react-icons/fa";
 
@@ -43,6 +45,29 @@ const Header: React.FC<HeaderProps> = ({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        // Optional: Notify backend to invalidate the session
+        await fetch(`${BACKEND_URL}/api/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
+      // Clear token and redirect
+      localStorage.removeItem("token");
+      setUserFullName(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -86,8 +111,7 @@ const Header: React.FC<HeaderProps> = ({
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-
-    handleResize(); // set initial value
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -116,18 +140,14 @@ const Header: React.FC<HeaderProps> = ({
         </Link>
       </div>
 
-      {/* Show only on landing page */}
-      {isLandingPage && showGetApp && (
-        <div
-          className={styles.getAppButton}
-          onClick={() => handleNavigation("/login")}
-        >
-          <LuArrowUpRight size={18} />
-          <span>GET THE APP</span>
-        </div>
-      )}
+      <div className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>
+        {menuOpen ? (
+          <RxCross2 size={24} className={styles.menuToggleIcon} />
+        ) : (
+          <FaBars size={24} />
+        )}
+      </div>
 
-      {/* Overlay for Mobile */}
       {!isLandingPage && menuOpen && isMobile && (
         <motion.div
           className={styles.overlay}
@@ -139,9 +159,8 @@ const Header: React.FC<HeaderProps> = ({
         />
       )}
 
-      {/* Navigation (only if not landing page) */}
-      {!isLandingPage &&
-        (isMobile ? (
+      {!isLandingPage ? (
+        isMobile ? (
           <AnimatePresence>
             {menuOpen && (
               <motion.nav
@@ -241,28 +260,100 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
           </nav>
-        ))}
-
-      {/* Show Profile Dropdown only on landing page (desktop only) */}
-      {isLandingPage && showProfile && !isMobile && (
-        <div className={styles.profileContainer} ref={dropdownRef}>
-          <div
-            className={styles.profileIcon}
-            onClick={() => setShowDropdown((prev) => !prev)}
+        )
+      ) : isMobile && menuOpen ? (
+        <AnimatePresence>
+          <motion.nav
+            className={styles.navOptions}
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "100%", opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <FaUserCircle size={32} />
-          </div>
-          {showDropdown && (
-            <div className={styles.dropdownWrapper}>
-              <div className={styles.dropdownArrow}></div>
-              <div className={styles.dropdownMenu}>
-                <a href="/profile">Profile</a>
-                <a href="/orders">Orders</a>
-                <a href="/favourites">Favourites</a>
-                <a href="/logout">Logout</a>
-              </div>
+            <div className={styles.menuBox}>
+              {showGetApp && (
+                <div
+                  className={styles.navItem}
+                  onClick={() => handleNavigation("/login")}
+                >
+                  <LuArrowUpRight size={24} />
+                  <span>GET THE APP</span>
+                </div>
+              )}
+              {showProfile && (
+                <div
+                  className={styles.navItem}
+                  onClick={() =>
+                    handleNavigation(userFullName ? "/profile" : "/login")
+                  }
+                >
+                  <FaUserCircle size={24} />
+                  <span>{userFullName || "Profile"}</span>
+                </div>
+              )}
             </div>
-          )}
+          </motion.nav>
+        </AnimatePresence>
+      ) : (
+        <div className={styles.rightOptions}>
+          <div
+            className={styles.navItem}
+            onClick={() => handleNavigation("/login")}
+          >
+            <LuArrowUpRight size={18} />
+            <span>GET THE APP</span>
+          </div>
+
+          <div className={styles.profileContainer} ref={dropdownRef}>
+            <div
+              className={styles.navItem}
+              onClick={() => setShowDropdown((prev) => !prev)}
+            >
+              <FaUserCircle size={32} />
+            </div>
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  className={styles.dropdownWrapper}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className={styles.dropdownMenu}>
+                    <div
+                      className={styles.navItem}
+                      onClick={() => handleNavigation("/profile")}
+                      style={{ fontSize: "1rem" }}
+                    >
+                      <span style={{ fontSize: "1rem" }}>Profile</span>
+                    </div>
+                    <div
+                      className={styles.navItem}
+                      onClick={() => handleNavigation("/orders")}
+                      style={{ fontSize: "1rem" }}
+                    >
+                      <span style={{ fontSize: "1rem" }}>Orders</span>
+                    </div>
+                    <div
+                      className={styles.navItem}
+                      onClick={() => handleNavigation("/favourites")}
+                      style={{ fontSize: "1rem" }}
+                    >
+                      <span style={{ fontSize: "1rem" }}>Favourites</span>
+                    </div>
+                    <div
+                      className={styles.navItem}
+                      onClick={handleLogout}
+                      style={{ fontSize: "1rem" }}
+                    >
+                      <span style={{ fontSize: "1rem" }}>Logout</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       )}
     </header>

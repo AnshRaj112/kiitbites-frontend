@@ -26,7 +26,7 @@ const HomePage: React.FC = () => {
           spaceIndex > 0 ? fullName.slice(0, spaceIndex) : fullName;
 
         setFirstName(namePart || "User");
-      } catch (err) {
+      } catch {
         console.warn("User not logged in. Using fallback greeting.");
         setFirstName("User");
       }
@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
       <div className={styles.pageWrapper}>
         {firstName && (
           <h2 className={styles.greeting}>
-            Hi {firstName}, what's on your mind?
+            Hi {firstName}, what&apos;s on your mind?
           </h2>
         )}
 
