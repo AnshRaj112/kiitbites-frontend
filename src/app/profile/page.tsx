@@ -63,7 +63,7 @@ const Profile = () => {
   };
 
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>Profile</h1>
       {user ? (
         <>
