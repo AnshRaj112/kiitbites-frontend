@@ -1,7 +1,9 @@
+$spacing-large: 70px;
+
 .homepage {
   overflow-x: hidden;
   width: 100%;
-  margin-top: 70px;
+  margin-top: $spacing-large;
 }
 
 .headerRow {
