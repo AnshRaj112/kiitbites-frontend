@@ -88,32 +88,52 @@ function OtpForm({
       const res = await fetch(`${BACKEND_URL}/api/auth/otpverification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, otp: otpString }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("OTP verified successfully!");
-        console.log("Redirecting based on fromPage:", fromPage);
-        console.log("fromPage type:", typeof fromPage);
-        console.log(
-          "fromPage === 'forgotpassword':",
-          fromPage === "forgotpassword"
-        );
+        // Store token first
+        localStorage.setItem("token", data.token);
+        
+        // After successful OTP verification, get user data
+        const userRes = await fetch(`${BACKEND_URL}/api/auth/user`, {
+          method: "GET",
+          credentials: "include",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${data.token}`
+          },
+        });
 
-        setTimeout(() => {
-          if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
-            console.log("Redirecting to resetpassword");
-            router.replace(`/resetpassword?email=${encodeURIComponent(email)}`);
-          } else if (fromPage === "signup" || fromPage === "login") {
-            console.log("Redirecting to home");
-            router.replace("/home");
-          } else {
-            console.log("Default redirect to home");
-            router.replace("/home");
-          }
-        }, 2000);
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          // Store user data
+          localStorage.setItem("user", JSON.stringify(userData));
+          
+          toast.success("OTP verified successfully!");
+          console.log("Redirecting based on fromPage:", fromPage);
+
+          setTimeout(() => {
+            if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
+              console.log("Redirecting to resetpassword");
+              router.replace(`/resetpassword?email=${encodeURIComponent(email)}`);
+            } else {
+              console.log("Redirecting to home");
+              router.replace("/home");
+              // Reload the page to update the header
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            }
+          }, 2000);
+        } else {
+          const errorData = await userRes.json();
+          console.error("User data fetch error:", errorData);
+          toast.error(errorData.message || "Failed to fetch user data after verification.");
+        }
       } else {
         toast.error(data.message || "Failed to verify OTP.");
       }
