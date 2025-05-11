@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./styles/Search.module.scss";
+import { color } from "framer-motion";
+import { FaSearch } from "react-icons/fa"; 
+
+
+
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const SearchBar: React.FC = () => {
@@ -10,12 +15,12 @@ const SearchBar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [popularFoods, setPopularFoods] = useState<{ name: string; searchCount: number; description: string }[]>([]);
+  const [itemsToShow, setItemsToShow] = useState(12);
 
   useEffect(() => {
-    const searchValue = searchParams.get("search");
-    if (searchValue) {
-      setQuery(searchValue);
-    }
+    // Lazy loading the search parameter
+    setQuery(searchParams.get("search") || "");
   }, [searchParams]);
 
   // Fetch suggestions from the backend
@@ -34,6 +39,36 @@ const SearchBar: React.FC = () => {
     }
   };
 
+  //12 food
+  useEffect(() => {
+    const fetchPopularFoods = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/popular-foods`);
+        const data = await res.json();
+        setPopularFoods(data);
+      } catch (error) {
+        console.error("Error fetching popular foods:", error);
+      }
+    };
+  
+    fetchPopularFoods();
+  }, []);
+
+  //6 food
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 515) {
+        setItemsToShow(6);
+      } else {
+        setItemsToShow(12);
+      }
+    };
+  
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -43,22 +78,11 @@ const SearchBar: React.FC = () => {
   };
 
   // Handle search selection
-//   const handleSelectSuggestion = (foodName: string) => {
-//     setQuery(foodName);
-//     router.push(`?search=${foodName}`, undefined);
-//     setSuggestions([]);
-
-//     // Store search count in localStorage for prioritization
-//     const storedCounts = JSON.parse(localStorage.getItem("searchCounts") || "{}");
-//     storedCounts[foodName] = (storedCounts[foodName] || 0) + 1;
-//     localStorage.setItem("searchCounts", JSON.stringify(storedCounts));
-//   };
-
   const handleSelectSuggestion = async (foodName: string) => {
     setQuery(foodName);
     router.push(`?search=${foodName}`, undefined);
     setSuggestions([]);
-  
+
     try {
       await fetch(`${BACKEND_URL}/api/increase-search`, {
         method: "POST",
@@ -69,33 +93,55 @@ const SearchBar: React.FC = () => {
       console.error("Error updating search count:", error);
     }
   };
-  
 
   return (
-    <div className={styles.container}>
-    <div className="relative w-full max-w-md mx-auto">
-      <input
-        type="text"
-        value={query}
-        onChange={handleInputChange}
-        placeholder="Search for food..."
-        className="w-full p-2 border border-gray-300 rounded"
-      />
-      {suggestions.length > 0 && (
-        <ul className="absolute left-0 w-full bg-white border border-gray-300 rounded shadow-md">
-          {suggestions.map((food) => (
-            <li
-              key={food}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => handleSelectSuggestion(food)}
-            >
-              {food}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className={styles.container}>
+        <div className={styles.inputC}>
+          <div className={styles.searchInputWrapper}>
+            <input
+              type="text"
+              value={query}
+              onChange={handleInputChange}
+              placeholder="Search for food...."
+              className={styles.searchInput}
+            />
+            <FaSearch className={styles.searchIcon} />
+          </div>
+        </div>
+        <div className={styles.optionsFood}>
+          {suggestions.length > 0 && (
+            <ul className={styles.options}>
+              {suggestions.map((food) => (
+                <li
+                  key={food}
+                  className="p-2 hover:bg-gray-300 cursor-pointer"
+                  onClick={() => handleSelectSuggestion(food)}
+                >
+                  {food}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className={styles.popularChoices}>
+          <h1>Popular Choices</h1>
+          <div className={styles.popularGrid}>
+            {popularFoods.slice(0, itemsToShow).map((food) => (
+              <div
+                key={food.name}
+                className={styles.foodCard}
+                onClick={() => handleSelectSuggestion(food.name)}
+              >
+                <h2 className="font-semibold">{food.name}</h2>
+                <p className="text-sm text-gray-500">{food.description}</p>
+                <p className="text-sm text-gray-500">Searched: {food.searchCount}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Suspense>
   );
 };
 
