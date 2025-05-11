@@ -1,0 +1,15 @@
+[
+    {
+      "id": 1,
+      "name": "Gourmet Haven",
+      "location": "Downtown, New York",
+      "image": "https://res.cloudinary.com/demo/image/upload/v1710000000/gourmet_haven.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Spice Junction",
+      "location": "Times Square, New York",
+      "image": "https://res.cloudinary.com/demo/image/upload/v1710000000/spice_junction.jpg"
+    }
+  ]
+  

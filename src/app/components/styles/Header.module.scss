@@ -11,15 +11,32 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   flex-direction: row;
 
+  &.scrolled {
+    background: rgba(255, 255, 255, 0.1); /* light frosted */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
   @media (max-width: 770px) {
-    flex-direction: row-reverse; // Switch order for mobile
+    flex-direction: row-reverse;
+  }
+
+  .activeNavItem {
+    color: #01796f;
+
+    span,
+    svg {
+      color: #01796f;
+    }
   }
 
   .menuToggle {
     display: none;
     cursor: pointer;
 
-    &:hover{
+    &:hover {
       color: #01796f;
     }
 
@@ -27,7 +44,7 @@
       display: block;
       z-index: 1100;
       position: relative;
-      order: 2; // Move menuToggle to the left in mobile
+      order: 2;
     }
   }
 
@@ -37,7 +54,7 @@
     justify-content: flex-start;
 
     @media (max-width: 770px) {
-      justify-content: flex-end; // Moves KIITBites to the opposite side
+      justify-content: flex-end;
     }
 
     a {
@@ -50,6 +67,7 @@
   .navOptions {
     display: flex;
     gap: 1.5rem;
+    z-index: 1050;
 
     @media (max-width: 770px) {
       position: fixed;
@@ -59,7 +77,6 @@
       height: 100vh;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      display: flex;
       justify-content: center;
       align-items: center;
       transform: translateX(-100%);
@@ -79,7 +96,7 @@
 
     @media (max-width: 770px) {
       position: relative;
-      top: -205px; /* Moves the element upwards without affecting the document flow */
+      top: -205px;
       background-color: white;
       width: 80%;
       gap: 45px;
@@ -89,8 +106,22 @@
       flex-direction: column;
       align-items: center;
       z-index: 1;
-    }    
+    }
   }
+
+  .rightOptions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4.5rem;
+  }
+  
+  @media (max-width: 770px) {
+    .rightOptions {
+      display: none;
+    }
+  }
+  
 
   .navItem {
     display: flex;
@@ -100,7 +131,7 @@
     font-size: 1.2rem;
     font-weight: 500;
 
-    &:hover{
+    &:hover {
       color: #01796f;
     }
 
@@ -108,9 +139,44 @@
       margin-top: 5px;
     }
   }
+
+  .profileIcon {
+    cursor: pointer;
+    position: relative;
+  }
+
+  .dropdownWrapper {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    width: 180px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 10px 0;
+    z-index: 10;
+  }
+
+
+  .dropdownMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+
+    a {
+      padding: 8px 12px;
+      color: #333;
+      text-decoration: none;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+  }
 }
 
-// Prevents scrolling when menu is open
+/* Global override for menu open scroll behavior */
 body.menu-open {
   overflow: hidden;
 }

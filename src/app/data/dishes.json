@@ -1,0 +1,17 @@
+[
+    {
+      "id": 1,
+      "name": "Cheese Burger",
+      "price": 8.99,
+      "image": "https://res.cloudinary.com/demo/image/upload/v1710000000/cheese_burger.jpg",
+      "foodcourts": [1, 2]
+    },
+    {
+      "id": 2,
+      "name": "Sushi Platter",
+      "price": 14.99,
+      "image": "https://res.cloudinary.com/demo/image/upload/v1710000000/sushi_platter.jpg",
+      "foodcourts": [1]
+    }
+  ]
+  

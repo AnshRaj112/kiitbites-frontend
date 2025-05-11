@@ -1,15 +1,45 @@
-.container {
-    text-align: center;
-    padding: 50px;
-  
-    h1 {
-      color: #0070f3;
-      font-size: 2.5em;
-    }
-  
-    p {
-      color: #333;
-      font-size: 1.2em;
-    }
-  }
-  
+$spacing-large: 70px;
+
+.homepage {
+  overflow-x: hidden;
+  width: 100%;
+  margin-top: $spacing-large;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.greeting {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-radius: 8px;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.scrollWrapper {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1rem;
+  padding: 1rem 0;
+  max-width: 100vw;
+  box-sizing: border-box;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.pageWrapper {
+  padding: 2rem;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: visible; // Ensure contents aren't clipped
+}

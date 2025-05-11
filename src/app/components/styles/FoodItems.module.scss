@@ -1,0 +1,68 @@
+
+
+.foodItemsContainer {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding: 10px;
+    margin-top: 40px;
+    scrollbar-width: none; 
+  }
+  
+  .foodItemsContainer::-webkit-scrollbar {
+    display: none; 
+  }
+  
+  .foodItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 auto; 
+    width: 90px;
+    text-align: center;
+  }
+  
+  .foodImage {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  .foodItem p {
+    margin-top: 8px;
+    font-size: 15px;
+    text-align: center;
+  }
+  // Grid layout for landing page
+.gridLayout {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 30px;
+  padding: 20px;
+  margin: 50px auto;
+  max-width: 900px;
+  justify-content: center;
+  background-color: #f3f6fb;
+  border-radius: 16px;
+}
+
+// Horizontal scroll layout for other pages
+.scrollLayout {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+
+  gap: 1rem;
+  padding: 10px;
+  margin-top: 40px;
+  scrollbar-width: none;
+  width: max-content;
+}
+
+.scrollLayout::-webkit-scrollbar {
+  display: none;
+}

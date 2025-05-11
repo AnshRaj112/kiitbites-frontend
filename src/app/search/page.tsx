@@ -1,12 +1,12 @@
 "use client";
 
-import SearchBar from "./SearchBar";
-
+import { Suspense } from "react";
+import SearchBar from "../components/SearchBar";
 
 export default function SearchBarPage() {
   return (
-    <div>
+    <Suspense fallback={<div>Loading...</div>}>
       <SearchBar />
-    </div>
+    </Suspense>
   );
 }
