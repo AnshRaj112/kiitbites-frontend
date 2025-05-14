@@ -29,7 +29,7 @@ export default function AboutPage() {
           </ul>
         </section>
         <section className={styles.aboutsection}>
-          <h2>Contact Us</h2>
+        <h2>Need Assistance?</h2>
           <p>
             If you have any queries or feedback, feel free to reach out via our{" "}
             <a href="/contact">Contact Us</a> page.
