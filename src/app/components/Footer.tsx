@@ -21,14 +21,15 @@ const Footer = () => {
           <h4>Contact Us</h4>
           <ul>
             <li><a href="/help">Help</a></li>
+
           </ul>
         </div>
         <div className={styles.section}>
           <h4>Legal</h4>
           <ul>
             <li><a href="/termncondition">Terms & Conditions</a></li>
-            {/* <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">Privacy Policy</a></li> */}
+            <li><a href="/refundcancellationpolicy">Refund & Cancellation Policy</a></li>
+            <li><a href="/privacypolicy">Privacy Policy</a></li> 
           </ul>
         </div>
       </div>
