@@ -287,8 +287,12 @@ const Header: React.FC<HeaderProps> = ({
                     handleNavigation(userFullName ? "/profile" : "/login")
                   }
                 >
-                  <FaUserCircle size={24} />
-                  <span>{userFullName || "Profile"}</span>
+                  {userFullName ? (
+                    <FaUserCircle size={24} />
+                  ) : (
+                    <IoPersonOutline size={24} />
+                  )}
+                  <span>{userFullName || "Login"}</span>
                 </div>
               )}
             </div>
@@ -303,57 +307,67 @@ const Header: React.FC<HeaderProps> = ({
             <LuArrowUpRight size={18} />
             <span>GET THE APP</span>
           </div>
-
-          <div className={styles.profileContainer} ref={dropdownRef}>
+      
+          {userFullName ? (
+            <div className={styles.profileContainer} ref={dropdownRef}>
+              <div
+                className={styles.navItem}
+                onClick={() => setShowDropdown((prev) => !prev)}
+              >
+                <FaUserCircle size={32} />
+              </div>
+              <AnimatePresence>
+                {showDropdown && (
+                  <motion.div
+                    className={styles.dropdownWrapper}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className={styles.dropdownMenu}>
+                      <div
+                        className={styles.navItem}
+                        onClick={() => handleNavigation("/profile")}
+                        style={{ fontSize: "1rem" }}
+                      >
+                        <span style={{ fontSize: "1rem" }}>Profile</span>
+                      </div>
+                      <div
+                        className={styles.navItem}
+                        onClick={() => handleNavigation("/orders")}
+                        style={{ fontSize: "1rem" }}
+                      >
+                        <span style={{ fontSize: "1rem" }}>Orders</span>
+                      </div>
+                      <div
+                        className={styles.navItem}
+                        onClick={() => handleNavigation("/favourites")}
+                        style={{ fontSize: "1rem" }}
+                      >
+                        <span style={{ fontSize: "1rem" }}>Favourites</span>
+                      </div>
+                      <div
+                        className={styles.navItem}
+                        onClick={handleLogout}
+                        style={{ fontSize: "1rem" }}
+                      >
+                        <span style={{ fontSize: "1rem" }}>Logout</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
             <div
               className={styles.navItem}
-              onClick={() => setShowDropdown((prev) => !prev)}
+              onClick={() => handleNavigation("/login")}
             >
-              <FaUserCircle size={32} />
+              <IoPersonOutline size={24} />
+              <span>Login</span>
             </div>
-            <AnimatePresence>
-              {showDropdown && (
-                <motion.div
-                  className={styles.dropdownWrapper}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className={styles.dropdownMenu}>
-                    <div
-                      className={styles.navItem}
-                      onClick={() => handleNavigation("/profile")}
-                      style={{ fontSize: "1rem" }}
-                    >
-                      <span style={{ fontSize: "1rem" }}>Profile</span>
-                    </div>
-                    <div
-                      className={styles.navItem}
-                      onClick={() => handleNavigation("/orders")}
-                      style={{ fontSize: "1rem" }}
-                    >
-                      <span style={{ fontSize: "1rem" }}>Orders</span>
-                    </div>
-                    <div
-                      className={styles.navItem}
-                      onClick={() => handleNavigation("/favourites")}
-                      style={{ fontSize: "1rem" }}
-                    >
-                      <span style={{ fontSize: "1rem" }}>Favourites</span>
-                    </div>
-                    <div
-                      className={styles.navItem}
-                      onClick={handleLogout}
-                      style={{ fontSize: "1rem" }}
-                    >
-                      <span style={{ fontSize: "1rem" }}>Logout</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          )}
         </div>
       )}
     </header>
