@@ -8,7 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BiteBay",
+  title: "BitesBay",
   description: "Your campus food ordering solution",
 };
 

@@ -24,11 +24,11 @@
   }
 
   .activeNavItem {
-    color: #1E40AF;
+    color: #01796f;
 
     span,
     svg {
-      color: #1E40AF;
+      color: #01796f;
     }
   }
 
@@ -37,7 +37,7 @@
     cursor: pointer;
 
     &:hover {
-      color: #1E40AF;
+      color: #01796f;
     }
 
     @media (max-width: 770px) {
@@ -132,7 +132,7 @@
     font-weight: 500;
 
     &:hover {
-      color: #1E40AF;
+      color: #01796f;
     }
 
     @media (max-width: 770px) {
