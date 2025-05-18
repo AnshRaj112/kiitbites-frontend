@@ -5,6 +5,13 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "BiteBay",
+  description: "Your campus food ordering solution",
+};
+
 
 export default function RootLayout({
   children,
