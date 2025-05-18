@@ -9,7 +9,7 @@ export default function TermAndCondition() {
       <div className={styles.box}>
         <h1>Term & Conditions</h1>
         <p>
-          Welcome to <strong>KIITBites</strong>. By using our services, you
+          Welcome to <strong>BiteBay</strong>. By using our services, you
           agree to the following terms and conditions. Please read them
           carefully.
         </p>
@@ -65,7 +65,7 @@ export default function TermAndCondition() {
           <ul>
             <li>
               Violating any of the above terms may result in a{" "}
-              <strong>temporary or permanent</strong> ban from KIITBites.
+              <strong>temporary or permanent</strong> ban from BiteBay.
             </li>
             <li>
               For any disputes or queries, please visit our{" "}
@@ -74,7 +74,7 @@ export default function TermAndCondition() {
           </ul>
         </section>
         <p className={styles.footernote}>
-          By using KIITBites, you agree to abide by these terms. We reserve the
+          By using BiteBay, you agree to abide by these terms. We reserve the
           right to update these terms at any time.
         </p>
       </div>

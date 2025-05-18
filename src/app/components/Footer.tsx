@@ -34,7 +34,7 @@ const Footer = () => {
         </div>
       </div>
       <div className={styles.bottom}>
-        <p>© KIITBites {currentYear}. All rights reserved.</p>
+        <p>© BiteBay {currentYear}. All rights reserved.</p>
         <div className={styles.downloadLinks}>
           <a href="#"><img src="/appstore.png" alt="Download on the App Store" /></a>
           <a href="#"><img src="/googleplay.png" alt="Get it on Google Play" /></a>

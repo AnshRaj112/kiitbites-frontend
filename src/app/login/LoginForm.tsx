@@ -163,7 +163,7 @@ export default function LoginForm() {
         </div>
         <div
           style={{
-            backgroundColor: "#4ea199",
+            backgroundColor: "#1e90fc",
             color: "black",
             padding: "12px",
             borderRadius: "8px",
@@ -177,7 +177,7 @@ export default function LoginForm() {
             (e.currentTarget.style.backgroundColor = "#01796f")
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#4ea199")
+            (e.currentTarget.style.backgroundColor = "#1e90fc")
           }
         >
           <GoogleLogin />
