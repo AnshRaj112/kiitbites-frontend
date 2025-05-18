@@ -1,13 +1,13 @@
-# KIITBites - Web Application
+# BiteBay - Web Application
 
 ## Introduction
-**KIITBites** is a comprehensive online food ordering and inventory management platform designed exclusively for the KIIT University campus. The platform aims to enhance the food ordering experience by providing a seamless, time-efficient, and convenient way for students and faculty to access food across multiple food courts while also helping food vendors manage their inventory effectively.
+**BiteBay** is a comprehensive online food ordering and inventory management platform designed exclusively for the KIIT University campus. The platform aims to enhance the food ordering experience by providing a seamless, time-efficient, and convenient way for students and faculty to access food across multiple food courts while also helping food vendors manage their inventory effectively.
 
 ## Problem Statement
-During peak hours, food courts on campus experience long queues, resulting in extended wait times for students. This not only disrupts their schedules but also leads to operational inefficiencies and food shortages due to poor inventory tracking. KIITBites addresses these challenges by offering a digital platform for streamlined food ordering and inventory management.
+During peak hours, food courts on campus experience long queues, resulting in extended wait times for students. This not only disrupts their schedules but also leads to operational inefficiencies and food shortages due to poor inventory tracking. BiteBay addresses these challenges by offering a digital platform for streamlined food ordering and inventory management.
 
 ## Solution
-KIITBites introduces an intuitive web application that integrates all food courts on the KIIT campus, providing:
+BiteBay introduces an intuitive web application that integrates all food courts on the KIIT campus, providing:
 - **A centralized menu system** displaying real-time availability of food items.
 - **Online ordering** with real-time tracking and notifications.
 - **An inventory management system** for vendors to monitor stock levels efficiently.
@@ -61,7 +61,7 @@ BACKEND_URL=your_backend_url
 ## Detailed Page Breakdown
 ### 1. **User Pages:**
 #### - Landing Page:
-  - Displays platform features, ongoing promotions, and an introduction to KIITBites.
+  - Displays platform features, ongoing promotions, and an introduction to BiteBay.
   - Provides quick access to login/sign-up options.
 #### - Sign-Up & Login Page:
   - Allows users to register using email, phone number, or KIIT credentials.
@@ -122,8 +122,8 @@ BACKEND_URL=your_backend_url
 1. **Fork the repository** on GitHub.
 2. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repo/KIITBites.git
-   cd KIITBites
+   git clone https://github.com/your-repo/BiteBay.git
+   cd BiteBay
    ```
 3. **Install dependencies**:
    ```bash
@@ -152,7 +152,7 @@ BACKEND_URL=your_backend_url
 This project is licensed under the MIT License.
 
 ## Contact
-For queries or contributions, contact the **KIITBites Team** at [kiitbites@gmail.com](mailto:kiitbites@gmail.com).
+For queries or contributions, contact the **BiteBay Team** at [kiitbites@gmail.com](mailto:kiitbites@gmail.com).
 
 ## Design Reference
-Figma Link: [Click Here](https://www.figma.com/design/uCTZfzhDkk06FNwA2Ooc4G/KIITBites?node-id=0-1&t=eN4BzoUfe3aSVfNt-0)
+Figma Link: [Click Here](https://www.figma.com/design/uCTZfzhDkk06FNwA2Ooc4G/BiteBay?node-id=0-1&t=eN4BzoUfe3aSVfNt-0)

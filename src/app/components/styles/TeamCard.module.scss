@@ -23,7 +23,7 @@
     margin: 0 auto;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid #4ea199;
+    border: 3px solid #1E3A8A;
 
     .image {
       width: 100%;
@@ -53,12 +53,11 @@
 
       .icon {
         font-size: 22px; // Adjusted for better look
-        color: #4ea199;
+        color: #1E3A8A;
         transition: color 0.3s ease-in-out, transform 0.2s;
 
         &:hover {
-          //color: #0077b6;
-          color: #01796f;
+          color: #1E40AF;
           transform: scale(1.2);
         }
       }

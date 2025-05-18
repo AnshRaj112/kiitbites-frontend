@@ -43,8 +43,9 @@
         transition: box-shadow 0.2s;
 
         &:focus {
-          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
-          border-color: #4ea199;
+          box-shadow: 0 0 4px rgba(30, 144, 252, 0.4),
+            0 0 8px rgba(30, 64, 175, 0.4);
+          border-color: #dbeafe;
         }
       }
 
@@ -63,16 +64,16 @@
           right: 10px;
           cursor: pointer;
           font-size: 1.2em;
-          color: #4ea199; /* Match the button color */
+          color: #1e90fc; /* Match the button color */
         }
 
         .eyeIcon:hover {
-          color: #01796f;
+          color: #1e40af;
         }
       }
 
       button {
-        background-color: #4ea199;
+        background-color: #1e90fc;
         color: black;
         padding: 12px;
         border: none;
@@ -82,7 +83,7 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #01796f;
+          background-color: #1e40af;
         }
       }
     }
@@ -114,7 +115,7 @@
     }
 
     .googleLogin {
-      background-color: #4ea199;
+      background-color: #1e90fc;
       color: black;
       padding: 12px;
       border-radius: 8px;
@@ -125,19 +126,19 @@
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #01796f;
+        background-color: #1e40af;
       }
     }
 
     .forgotPassword {
-      color: #4ea199;
+      color: #1e90fc;
       text-decoration: none;
       transition: color 0.2s;
       margin-bottom: 10px;
       text-align: right;
 
       &:hover {
-        color: #01796f;
+        color: #1e40af;
       }
     }
 
@@ -145,12 +146,12 @@
       margin-top: 20px;
 
       a {
-        color: #4ea199;
+        color: #1e90fc;
         text-decoration: none;
         transition: color 0.2s;
 
         &:hover {
-          color: #01796f;
+          color: #1e40af;
         }
       }
     }

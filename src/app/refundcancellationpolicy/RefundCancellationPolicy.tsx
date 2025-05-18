@@ -9,7 +9,7 @@ export default function RefundCancellationPage() {
       <div className={styles.box}>
         <h1>Refund & Cancellation Policy</h1>
         <p>
-          At <strong>KIITBites</strong>, we are committed to transparency and user satisfaction. This policy outlines our stance regarding refunds and cancellations.
+          At <strong>BiteBay</strong>, we are committed to transparency and user satisfaction. This policy outlines our stance regarding refunds and cancellations.
         </p>
 
         <section className={styles.aboutsection}>
@@ -37,14 +37,14 @@ export default function RefundCancellationPage() {
             Additionally, <strong>placing multiple or bulk orders</strong> and failing to make payment or pick them up is considered misuse of our service.
           </p>
           <p>
-            Such behavior will also result in <strong>permanent suspension or termination</strong> of your KIITBites account.
+            Such behavior will also result in <strong>permanent suspension or termination</strong> of your BiteBay account.
           </p>
         </section>
 
         <section className={styles.aboutsection}>
           <h2>Platform Integrity</h2>
           <p>
-            KIITBites functions on mutual trust between users and our partnered food vendors. Misuse of platform functionalities — including attempts to coerce vendors, spam support requests, or circulate false claims — compromises that trust.
+            BiteBay functions on mutual trust between users and our partnered food vendors. Misuse of platform functionalities — including attempts to coerce vendors, spam support requests, or circulate false claims — compromises that trust.
           </p>
           <p>
             We reserve the right to monitor account activity for abuse patterns and take necessary action without prior warning.
@@ -59,7 +59,7 @@ export default function RefundCancellationPage() {
         </section>
 
         <p className={styles.footernote}>
-          Thank you for choosing KIITBites. We look forward to serving you!
+          Thank you for choosing BiteBay. We look forward to serving you!
         </p>
       </div>
     </div>

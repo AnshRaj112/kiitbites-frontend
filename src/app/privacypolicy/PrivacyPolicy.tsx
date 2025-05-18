@@ -10,7 +10,7 @@ export default function PrivacyPage() {
       <div className={styles.box}>
         <h1>Privacy Policy</h1>
         <p>
-          At <strong>KIITBites</strong>, your privacy is important to us. This
+          At <strong>BiteBay</strong>, your privacy is important to us. This
           policy outlines how we collect, use, and protect your personal
           information.
         </p>
@@ -69,7 +69,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <p className={styles.footernote}>
-          Thank you for choosing KIITBites. We look forward to serving you!
+          Thank you for choosing BiteBay. We look forward to serving you!
         </p>
       </div>
     </div>

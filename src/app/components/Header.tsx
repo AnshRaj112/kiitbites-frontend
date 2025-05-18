@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-
+import Image from 'next/image';
 import { IoMdSearch } from "react-icons/io";
 import { IoHelp, IoPersonOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
@@ -136,7 +136,12 @@ const Header: React.FC<HeaderProps> = ({
     <header className={`${styles.header} ${scrolling ? styles.scrolled : ""}`}>
       <div className={styles.logoContainer}>
         <Link href="/">
-          <p>KIITBites</p>
+          <Image
+            src="https://res.cloudinary.com/dt45pu5mx/image/upload/v1747555898/logo_u1ndj9.png"
+            alt="BiteBay Logo"
+            width={150} // adjust width as needed
+            height={50} // adjust height as needed
+          />
         </Link>
       </div>
 
@@ -307,7 +312,7 @@ const Header: React.FC<HeaderProps> = ({
             <LuArrowUpRight size={18} />
             <span>GET THE APP</span>
           </div>
-      
+
           {userFullName ? (
             <div className={styles.profileContainer} ref={dropdownRef}>
               <div

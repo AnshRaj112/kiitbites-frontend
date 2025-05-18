@@ -10,13 +10,13 @@ export default function AboutPage() {
       <div className={styles.box}>
         <h1>About Us</h1>
         <p>
-          Welcome to <strong>KIITBites</strong>. We are dedicated to providing a seamless 
+          Welcome to <strong>BiteBay</strong>. We are dedicated to providing a seamless 
           and efficient food ordering experience for students and staff.
         </p>
         <section className={styles.aboutsection}>
           <h2>Our Mission</h2>
           <p>
-            At <strong>KIITBites</strong>, our goal is to make food ordering easy, fast, and 
+            At <strong>BiteBay</strong>, our goal is to make food ordering easy, fast, and 
             reliable while ensuring quality service for everyone.
           </p>
         </section>
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </p>
         </section>
         <p className={styles.footernote}>
-          Thank you for choosing KIITBites. We look forward to serving you!
+          Thank you for choosing BiteBay. We look forward to serving you!
         </p>
       </div>
     </div>

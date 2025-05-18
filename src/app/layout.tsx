@@ -15,6 +15,11 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      {/* <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      </head> */}
       <body>
         <GoogleOAuthProvider clientId={googleClientId}>
           <AuthProvider>
@@ -24,7 +29,7 @@ export default function RootLayout({
           </AuthProvider>
         </GoogleOAuthProvider>
         <SpeedInsights />
-       <Analytics />
+        <Analytics />
       </body>
     </html>
   );
