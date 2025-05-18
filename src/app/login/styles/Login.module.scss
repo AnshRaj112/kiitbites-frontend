@@ -43,9 +43,8 @@
         transition: box-shadow 0.2s;
 
         &:focus {
-          box-shadow: 0 0 4px rgba(30, 144, 252, 0.4),
-            0 0 8px rgba(30, 64, 175, 0.4);
-          border-color: #dbeafe;
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
+          border-color: #4ea199;
         }
       }
 
@@ -64,16 +63,16 @@
           right: 10px;
           cursor: pointer;
           font-size: 1.2em;
-          color: #1e90fc; /* Match the button color */
+          color: #4ea199; /* Match the button color */
         }
 
         .eyeIcon:hover {
-          color: #1e40af;
+          color: #3a8273;
         }
       }
 
       button {
-        background-color: #1e90fc;
+        background-color: #4ea199;
         color: black;
         padding: 12px;
         border: none;
@@ -83,7 +82,7 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #1e40af;
+          background-color: #3a8273;
         }
       }
     }
@@ -115,7 +114,7 @@
     }
 
     .googleLogin {
-      background-color: #1e90fc;
+      background-color: #4ea199;
       color: black;
       padding: 12px;
       border-radius: 8px;
@@ -126,19 +125,19 @@
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #1e40af;
+        background-color: #3a8273;
       }
     }
 
     .forgotPassword {
-      color: #1e90fc;
+      color: #4ea199;
       text-decoration: none;
       transition: color 0.2s;
       margin-bottom: 10px;
       text-align: right;
 
       &:hover {
-        color: #1e40af;
+        color: #3a8273;
       }
     }
 
@@ -146,20 +145,14 @@
       margin-top: 20px;
 
       a {
-        color: #1e90fc;
+        color: #4ea199;
         text-decoration: none;
         transition: color 0.2s;
 
         &:hover {
-          color: #1e40af;
+          color: #3a8273;
         }
       }
     }
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .container {
-    height: 91.6vh; /* Full-screen height */
   }
 }
