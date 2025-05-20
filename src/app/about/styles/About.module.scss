@@ -3,9 +3,9 @@
   margin: 2rem auto;
   padding: 2rem;
   margin-top: 100px;
-  background-color: #fafafa;
+  background-color: #f8fafc;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   
   :global(h1), :global(h2), :global(strong) {
     color: #4ea199;
@@ -17,6 +17,11 @@
     font-weight: 700;
     margin-bottom: 1.5rem;
     text-align: center;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0px 2px 4px rgba(78, 161, 153, 0.2);
   }
   
   :global(h2) {
@@ -130,8 +135,11 @@
 
 .closing {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
   font-style: italic;
+  background: linear-gradient(109.6deg, rgba(223,234,247,0.5) 11.2%, rgba(244,248,252,0.5) 91.1%);
+  padding: 1.5rem;
+  border-radius: 12px;
   
   :global(p) {
     font-size: 1.2rem;
