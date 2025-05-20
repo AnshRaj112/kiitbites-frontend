@@ -2,66 +2,122 @@
 
 import React from "react";
 import styles from "./styles/RefundCancellationPolicy.module.scss";
+import Link from "next/link";
 
 export default function RefundCancellationPage() {
   return (
-    <div className={styles.container}>
-      <div className={styles.box}>
-        <h1>Refund & Cancellation Policy</h1>
+    <div className={styles.policyContainer}>
+      <h1>Refund & Cancellation Policy</h1>
+
+      <p className={styles.intro}>
+        At BitesBay, we value transparency, accountability, and a smooth
+        ordering experience. This policy clearly defines our stance on refunds,
+        cancellations, and payment guidelines, ensuring fairness for users and
+        food vendors across campus food courts.
+      </p>
+
+      <div className={styles.section}>
+        <h2>Refund Policy</h2>
+        <ul className={styles.policyList}>
+          <li>
+            All confirmed orders are <strong>non-refundable</strong>. Once an
+            order is placed and payment is successfully processed (where
+            applicable), no refund requests will be entertained.
+          </li>
+          <li>
+            Users are encouraged to double-check their order details—items,
+            quantities, and food preferences—before making any payment.
+          </li>
+          <li>
+            Visiting food court outlets to request or argue for refunds is
+            strictly against platform policy. Such conduct will be treated as a
+            violation and may result in account suspension or permanent
+            termination.
+          </li>
+        </ul>
+      </div>
+
+      <div className={styles.section}>
+        <h2>Cancellation Policy</h2>
+        <ul className={styles.policyList}>
+          <li>
+            Orders cannot be canceled once placed, regardless of the order type
+            or time.
+          </li>
+          <li>
+            To ensure reliable order processing and reduce food waste,
+            cancellations are not supported.
+          </li>
+          <li>
+            Users placing multiple or excessive orders without following through
+            on payment or pickup will face permanent suspension from the
+            platform.
+          </li>
+        </ul>
+      </div>
+
+      <div className={styles.section}>
+        <h2>Payment Policy</h2>
         <p>
-          At <strong>BiteBay</strong>, we are committed to transparency and user satisfaction. This policy outlines our stance regarding refunds and cancellations.
+          To streamline the ordering process and support operational efficiency:
         </p>
-
-        <section className={styles.aboutsection}>
-          <h2>Refund Policy</h2>
-          <p>
-            Please note that <strong>we do not provide any refunds</strong> once an order has been successfully placed and confirmed.
-          </p>
-          <p>
-            All transactions are final, and users are expected to review their orders thoroughly before proceeding with payment.
-          </p>
-          <p>
-            Visiting any food court locations — such as <strong>KIIT Kafé, Maggie Point, Central Canteen</strong>, or other affiliated vendors — and attempting to negotiate refunds in person is strictly prohibited.
-          </p>
-          <p>
-            Any such attempt will be considered a violation of platform conduct and may result in <strong>account termination</strong>.
-          </p>
-        </section>
-
-        <section className={styles.aboutsection}>
-          <h2>Cancellation Policy</h2>
-          <p>
-            Once an order is placed, it cannot be canceled under any circumstance. This policy exists to maintain the efficiency and reliability of our order fulfillment process.
-          </p>
-          <p>
-            Additionally, <strong>placing multiple or bulk orders</strong> and failing to make payment or pick them up is considered misuse of our service.
-          </p>
-          <p>
-            Such behavior will also result in <strong>permanent suspension or termination</strong> of your BiteBay account.
-          </p>
-        </section>
-
-        <section className={styles.aboutsection}>
-          <h2>Platform Integrity</h2>
-          <p>
-            BiteBay functions on mutual trust between users and our partnered food vendors. Misuse of platform functionalities — including attempts to coerce vendors, spam support requests, or circulate false claims — compromises that trust.
-          </p>
-          <p>
-            We reserve the right to monitor account activity for abuse patterns and take necessary action without prior warning.
-          </p>
-        </section>
-
-        <section className={styles.aboutsection}>
-          <h2>Need Assistance?</h2>
-          <p>
-            For any privacy-related concerns, please reach out via our <a href="/contact">Contact Us</a> page.
-          </p>
-        </section>
-
-        <p className={styles.footernote}>
-          Thank you for choosing BiteBay. We look forward to serving you!
+        <ul className={styles.policyList}>
+          <li>
+            If your order consists solely of pre-packed items (such as bottled
+            beverages, chips, or sealed snacks), you may opt for Pay Later and
+            complete payment at the time of pickup.
+          </li>
+          <li>
+            If your order includes any prepared or made-to-order items (such as
+            meals, sandwiches, or custom dishes), advance payment is mandatory
+            at the time of ordering.
+          </li>
+        </ul>
+        <p>
+          This distinction ensures that freshly prepared food is made only
+          against confirmed and paid requests, preventing resource misuse and
+          vendor losses.
         </p>
       </div>
-    </div>
+
+      <div className={styles.section}>
+        <h2>Platform Integrity</h2>
+        <p>
+          BitesBay operates on mutual trust between users and food court
+          vendors. Any misuse of platform functionality—such as:
+        </p>
+        <ul className={styles.policyList}>
+          <li>Coercing vendors or staff,</li>
+          <li>Falsifying refund claims,</li>
+          <li>Repeatedly exploiting  &quot;Pay Later&quot; for unpaid pickups,</li>
+          <li>Abusing support or system loopholes—</li>
+        </ul>
+        <p>
+          ...will result in immediate investigation and appropriate penalties,
+          including account bans without prior warning.
+        </p>
+      </div>
+
+      <div className={styles.section}>
+        <h2>Need Assistance?</h2>
+        <p>
+          If you have any concerns or require clarification regarding your
+          orders or payment obligations, feel free to contact us anytime via our{" "}
+          <Link href="/help" className={styles.contactLink}>
+            Contact Us
+          </Link>{" "}
+          page.
+        </p>
+      </div>
+
+      <div className={styles.closing}>
+        <p>
+          Thank you for choosing BitesBay — empowering campuses with smarter
+          food experiences.
+          <br />
+          Your cooperation helps us serve you better, every day.
+        </p>
+      </div>
+    </div>  
   );
 }
