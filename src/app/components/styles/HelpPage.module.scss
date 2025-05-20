@@ -40,7 +40,7 @@
   
           &:focus {
             box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
-            border-color: #1e90fc;
+            border-color: #4ea199;
           }
         }
   
@@ -57,7 +57,7 @@
         }
   
         button {
-          background-color: #1e90fc;
+          background-color: #4ea199;
           color: black;
           padding: 12px;
           border: none;
@@ -67,7 +67,7 @@
           transition: background-color 0.2s;
   
           &:hover {
-            background-color: #01796f;
+            background-color: #3a8273;
           }
         }
       }

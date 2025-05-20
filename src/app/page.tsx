@@ -7,7 +7,6 @@ import styles from './page.module.scss';
 
 export default function Landing() {
   return (
-
     <div className={styles.homepage}>
       <main className={styles.main}>
         <h1>Order food on campus. Fast. Delicious!!</h1>
