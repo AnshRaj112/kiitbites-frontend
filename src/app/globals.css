@@ -110,3 +110,45 @@
     z-index: 1;
   }
 }
+
+
+.buildings-container {
+  position: absolute;
+  right: -10%;
+  bottom: 0;
+  width: 40%;
+  height: 100%;
+  opacity: 0.15;
+  transform: scale(1.5);
+}
+
+.building {
+  position: absolute;
+  background: #0e6e6e;
+  bottom: 0;
+}
+
+.building-1 {
+  width: 60px;
+  height: 70%;
+  right: 10%;
+}
+
+.building-2 {
+  width: 80px;
+  height: 60%;
+  right: 30%;
+}
+
+.building-3 {
+  width: 50px;
+  height: 50%;
+  right: 50%;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .buildings-container {
+    opacity: 0.08;
+  }
+}
