@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"; 
 
 const Footer: React.FC = () => {
   return (
@@ -86,11 +86,11 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/about" className="text-gray-300 hover:text-white transition-colors">
                   About Us
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
                   Careers
                 </a>
@@ -99,17 +99,17 @@ const Footer: React.FC = () => {
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
                   Blog
                 </a>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
                   Press
                 </a>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
                   Partner With Us
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -119,28 +119,23 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/help" className="text-gray-300 hover:text-white transition-colors">
                   Help Center
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/privacypolicy" className="text-gray-300 hover:text-white transition-colors">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <a href="/termncondition" className="text-gray-300 hover:text-white transition-colors">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Vendor Guidelines
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                  Become a Vendor
+                <a href="/refundcancellationpolicy" className="text-gray-300 hover:text-white transition-colors">
+                  Refund & Cancellation
                 </a>
               </li>
             </ul>
@@ -156,8 +151,8 @@ const Footer: React.FC = () => {
                 College Town, CT 10101
               </p>
               <p className="mb-2">
-                <a href="mailto:info@bitesbay.com" className="text-gray-300 hover:text-white transition-colors">
-                  info@bitesbay.com
+                <a href="mailto:contact@bitesbay.com" className="text-gray-300 hover:text-white transition-colors">
+                  contact@bitesbay.com
                 </a>
               </p>
               <p>
@@ -223,14 +218,14 @@ const Footer: React.FC = () => {
               &copy; {new Date().getFullYear()} BitesBay. All rights reserved.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <a href="/privacypolicy" className="text-sm text-gray-400 hover:text-white transition-colors">
                 Privacy Policy
               </a>
-              <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <a href="/termncondition" className="text-sm text-gray-400 hover:text-white transition-colors">
                 Terms of Service
               </a>
-              <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
-                Sitemap
+              <a href="/refundcancellationpolicy" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Refund & Cancellation
               </a>
             </div>
           </div>
