@@ -1,4 +1,4 @@
-import React from "react"; 
+import React from "react";
 
 const Footer: React.FC = () => {
   return (
@@ -13,11 +13,15 @@ const Footer: React.FC = () => {
               Connecting campus communities with their favorite food vendors.
             </p>
             <div className="flex space-x-4">
-              <a href="#" aria-label="Facebook" className="text-gray-300 hover:text-white transition-colors">
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -28,26 +32,30 @@ const Footer: React.FC = () => {
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
               </a>
-              <a href="#" aria-label="Twitter" className="text-gray-300 hover:text-white transition-colors">
+              <a
+                href="#"
+                aria-label="X (formerly Twitter)"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  fill="currentColor"
                 >
-                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                  <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" transform="scale(1.5)" />
                 </svg>
               </a>
-              <a href="#" aria-label="Instagram" className="text-gray-300 hover:text-white transition-colors">
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -60,11 +68,15 @@ const Footer: React.FC = () => {
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
               </a>
-              <a href="#" aria-label="LinkedIn" className="text-gray-300 hover:text-white transition-colors">
+              <a
+                href="#"
+                aria-label="LinkedIn"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -86,7 +98,10 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="/about" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="/about"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   About Us
                 </a>
               </li>
@@ -119,22 +134,34 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="/help" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="/help"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Help Center
                 </a>
               </li>
               <li>
-                <a href="/privacypolicy" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="/privacypolicy"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="/termncondition" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="/termncondition"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="/refundcancellationpolicy" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="/refundcancellationpolicy"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Refund & Cancellation
                 </a>
               </li>
@@ -147,22 +174,31 @@ const Footer: React.FC = () => {
             </h3>
             <address className="not-italic">
               <p className="mb-2 text-gray-300">
-                123 Campus Way<br />
+                123 Campus Way
+                <br />
                 College Town, CT 10101
               </p>
               <p className="mb-2">
-                <a href="mailto:contact@bitesbay.com" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="mailto:contact@bitesbay.com"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   contact@bitesbay.com
                 </a>
               </p>
               <p>
-                <a href="tel:+18005551234" className="text-gray-300 hover:text-white transition-colors">
+                <a
+                  href="tel:+18005551234"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   (800) 555-1234
                 </a>
               </p>
             </address>
             <div className="mt-4">
-              <h4 className="text-sm font-semibold mb-2 text-gray-300">Download Our App</h4>
+              <h4 className="text-sm font-semibold mb-2 text-gray-300">
+                Download Our App
+              </h4>
               <div className="flex space-x-2">
                 <a
                   href="#"
@@ -218,13 +254,22 @@ const Footer: React.FC = () => {
               &copy; {new Date().getFullYear()} BitesBay. All rights reserved.
             </p>
             <div className="flex space-x-4">
-              <a href="/privacypolicy" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <a
+                href="/privacypolicy"
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+              >
                 Privacy Policy
               </a>
-              <a href="/termncondition" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <a
+                href="/termncondition"
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+              >
                 Terms of Service
               </a>
-              <a href="/refundcancellationpolicy" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <a
+                href="/refundcancellationpolicy"
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+              >
                 Refund & Cancellation
               </a>
             </div>
