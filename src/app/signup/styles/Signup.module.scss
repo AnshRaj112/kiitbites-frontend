@@ -97,7 +97,7 @@
           display: block; // Initially hide it
           position: absolute;
           z-index: 10;
-      
+
           li {
             padding: 10px;
             cursor: pointer;
@@ -105,7 +105,58 @@
             display: block; // Ensure it takes full width
             width: 100%; // Make it occupy full width
             border-radius: 8px;
-      
+
+            &:hover {
+              background: #f0f4f8;
+            }
+          }
+        }
+      }
+
+      .collegeField {
+        display: flex;
+        align-items: center;
+        position: relative;
+        border-radius: 8px;
+
+        input {
+          flex-grow: 1;
+          padding-right: 40px; /* Space for eye icon */
+        }
+
+        .dropdownIcon {
+          position: absolute;
+          right: 10px;
+          cursor: pointer;
+          font-size: 1.2em;
+          color: #4ea199; /* Match the button color */
+        }
+
+        .dropdownIcon:hover {
+          color: #01796f;
+        }
+
+        ul {
+          list-style: none;
+          padding: 0;
+          margin-top: 230px; // Add space below the input
+          width: 100%; // Ensure full width below input
+          color: black;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
+          display: block; // Initially hide it
+          position: absolute;
+          z-index: 10;
+
+          li {
+            padding: 10px;
+            cursor: pointer;
+            text-align: left;
+            display: block; // Ensure it takes full width
+            width: 100%; // Make it occupy full width
+            border-radius: 8px;
+
             &:hover {
               background: #f0f4f8;
             }
@@ -162,7 +213,6 @@
       justify-content: space-between;
       margin-top: 20px;
 
-    
       .stepButton {
         background-color: #4ea199;
         color: black;
@@ -179,13 +229,13 @@
         }
       }
     }
-    
+
     .buttonsSpaced {
       display: flex;
       justify-content: space-between;
       gap: 10%;
       margin-top: 20px;
-    
+
       .stepButton {
         background-color: #4ea199;
         color: black;
@@ -195,14 +245,14 @@
         border-radius: 5px;
         transition: background 0.3s ease;
         width: 40%;
-    
+
         &:hover {
           background-color: #01796f;
         }
       }
     }
-    
 
+    
     .googleSignUp {
       background-color: #4ea199;
       color: black;
