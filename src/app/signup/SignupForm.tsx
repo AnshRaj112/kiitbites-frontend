@@ -286,6 +286,7 @@ export default function SignupForm() {
 
           {step === 3 && (
             <>
+              {/* Gender Selection */}
               <div className={styles.genderField}>
                 <input
                   name="gender"
@@ -312,11 +313,13 @@ export default function SignupForm() {
                 )}
               </div>
 
+              {/* College Selection */}
               <div className={styles.collegeField}>
                 <input
                   name="college"
                   value={
-                    colleges.find((c) => c._id === formData.uniId)?.fullName || ""
+                    colleges.find((c) => c._id === formData.uniId)?.fullName ||
+                    ""
                   }
                   readOnly
                   placeholder="Select College"
