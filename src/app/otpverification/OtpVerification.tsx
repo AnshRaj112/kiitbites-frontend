@@ -85,7 +85,7 @@ function OtpForm({
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${BACKEND_URL}/api/auth/otpverification`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/otpverification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -99,7 +99,7 @@ function OtpForm({
         localStorage.setItem("token", data.token);
         
         // After successful OTP verification, get user data
-        const userRes = await fetch(`${BACKEND_URL}/api/auth/user`, {
+        const userRes = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           method: "GET",
           credentials: "include",
           headers: { 

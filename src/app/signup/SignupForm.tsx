@@ -15,6 +15,7 @@ interface SignupFormState {
   gender: string;
   password: string;
   confirmPassword: string;
+  uniId: string;
 }
 
 export default function SignupForm() {
@@ -25,12 +26,17 @@ export default function SignupForm() {
     gender: "",
     password: "",
     confirmPassword: "",
+    uniId: "",
   });
 
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+  const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
+  const [colleges, setColleges] = useState<
+    Array<{ _id: string; fullName: string }>
+  >([]);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -58,7 +64,7 @@ export default function SignupForm() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -73,7 +79,9 @@ export default function SignupForm() {
 
         setTimeout(() => {
           router.push(
-            `/otpverification?email=${encodeURIComponent(formData.email)}&from=signup`
+            `/otpverification?email=${encodeURIComponent(
+              formData.email
+            )}&from=signup`
           );
         }, 2000);
       } else {
@@ -89,11 +97,11 @@ export default function SignupForm() {
 
   const checkSession = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/refresh`, {
         method: "GET",
         credentials: "include",
       });
-  
+
       if (res.ok) {
         console.log("✅ Session refreshed successfully");
       } else if (res.status === 401 || res.status === 403) {
@@ -107,20 +115,36 @@ export default function SignupForm() {
       console.error("❌ Error refreshing session:", error);
     }
   }, [BACKEND_URL, router]);
-  
 
   // Refresh session on component mount
   useEffect(() => {
     checkSession(); // Refresh on page load
-  
+
     const interval = setInterval(() => {
       checkSession();
     }, 60 * 60 * 1000); // Refresh every 1 hour
-  
+
     return () => clearInterval(interval); // Cleanup on unmount
   }, [checkSession]);
 
-  console.log("Making request to:", `${BACKEND_URL}/api/auth/signup`);
+  // Fetch colleges on component mount
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/user/auth/list`);
+        if (res.ok) {
+          const data = await res.json();
+          setColleges(data);
+        }
+      } catch (error) {
+        console.error("Error fetching colleges:", error);
+        notify("Error loading colleges. Please try again.", "error");
+      }
+    };
+    fetchColleges();
+  }, [BACKEND_URL]);
+
+  console.log("Making request to:", `${BACKEND_URL}/api/user/auth/signup`);
   console.log("Request body:", formData);
 
   const handleNext = () => {
@@ -147,9 +171,11 @@ export default function SignupForm() {
         );
         return;
       }
-    } else if (step === 3 && !formData.gender) {
-      notify("Please select your gender.", "error");
-      return;
+    } else if (step === 3) {
+      if (!formData.gender || !formData.uniId) {
+        notify("Please select your gender and college.", "error");
+        return;
+      }
     }
 
     if (step < 3) {
@@ -178,6 +204,11 @@ export default function SignupForm() {
   const handleGenderSelection = (gender: string) => {
     setFormData((prev) => ({ ...prev, gender }));
     setShowGenderDropdown(false);
+  };
+
+  const handleCollegeSelection = (uniId: string) => {
+    setFormData((prev) => ({ ...prev, uniId }));
+    setShowCollegeDropdown(false);
   };
 
   return (
@@ -254,31 +285,64 @@ export default function SignupForm() {
           )}
 
           {step === 3 && (
-            <div className={styles.genderField}>
-              <input
-                name="gender"
-                value={formData.gender}
-                readOnly
-                placeholder="Gender"
-                onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-              />
-              <FaChevronDown
-                className={styles.dropdownIcon}
-                onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-              />
-              {showGenderDropdown && (
-                <ul className={styles.genderList}>
-                  {["Male", "Female"].map((genderOption) => (
-                    <li
-                      key={genderOption}
-                      onClick={() => handleGenderSelection(genderOption)}
-                    >
-                      {genderOption}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <>
+              {/* Gender Selection */}
+              <div className={styles.genderField}>
+                <input
+                  name="gender"
+                  value={formData.gender}
+                  readOnly
+                  placeholder="Gender"
+                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                />
+                <FaChevronDown
+                  className={styles.dropdownIcon}
+                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                />
+                {showGenderDropdown && (
+                  <ul className={styles.genderList}>
+                    {["Male", "Female"].map((genderOption) => (
+                      <li
+                        key={genderOption}
+                        onClick={() => handleGenderSelection(genderOption)}
+                      >
+                        {genderOption}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* College Selection */}
+              <div className={styles.collegeField}>
+                <input
+                  name="college"
+                  value={
+                    colleges.find((c) => c._id === formData.uniId)?.fullName ||
+                    ""
+                  }
+                  readOnly
+                  placeholder="Select College"
+                  onClick={() => setShowCollegeDropdown(!showCollegeDropdown)}
+                />
+                <FaChevronDown
+                  className={styles.dropdownIcon}
+                  onClick={() => setShowCollegeDropdown(!showCollegeDropdown)}
+                />
+                {showCollegeDropdown && (
+                  <ul className={styles.collegeList}>
+                    {colleges.map((college) => (
+                      <li
+                        key={college._id}
+                        onClick={() => handleCollegeSelection(college._id)}
+                      >
+                        {college.fullName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
           )}
 
           <div className={step === 1 ? styles.buttons : styles.buttonsSpaced}>
