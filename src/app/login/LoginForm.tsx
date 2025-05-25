@@ -44,7 +44,7 @@ export default function LoginForm() {
     try {
       setIsLoading(true);
 
-      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -89,7 +89,7 @@ export default function LoginForm() {
   // Auto-refresh token on visit
   const checkSession = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/refresh`, {
         method: "GET",
         credentials: "include",
       });
