@@ -43,7 +43,7 @@
         transition: box-shadow 0.2s;
 
         &:focus {
-          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
+          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
           border-color: #4ea199;
         }
       }
@@ -67,7 +67,7 @@
         }
 
         .eyeIcon:hover {
-          color: #01796f;
+          color: #3a8273;
         }
       }
 
@@ -82,7 +82,7 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #01796f;
+          background-color: #3a8273;
         }
       }
     }
@@ -125,7 +125,7 @@
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #01796f;
+        background-color: #3a8273;
       }
     }
 
@@ -137,7 +137,7 @@
       text-align: right;
 
       &:hover {
-        color: #01796f;
+        color: #3a8273;
       }
     }
 
@@ -150,15 +150,9 @@
         transition: color 0.2s;
 
         &:hover {
-          color: #01796f;
+          color: #3a8273;
         }
       }
     }
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .container {
-    height: 91.6vh; /* Full-screen height */
   }
 }

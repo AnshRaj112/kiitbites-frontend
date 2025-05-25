@@ -5,6 +5,13 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "BitesBay",
+  description: "Your campus food ordering solution",
+};
+
 
 export default function RootLayout({
   children,
@@ -15,6 +22,11 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      {/* <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      </head> */}
       <body>
         <GoogleOAuthProvider clientId={googleClientId}>
           <AuthProvider>
@@ -24,7 +36,7 @@ export default function RootLayout({
           </AuthProvider>
         </GoogleOAuthProvider>
         <SpeedInsights />
-       <Analytics />
+        <Analytics />
       </body>
     </html>
   );
