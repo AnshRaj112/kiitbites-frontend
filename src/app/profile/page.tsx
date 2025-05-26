@@ -155,9 +155,9 @@ const UserProfile = () => {
 
         {/* Support Section */}
         <div className={styles.section}>
-          <Link href="/faqs" className={styles.menuItem}>
+          <Link href="/termncondition" className={styles.menuItem}>
             <HelpCircle className={styles.iconTeal} size={20} />
-            <span>FAQs</span>
+            <span>Terms & Conditions</span>
             <ChevronRight className={styles.chevron} size={16} />
           </Link>
           
