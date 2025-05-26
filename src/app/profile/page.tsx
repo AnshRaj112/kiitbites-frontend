@@ -1,15 +1,30 @@
-"use client";
+"use client"; 
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from 'react';
+import { 
+  User, 
+  Mail, 
+  Bell, 
+  ShoppingCart, 
+  Book, 
+  HelpCircle,
+  LogOut,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Info
+} from 'lucide-react';
+import styles from './styles/UserProfile.module.scss';
+import { useRouter } from "next/navigation";  
+import Link from 'next/link';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const Profile = () => {
+const UserProfile = () => {
   const router = useRouter();
-  const [user, setUser] = useState<{ fullName: string; email: string } | null>(
-    null
-  );
+  const [user, setUser] = useState<{ fullName: string; email: string; phone: string } | null>(null);
+  const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // ✅ Fetch user data
   useEffect(() => {
@@ -21,7 +36,7 @@ const Profile = () => {
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/auth/user`, {
+        const res = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -45,50 +60,134 @@ const Profile = () => {
 
   // ✅ Handle Logout
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    setIsLoggingOut(true);
+    
     try {
-      await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      const response = await fetch(`${BACKEND_URL}/api/user/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
-      localStorage.removeItem("token"); // Remove token from localStorage
-      // router.push("/login"); 
-      setTimeout(() => router.push("/login"), 1000);// Redirect to login page
-      setTimeout(() => {
-        window.location.reload(); // Refresh the page to update the header
-      }, 2000);
+      if (response.ok) {
+        localStorage.removeItem("token");
+        setTimeout(() => router.push("/login"), 1000);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        console.error("Logout failed:", await response.text());
+        setIsLoggingOut(false);
+      }
     } catch (error) {
       console.error("Logout failed:", error);
+      setIsLoggingOut(false);
     }
   };
 
+  const togglePersonalInfo = () => {
+    setIsPersonalInfoOpen(!isPersonalInfoOpen);
+  };
+
   return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>Profile</h1>
-      {user ? (
-        <>
-          <p><strong>Name:</strong> {user.fullName}</p>
-          <p><strong>Email:</strong> {user.email}</p>
-          <button
-            onClick={handleLogout}
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#d9534f",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-              borderRadius: "5px",
-            }}
+    <div className={styles.container}>
+      <div className={styles.content}>
+        {/* Header */}
+        <h1 className={styles.header}>User Profile</h1>
+
+        {/* Personal Info Section */}
+        <div className={styles.section}>
+          <div 
+            className={styles.dropdownHeader}
+            onClick={togglePersonalInfo}
           >
-            Logout
-          </button>
-        </>
-      ) : (
-        <p>Loading...</p>
-      )}
+            <User className={styles.iconBlue} size={20} />
+            <span>Personal Info</span>
+            {isPersonalInfoOpen ? (
+              <ChevronUp className={styles.chevron} size={16} />
+            ) : (
+              <ChevronDown className={styles.chevron} size={16} />
+            )}
+          </div>
+          
+          <div className={`${styles.dropdownContent} ${isPersonalInfoOpen ? styles.open : ''}`}>
+            <div className={styles.infoItem}>
+              <strong>Full Name:</strong> {user?.fullName || 'Loading...'}
+            </div>
+            <div className={styles.infoItem}>
+              <strong>Email Address:</strong> {user?.email || 'Loading...'}
+            </div>
+            <div className={styles.infoItem}>
+              <strong>Phone Number:</strong> +91 {user?.phone || 'Loading...'}
+            </div>
+          </div>
+        </div>
+
+        {/* Account Section */}
+        <div className={styles.section}>
+          <Link href="/cart" className={styles.menuItem}>
+            <ShoppingCart className={styles.iconGreen} size={20} />
+            <span>Cart</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+          
+          <Link href="/orders" className={styles.menuItem}>
+            <Book className={styles.iconPurple} size={20} />
+            <span>Previous Orders</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+          
+          <Link href="/favourites" className={styles.menuItem}>
+            <User className={styles.iconOrange} size={20} />
+            <span>Favourites</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+          
+          <Link href="/notifications" className={styles.menuItem}>
+            <Bell className={styles.iconBlue} size={20} />
+            <span>Notifications</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+        </div>
+
+        {/* Support Section */}
+        <div className={styles.section}>
+          <Link href="/faqs" className={styles.menuItem}>
+            <HelpCircle className={styles.iconTeal} size={20} />
+            <span>FAQs</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+          
+          <Link href="/about" className={styles.menuItem}>
+            <Info className={styles.iconIndigo} size={20} />
+            <span>About Us</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+          
+          <Link href="/contact" className={styles.menuItem}>
+            <Mail className={styles.iconPink} size={20} />
+            <span>Contact Us</span>
+            <ChevronRight className={styles.chevron} size={16} />
+          </Link>
+        </div>
+
+        {/* Logout Section */}
+        <div className={styles.section}>
+          <div 
+            className={`${styles.menuItem} ${styles.logoutItem}`} 
+            onClick={handleLogout}
+            style={{ cursor: isLoggingOut ? 'not-allowed' : 'pointer' }}
+          >
+            <LogOut className={styles.iconRed} size={20} />
+            <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Profile;
+export default UserProfile;
