@@ -75,6 +75,8 @@ export default {
       },
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
+        caveat: ["Caveat", "cursive"],
+        staatliches: ["Staatliches", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

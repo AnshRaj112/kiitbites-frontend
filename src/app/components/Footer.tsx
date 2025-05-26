@@ -6,9 +6,12 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
-            <h2 className="text-2xl font-bold mb-4">
-              Bites<span className="text-bitesbay-light">Bay</span>
-            </h2>
+            <img
+              src="https://res.cloudinary.com/dt45pu5mx/image/upload/c_fill,w_2200,h_900/v1748277700/FullLogo_Transparent_NoBuffer_3_zfoohq.png"
+              alt="BitesBay Logo"
+              className="w-full max-w-[200px] h-auto mb-4"
+            />
+
             <p className="mb-4 text-gray-300">
               Connecting campus communities with their favorite food vendors.
             </p>
@@ -44,7 +47,10 @@ const Footer: React.FC = () => {
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
-                  <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" transform="scale(1.5)" />
+                  <path
+                    d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"
+                    transform="scale(1.5)"
+                  />
                 </svg>
               </a>
               <a

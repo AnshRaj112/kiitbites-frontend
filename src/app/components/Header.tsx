@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
       const token = localStorage.getItem("token");
       if (token) {
         // Optional: Notify backend to invalidate the session
-        await fetch(`${BACKEND_URL}/api/auth/logout`, {
+        await fetch(`${BACKEND_URL}/api/user/auth/logout`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const response = await fetch(`${BACKEND_URL}/api/auth/user`, {
+        const response = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
