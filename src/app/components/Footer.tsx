@@ -111,6 +111,14 @@ const Footer: React.FC = () => {
                   About Us
                 </a>
               </li>
+              <li>
+                <a
+                  href="/team"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Team
+                </a>
+              </li>
               {/* <li>
                 <a href="#" className="text-gray-300 hover:text-white transition-colors">
                   Careers
