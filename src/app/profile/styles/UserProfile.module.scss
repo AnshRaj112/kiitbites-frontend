@@ -134,75 +134,31 @@
   }
   
   // Icon Colors
-  .iconBlue {
-    color: #3b82f6;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
+  $icon-colors: (
+    "Blue": #3b82f6,
+    "Green": #10b981,
+    "Purple": #8b5cf6,
+    "Orange": #f59e0b,
+    "Teal": #14b8a6,
+    "Indigo": #6366f1,
+    "Pink": #ec4899,
+    "Red": #dc2626
+  );
   
-  .iconGreen {
-    color: #10b981;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconPurple {
-    color: #8b5cf6;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconOrange {
-    color: #f59e0b;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconTeal {
-    color: #14b8a6;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconIndigo {
-    color: #6366f1;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconPink {
-    color: #ec4899;
-    transition: transform 0.2s ease;
-    
-    .menuItem:hover & {
-      transform: scale(1.1);
-    }
-  }
-  
-  .iconRed {
-    color: #dc2626;
-    transition: transform 0.2s ease;
-    
-    .logoutItem:hover & {
-      transform: scale(1.1);
+  @each $name, $color in $icon-colors {
+    .icon#{$name} {
+      color: $color;
+      transition: transform 0.2s ease;
+      
+      @if $name == "Red" {
+        .logoutItem:hover & {
+          transform: scale(1.1);
+        }
+      } @else {
+        .menuItem:hover & {
+          transform: scale(1.1);
+        }
+      }
     }
   }
   
