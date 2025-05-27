@@ -1,63 +1,101 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import styles from "./styles/Home.module.scss";
-import FoodItems from "../components/FoodItems";
+import { useEffect, useState } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+interface College {
+  fullName: string;
+  slug?: string;
+}
 
-const HomePage: React.FC = () => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [firstName, setFirstName] = useState("User");
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-') // Replace any non-alphanumeric characters with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+};
+
+const Index = () => {
+  const router = useRouter();
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchColleges = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No token found");
-
-        const res = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Not logged in");
-
-        const data = await res.json();
-        const fullName = data?.fullName?.trim() || "";
-        const spaceIndex = fullName.indexOf(" ");
-        const namePart =
-          spaceIndex > 0 ? fullName.slice(0, spaceIndex) : fullName;
-
-        setFirstName(namePart || "User");
-      } catch {
-        console.warn("User not logged in. Using fallback greeting.");
-        setFirstName("User");
+        const response = await fetch(`${BACKEND_URL}/api/user/auth/list`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch colleges');
+        }
+        const data = await response.json();
+        // Add slugs to the college data
+        const collegesWithSlugs = data.map((college: College) => ({
+          ...college,
+          slug: generateSlug(college.fullName)
+        }));
+        setColleges(collegesWithSlugs);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUser();
-  }, []);
+    fetchColleges();
+  }, [BACKEND_URL]);
+
+  const handleCollegeClick = (slug: string) => {
+    router.push(`/home/${slug}`);
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.heading}>Loading colleges...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.heading}>Error loading colleges</h1>
+          <p className={styles.error}>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.homepage}>
-      <div className={styles.pageWrapper}>
-        <div className={styles.headerRow}>
-          {firstName && (
-            <h2 className={styles.greeting}>
-              Hi {firstName}, what&apos;s on your mind?
-            </h2>
-          )}
-        </div>
-
-        <div className={styles.scrollWrapper} ref={scrollRef}>
-          <FoodItems layout="scroll" />
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <h1 className={styles.heading}>Pick your college</h1>
+        
+        <div className={styles.collegeGrid}>
+          {colleges.map((college) => (
+            <div
+              key={college.slug}
+              className={styles.collegeCard}
+              onClick={() => handleCollegeClick(college.slug!)}
+            >
+              <div className={styles.cardContent}>
+                <span className={styles.collegeName}>{college.fullName}</span>
+                <ChevronRight className={styles.chevronIcon} size={20} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
 
-export default HomePage;
+export default Index;
