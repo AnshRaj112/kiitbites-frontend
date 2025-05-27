@@ -13,8 +13,8 @@ interface College {
 const generateSlug = (name: string): string => {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-') // Replace any non-alphanumeric characters with hyphens
-    .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+    .replace(/[^a-z0-9]+/g, "-") // Replace any non-alphanumeric characters with hyphens
+    .replace(/^-+|-+$/g, ""); // Remove leading and trailing hyphens
 };
 
 const Index = () => {
@@ -30,17 +30,17 @@ const Index = () => {
       try {
         const response = await fetch(`${BACKEND_URL}/api/user/auth/list`);
         if (!response.ok) {
-          throw new Error('Failed to fetch colleges');
+          throw new Error("Failed to fetch colleges");
         }
         const data = await response.json();
         // Add slugs to the college data
         const collegesWithSlugs = data.map((college: College) => ({
           ...college,
-          slug: generateSlug(college.fullName)
+          slug: generateSlug(college.fullName),
         }));
         setColleges(collegesWithSlugs);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -78,20 +78,22 @@ const Index = () => {
     <div className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.heading}>Pick your college</h1>
-        
+
         <div className={styles.collegeGrid}>
-          {colleges.map((college) => (
-            <div
-              key={college.slug}
-              className={styles.collegeCard}
-              onClick={() => handleCollegeClick(college.slug!)}
-            >
-              <div className={styles.cardContent}>
-                <span className={styles.collegeName}>{college.fullName}</span>
-                <ChevronRight className={styles.chevronIcon} size={20} />
+          {colleges
+            .filter((college) => college.slug) // Ensure slug is defined
+            .map((college) => (
+              <div
+                key={college.slug}
+                className={styles.collegeCard}
+                onClick={() => handleCollegeClick(college.slug!)}
+              >
+                <div className={styles.cardContent}>
+                  <span className={styles.collegeName}>{college.fullName}</span>
+                  <ChevronRight className={styles.chevronIcon} size={20} />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>
