@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import "./styles/global.css";
 import styles from "./styles/CollegePage.module.scss";
 import { useEffect, useState } from "react";
 
