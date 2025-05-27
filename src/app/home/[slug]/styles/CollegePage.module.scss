@@ -206,15 +206,15 @@
 /* Override slick-carousel styles */
 :global(.slick-dots) {
   bottom: -50px;
-  
-  li button:before {
-    color: #4ea199;
-    font-size: 8px;
-  }
-  
-  li.slick-active button:before {
-    color: #4ea199;
-  }
+}
+
+:global(.slick-dots li button:before) {
+  color: #4ea199;
+  font-size: 8px;
+}
+
+:global(.slick-dots li.slick-active button:before) {
+  color: #4ea199;
 }
 
 @media (max-width: 768px) {
