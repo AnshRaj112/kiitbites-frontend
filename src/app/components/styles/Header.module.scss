@@ -10,13 +10,14 @@
   z-index: 1000;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   flex-direction: row;
+  isolation: isolate;
 
   &.scrolled {
     background: rgba(255, 255, 255, 1);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    transition: all 0.1s ease;
   }
 
   @media (max-width: 770px) {
@@ -115,13 +116,12 @@
     align-items: center;
     gap: 4.5rem;
   }
-  
+
   @media (max-width: 770px) {
     .rightOptions {
       display: none;
     }
   }
-  
 
   .navItem {
     display: flex;
@@ -156,7 +156,6 @@
     padding: 10px 0;
     z-index: 10;
   }
-
 
   .dropdownMenu {
     display: flex;
