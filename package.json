@@ -28,8 +28,12 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+<<<<<<< HEAD
+    "react-icons": "^5.5.0",
+=======
     "react-icons": "^5.4.0",
     "react-slick": "^0.30.3",
+>>>>>>> 239aa2f86407a5c3dc5fb25691ca6d7705fac562
     "react-toastify": "^11.0.3",
     "sass": "^1.89.0",
     "slick-carousel": "^1.8.1",
