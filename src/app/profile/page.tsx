@@ -96,7 +96,7 @@ const UserProfile = () => {
     <div className={styles.container}>
       <div className={styles.content}>
         {/* Header */}
-        <h1 className={styles.header}>User Profile</h1>
+        <h1 className={styles.header}>Profile</h1>
 
         {/* Personal Info Section */}
         <div className={styles.section}>
