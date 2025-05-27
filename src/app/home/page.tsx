@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        const res = await fetch(`${BACKEND_URL}/api/auth/user`, {
+        const res = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
