@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
             <img
-              src="https://res.cloudinary.com/dt45pu5mx/image/upload/c_fill,w_2200,h_900/v1748277700/FullLogo_Transparent_NoBuffer_3_zfoohq.png"
+              src="https://res.cloudinary.com/dt45pu5mx/image/upload/v1748277700/FullLogo_Transparent_NoBuffer_3_zfoohq.png"
               alt="BitesBay Logo"
               className="w-full max-w-[200px] h-auto mb-4"
             />
