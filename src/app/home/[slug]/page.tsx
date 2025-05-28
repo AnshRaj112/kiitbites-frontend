@@ -136,8 +136,8 @@ const CollegePage = () => {
         // Fetch items for each category and type
         const allItems: { [key: string]: FoodItem[] } = {};
 
-        for (const [category, types] of Object.entries(categories)) {
-          for (const type of types) {
+        const fetchPromises = Object.entries(categories).flatMap(([category, types]) =>
+          types.map(async (type) => {
             const response = await fetch(
               `${BACKEND_URL}/items/${category}/${type}/${uniId}`,
               {
