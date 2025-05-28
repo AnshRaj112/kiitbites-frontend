@@ -30,7 +30,6 @@ interface ApiItem {
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// Define categories and their types
 const categories = {
   produce: [
     "combos-veg",
@@ -55,10 +54,7 @@ const categories = {
 const CustomPrevArrow = (props: { onClick?: () => void }) => {
   const { onClick } = props;
   return (
-    <button
-      onClick={onClick}
-      className={`${styles.carouselButton} ${styles.prevButton}`}
-    >
+    <button onClick={onClick} className={`${styles.carouselButton} ${styles.prevButton}`}>
       <ChevronLeft size={20} />
     </button>
   );
@@ -67,10 +63,7 @@ const CustomPrevArrow = (props: { onClick?: () => void }) => {
 const CustomNextArrow = (props: { onClick?: () => void }) => {
   const { onClick } = props;
   return (
-    <button
-      onClick={onClick}
-      className={`${styles.carouselButton} ${styles.nextButton}`}
-    >
+    <button onClick={onClick} className={`${styles.carouselButton} ${styles.nextButton}`}>
       <ChevronRight size={20} />
     </button>
   );
@@ -86,8 +79,7 @@ const CollegePage = () => {
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
 
   const collegeDisplayName =
-    collegeName?.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) ||
-    "College";
+    collegeName?.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) || "College";
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
 
   useEffect(() => {
@@ -127,39 +119,40 @@ const CollegePage = () => {
 
   useEffect(() => {
     const fetchItems = async () => {
-      if (!uniId) return; // Don't fetch items until we have the uniId
+      if (!uniId) return;
 
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch items for each category and type
         const allItems: { [key: string]: FoodItem[] } = {};
 
-        const fetchPromises = Object.entries(categories).flatMap(([category, types]) =>
-          types.map(async (type) => {
-            const response = await fetch(
-              `${BACKEND_URL}/items/${category}/${type}/${uniId}`,
-              {
-                credentials: "include",
-              }
-            );
+        await Promise.all(
+          Object.entries(categories).flatMap(([category, types]) =>
+            types.map(async (type) => {
+              const response = await fetch(
+                `${BACKEND_URL}/items/${category}/${type}/${uniId}`,
+                {
+                  credentials: "include",
+                }
+              );
 
-            if (response.ok) {
-              const data = (await response.json()) as ApiItem[];
-              const key = `${category}-${type}`;
-              allItems[key] = data.map((item) => ({
-                id: item._id,
-                title: item.name,
-                image: item.image,
-                category: type,
-                type: item.type,
-                isSpecial: item.isSpecial,
-                collegeId: item.collegeId,
-              }));
-            }
-          }
-        }
+              if (response.ok) {
+                const data = (await response.json()) as ApiItem[];
+                const key = `${category}-${type}`;
+                allItems[key] = data.map((item) => ({
+                  id: item._id,
+                  title: item.name,
+                  image: item.image,
+                  category: type,
+                  type: item.type,
+                  isSpecial: item.isSpecial,
+                  collegeId: item.collegeId,
+                }));
+              }
+            })
+          )
+        );
 
         setItems(allItems);
       } catch (error) {
@@ -173,16 +166,11 @@ const CollegePage = () => {
     fetchItems();
   }, [uniId]);
 
-  // Helper function to get favorite items for current college
   const getFavoriteItems = () => {
     if (!userFavorites.length || !uniId) return [];
-    
     return Object.values(items)
       .flat()
-      .filter(item => 
-        userFavorites.includes(item.id) && 
-        item.collegeId === uniId
-      );
+      .filter((item) => userFavorites.includes(item.id) && item.collegeId === uniId);
   };
 
   const favoriteItems = getFavoriteItems();
@@ -201,64 +189,35 @@ const CollegePage = () => {
     responsive: [
       {
         breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        },
+        settings: { slidesToShow: 3, slidesToScroll: 1 },
       },
       {
         breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          arrows: false,
-        },
+        settings: { slidesToShow: 2, slidesToScroll: 1, arrows: false },
       },
       {
         breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          arrows: false,
-        },
+        settings: { slidesToShow: 1, slidesToScroll: 1, arrows: false },
       },
     ],
   };
 
   const favoritesSliderSettings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
+    ...sliderSettings,
     slidesToShow: 5,
-    slidesToScroll: 1,
-    autoplay: true,
     autoplaySpeed: 2000,
-    pauseOnHover: true,
-    prevArrow: <CustomPrevArrow />,
-    nextArrow: <CustomNextArrow />,
     responsive: [
       {
         breakpoint: 1024,
-        settings: {
-          slidesToShow: 4,
-          slidesToScroll: 1,
-        },
+        settings: { slidesToShow: 4, slidesToScroll: 1 },
       },
       {
         breakpoint: 768,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-          arrows: false,
-        },
+        settings: { slidesToShow: 3, slidesToScroll: 1, arrows: false },
       },
       {
         breakpoint: 480,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          arrows: false,
-        },
+        settings: { slidesToShow: 2, slidesToScroll: 1, arrows: false },
       },
     ],
   };
@@ -299,11 +258,7 @@ const CollegePage = () => {
                   <div key={item.id} className={styles.slideWrapper}>
                     <div className={styles.foodCard}>
                       <div className={styles.imageContainer}>
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className={styles.foodImage}
-                        />
+                        <img src={item.image} alt={item.title} className={styles.foodImage} />
                       </div>
                       <h4 className={styles.foodTitle}>{item.title}</h4>
                     </div>
@@ -318,16 +273,14 @@ const CollegePage = () => {
           types.map((type) => {
             const key = `${category}-${type}`;
             const categoryItems = items[key] || [];
-            
+
             if (categoryItems.length === 0) return null;
-            
+
             return (
               <section key={key} className={styles.categorySection}>
                 <div className={styles.categoryHeader}>
                   <h3 className={styles.categoryTitle}>
-                    {type
-                      .replace(/-/g, " ")
-                      .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    {type.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                   </h3>
                 </div>
                 <div className={styles.carouselContainer}>
@@ -336,11 +289,7 @@ const CollegePage = () => {
                       <div key={item.id} className={styles.slideWrapper}>
                         <div className={styles.foodCard}>
                           <div className={styles.imageContainer}>
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className={styles.foodImage}
-                            />
+                            <img src={item.image} alt={item.title} className={styles.foodImage} />
                           </div>
                           <h4 className={styles.foodTitle}>{item.title}</h4>
                         </div>
@@ -353,7 +302,6 @@ const CollegePage = () => {
           })
         )}
 
-        {/* Special Items Section - Moved to the end */}
         <div className={styles.specialSection}>
           <h2 className={styles.specialTitle}>Special Offers</h2>
           <div className={styles.carouselContainer}>
@@ -365,11 +313,7 @@ const CollegePage = () => {
                   <div key={item.id} className={styles.slideWrapper}>
                     <div className={styles.foodCard}>
                       <div className={styles.imageContainer}>
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className={styles.foodImage}
-                        />
+                        <img src={item.image} alt={item.title} className={styles.foodImage} />
                       </div>
                       <h4 className={styles.foodTitle}>{item.title}</h4>
                     </div>
