@@ -9,31 +9,46 @@ import "./styles/global.css";
 import styles from "./styles/CollegePage.module.scss";
 import { useEffect, useState } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 interface FoodItem {
-  id: number;
+  id: string;
   title: string;
   image: string;
   category: string;
+  type: string;
+  isSpecial: string;
 }
 
-const foodItems: FoodItem[] = [
-  { id: 1, title: "Spicy Chicken Burger", image: "/placeholder.svg", category: "Hot Picks" },
-  { id: 2, title: "Margherita Pizza", image: "/placeholder.svg", category: "Hot Picks" },
-  { id: 3, title: "Chicken Combo Meal", image: "/placeholder.svg", category: "Combos" },
-  { id: 4, title: "Veg Burger + Fries", image: "/placeholder.svg", category: "Combos" },
-  { id: 5, title: "Samosa Chat", image: "/placeholder.svg", category: "Quick Bites" },
-  { id: 6, title: "Pav Bhaji", image: "/placeholder.svg", category: "Quick Bites" },
-  { id: 7, title: "Fresh Lime Soda", image: "/placeholder.svg", category: "Drinks" },
-  { id: 8, title: "Masala Chai", image: "/placeholder.svg", category: "Drinks" },
-  { id: 9, title: "Chef's Special Thali", image: "/placeholder.svg", category: "Special" },
-  { id: 10, title: "Paneer Tikka Roll", image: "/placeholder.svg", category: "Special" },
-  { id: 11, title: "Butter Chicken", image: "/placeholder.svg", category: "Hot Picks" },
-  { id: 12, title: "Veggie Deluxe", image: "/placeholder.svg", category: "Hot Picks" }
-];
+interface ApiItem {
+  _id: string;
+  name: string;
+  image: string;
+  type: string;
+  isSpecial: string;
+}
 
-const categories = ["Hot Picks", "Combos", "Quick Bites", "Drinks", "Special"];
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// Define categories and their types
+const categories = {
+  produce: [
+    "combos-veg",
+    "combos-nonveg",
+    "veg",
+    "shakes",
+    "juices",
+    "soups",
+    "non-veg"
+  ],
+  retail: [
+    "biscuits",
+    "chips",
+    "icecream",
+    "drinks",
+    "snacks",
+    "sweets",
+    "nescafe"
+  ]
+};
 
 const CustomPrevArrow = (props: { onClick?: () => void }) => {
   const { onClick } = props;
@@ -56,9 +71,22 @@ const CustomNextArrow = (props: { onClick?: () => void }) => {
 const CollegePage = () => {
   const { collegeName } = useParams<{ collegeName: string }>();
   const [userFullName, setUserFullName] = useState<string>("");
+  const [items, setItems] = useState<{ [key: string]: FoodItem[] }>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uniId, setUniId] = useState<string | null>(null);
 
   const collegeDisplayName = collegeName?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || "College";
   const displayName = userFullName ? userFullName.split(' ')[0] : "User";
+
+  useEffect(() => {
+    const collegeId = localStorage.getItem('currentCollegeId');
+    if (collegeId) {
+      setUniId(collegeId);
+    } else {
+      setError("College ID not found");
+    }
+  }, [collegeName]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -84,6 +112,53 @@ const CollegePage = () => {
 
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      if (!uniId) return; // Don't fetch items until we have the uniId
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch items for each category and type
+        const allItems: { [key: string]: FoodItem[] } = {};
+        
+        for (const [category, types] of Object.entries(categories)) {
+          for (const type of types) {
+            const response = await fetch(
+              `${BACKEND_URL}/items/${category}/${type}/${uniId}`,
+              {
+                credentials: "include",
+              }
+            );
+            
+            if (response.ok) {
+              const data = await response.json() as ApiItem[];
+              const key = `${category}-${type}`;
+              allItems[key] = data.map((item) => ({
+                id: item._id,
+                title: item.name,
+                image: item.image,
+                category: type,
+                type: item.type,
+                isSpecial: item.isSpecial
+              }));
+            }
+          }
+        }
+        
+        setItems(allItems);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setError("Failed to load items. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, [uniId]);
 
   const sliderSettings = {
     dots: false,
@@ -161,6 +236,26 @@ const CollegePage = () => {
     ]
   };
 
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.greeting}>Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.greeting}>Error: {error}</h1>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -171,41 +266,54 @@ const CollegePage = () => {
             <h2 className={styles.favoritesTitle}>Your favourites</h2>
             <div className={styles.carouselContainer}>
               <Slider {...favoritesSliderSettings} className={styles.slider}>
-                {foodItems.slice(0, 8).map((item) => (
-                  <div key={item.id} className={styles.slideWrapper}>
-                    <div className={styles.foodCard}>
-                      <div className={styles.imageContainer}>
-                        <img src={item.image} alt={item.title} className={styles.foodImage} />
+                {Object.values(items)
+                  .flat()
+                  .filter(item => item.isSpecial === "Y")
+                  .slice(0, 8)
+                  .map((item) => (
+                    <div key={item.id} className={styles.slideWrapper}>
+                      <div className={styles.foodCard}>
+                        <div className={styles.imageContainer}>
+                          <img src={item.image} alt={item.title} className={styles.foodImage} />
+                        </div>
+                        <h4 className={styles.foodTitle}>{item.title}</h4>
                       </div>
-                      <h4 className={styles.foodTitle}>{item.title}</h4>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </Slider>
             </div>
           </div>
         )}
         
-        {categories.map((category) => (
-          <section key={category} className={styles.categorySection}>
-            <div className={styles.categoryHeader}>
-              <h3 className={styles.categoryTitle}>{category}</h3>
-            </div>
-            <div className={styles.carouselContainer}>
-              <Slider {...sliderSettings} className={styles.slider}>
-                {foodItems.map((item) => (
-                  <div key={item.id} className={styles.slideWrapper}>
-                    <div className={styles.foodCard}>
-                      <div className={styles.imageContainer}>
-                        <img src={item.image} alt={item.title} className={styles.foodImage} />
+        {Object.entries(categories).map(([category, types]) => (
+          types.map((type) => {
+            const key = `${category}-${type}`;
+            const categoryItems = items[key] || [];
+            
+            if (categoryItems.length === 0) return null;
+            
+            return (
+              <section key={key} className={styles.categorySection}>
+                <div className={styles.categoryHeader}>
+                  <h3 className={styles.categoryTitle}>{type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3>
+                </div>
+                <div className={styles.carouselContainer}>
+                  <Slider {...sliderSettings} className={styles.slider}>
+                    {categoryItems.map((item) => (
+                      <div key={item.id} className={styles.slideWrapper}>
+                        <div className={styles.foodCard}>
+                          <div className={styles.imageContainer}>
+                            <img src={item.image} alt={item.title} className={styles.foodImage} />
+                          </div>
+                          <h4 className={styles.foodTitle}>{item.title}</h4>
+                        </div>
                       </div>
-                      <h4 className={styles.foodTitle}>{item.title}</h4>
-                    </div>
-                  </div>
-                ))}
-              </Slider>
-            </div>
-          </section>
+                    ))}
+                  </Slider>
+                </div>
+              </section>
+            );
+          })
         ))}
       </div>
     </div>
