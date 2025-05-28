@@ -28,7 +28,45 @@ interface ApiItem {
   collegeId?: string;
 }
 
+interface College {
+  _id: string;
+  name: string;
+  // Add other college properties as needed
+}
+
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// Function to generate a short ID from a college ID
+const generateShortId = (collegeId: string): string => {
+  // Take first 6 characters of the college ID and convert to base36
+  return parseInt(collegeId.slice(0, 6), 16).toString(36);
+};
+
+// Function to convert short ID back to original college ID
+const convertShortIdToCollegeId = async (shortId: string): Promise<string | null> => {
+  try {
+    // Fetch all colleges from backend
+    const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
+      credentials: "include",
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch colleges');
+    }
+    
+    const colleges = await response.json() as College[];
+    
+    // Find the college that matches the short ID
+    const college = colleges.find((college) => 
+      generateShortId(college._id) === shortId
+    );
+    
+    return college ? college._id : null;
+  } catch (error) {
+    console.error('Error converting short ID:', error);
+    return null;
+  }
+};
 
 const categories = {
   produce: [
@@ -83,12 +121,52 @@ const CollegePage = () => {
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
 
   useEffect(() => {
-    const collegeId = localStorage.getItem("currentCollegeId");
-    if (collegeId) {
-      setUniId(collegeId);
-    } else {
-      setError("College ID not found");
-    }
+    const getCollegeId = async () => {
+      // First try to get from URL hash
+      const hash = window.location.hash;
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const hashCollegeId = hashParams.get('cid');
+      
+      // Then try localStorage
+      const localCollegeId = localStorage.getItem("currentCollegeId");
+      
+      let collegeId = null;
+      
+      // If we have a hash college ID, use it
+      if (hashCollegeId) {
+        // Check if it's a short ID (less than 10 characters)
+        if (hashCollegeId.length < 10) {
+          collegeId = await convertShortIdToCollegeId(hashCollegeId);
+        } else {
+          collegeId = hashCollegeId;
+        }
+        
+        if (collegeId) {
+          localStorage.setItem("currentCollegeId", collegeId);
+        }
+      } else if (localCollegeId) {
+        collegeId = localCollegeId;
+      }
+      
+      if (collegeId) {
+        // Update URL hash with short ID
+        const shortId = generateShortId(collegeId);
+        if (!window.location.hash.includes('cid=')) {
+          window.location.hash = `cid=${shortId}`;
+        }
+        return collegeId;
+      }
+      
+      return null;
+    };
+
+    getCollegeId().then(collegeId => {
+      if (collegeId) {
+        setUniId(collegeId);
+      } else {
+        setError("College ID not found");
+      }
+    });
   }, [collegeName]);
 
   useEffect(() => {
