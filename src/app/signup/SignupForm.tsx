@@ -15,7 +15,7 @@ interface SignupFormState {
   gender: string;
   password: string;
   confirmPassword: string;
-  uniId: string;
+  uniID: string;
 }
 
 export default function SignupForm() {
@@ -26,7 +26,7 @@ export default function SignupForm() {
     gender: "",
     password: "",
     confirmPassword: "",
-    uniId: "",
+    uniID: "",
   });
 
   const router = useRouter();
@@ -172,7 +172,7 @@ export default function SignupForm() {
         return;
       }
     } else if (step === 3) {
-      if (!formData.gender || !formData.uniId) {
+      if (!formData.gender || !formData.uniID) {
         notify("Please select your gender and college.", "error");
         return;
       }
@@ -207,7 +207,7 @@ export default function SignupForm() {
   };
 
   const handleCollegeSelection = (uniId: string) => {
-    setFormData((prev) => ({ ...prev, uniId }));
+    setFormData((prev) => ({ ...prev, uniID: uniId }));
     setShowCollegeDropdown(false);
   };
 
@@ -318,7 +318,7 @@ export default function SignupForm() {
                 <input
                   name="college"
                   value={
-                    colleges.find((c) => c._id === formData.uniId)?.fullName ||
+                    colleges.find((c) => c._id === formData.uniID)?.fullName ||
                     ""
                   }
                   readOnly

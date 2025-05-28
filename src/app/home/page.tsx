@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 interface College {
   fullName: string;
   slug?: string;
+  _id: string;
 }
 
 const generateSlug = (name: string): string => {
@@ -17,7 +18,7 @@ const generateSlug = (name: string): string => {
     .replace(/^-+|-+$/g, ""); // Remove leading and trailing hyphens
 };
 
-const Index = () => {
+const HomePage = () => {
   const router = useRouter();
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,8 +50,10 @@ const Index = () => {
     fetchColleges();
   }, [BACKEND_URL]);
 
-  const handleCollegeClick = (slug: string) => {
-    router.push(`/home/${slug}`);
+  const handleCollegeClick = (college: College) => {
+    // Store the college ID in localStorage before navigation
+    localStorage.setItem('currentCollegeId', college._id);
+    router.push(`/home/${college.slug}`);
   };
 
   if (loading) {
@@ -84,9 +87,9 @@ const Index = () => {
             .filter((college) => college.slug) // Ensure slug is defined
             .map((college) => (
               <div
-                key={college.slug}
+                key={college._id}
                 className={styles.collegeCard}
-                onClick={() => handleCollegeClick(college.slug!)}
+                onClick={() => handleCollegeClick(college)}
               >
                 <div className={styles.cardContent}>
                   <span className={styles.collegeName}>{college.fullName}</span>
@@ -100,4 +103,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default HomePage;
