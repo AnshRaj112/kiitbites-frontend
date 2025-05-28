@@ -33,7 +33,7 @@
 .favoritesTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #4ea199;
+  color: #01796f;
   text-align: center;
   margin-bottom: 2rem;
   
@@ -44,6 +44,23 @@
 
 .favoritesSection {
   margin-bottom: 3rem;
+}
+
+.specialSection {
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.specialTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #01796f;
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+  }
 }
 
 .categoryCard {
@@ -222,3 +239,4 @@
     font-size: 0.875rem;
   }
 }
+
