@@ -1,0 +1,226 @@
+.container {
+    min-height: 100vh;
+    background-color: #f8fafc;
+    padding: 2rem;
+    margin-top: 4rem;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+    }
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .header h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  
+  @media (max-width: 768px) {
+    .header h1 {
+      font-size: 2rem;
+    }
+  }
+  
+  .dropdownContainer {
+    max-width: 600px;
+    margin: 0 auto 3rem auto;
+    position: relative;
+  }
+  
+  .dropdownButton {
+    width: 100%;
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dropdownButton:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .dropdownButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #4ea199;
+  }
+  
+  .dropdownMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 50;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .dropdownItem {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: white;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .dropdownItem:last-child {
+    border-bottom: none;
+  }
+  
+  .dropdownItem:hover {
+    background: #f9fafb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .contentSection {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .collegeHeader {
+    margin-bottom: 2rem;
+  }
+  
+  .collegeName {
+    font-size: 2rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .collegeName {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .subTitle {
+    color: #4ea199;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .foodGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  
+  @media (max-width: 768px) {
+    .foodGrid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+  
+  .foodCard {
+    background: #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .foodCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .foodImage {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
+  
+  .collegeTag {
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+  
+  .foodName {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .foodPrice {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4ea199;
+    margin: 0 0 1rem 0;
+  }
+  
+  .addToCartButton {
+    width: 100%;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .addToCartButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(78, 161, 153, 0.3);
+  }
+  
+  .addToCartButton:active {
+    transform: translateY(0);
+  }
+  
+  .emptyState {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.1rem;
+    margin-top: 3rem;
+  }
+  

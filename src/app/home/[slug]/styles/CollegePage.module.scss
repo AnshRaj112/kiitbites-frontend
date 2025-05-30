@@ -20,11 +20,11 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-fill-color: transparent;
-  
+
   @media (max-width: 768px) {
     font-size: 2rem;
   }
-  
+
   @media (max-width: 480px) {
     font-size: 1.75rem;
   }
@@ -36,7 +36,7 @@
   color: #01796f;
   text-align: center;
   margin-bottom: 2rem;
-  
+
   @media (max-width: 768px) {
     margin-bottom: 1.5rem;
   }
@@ -57,7 +57,7 @@
   color: #01796f;
   text-align: center;
   margin-bottom: 2rem;
-  
+
   @media (max-width: 768px) {
     margin-bottom: 1.5rem;
   }
@@ -71,11 +71,11 @@
   border-radius: 12px;
   text-align: center;
   margin: 0 0.5rem;
-  
+
   &:hover {
     background-color: #01796f;
     transform: translateY(-2px);
-    
+
     .categoryName {
       color: white;
     }
@@ -92,7 +92,7 @@
 
 .categorySection {
   margin-bottom: 3rem;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -120,7 +120,7 @@
     display: flex;
     align-items: stretch;
   }
-  
+
   .slick-slide {
     padding: 0 0.5rem;
   }
@@ -143,21 +143,21 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  
+
   &:hover {
     background-color: #4ea199;
     color: white;
     transform: translateY(-50%) scale(1.05);
   }
-  
+
   &.prevButton {
     left: -20px;
   }
-  
+
   &.nextButton {
     right: -20px;
   }
-  
+
   @media (max-width: 768px) {
     display: none !important;
   }
@@ -168,21 +168,21 @@
 }
 
 .foodCard {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
+  background: #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
-  height: 100%;
-  
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 150%;
+
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    background-color: #01796f;
-    
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
     .foodTitle {
-      color: white;
+      color: black;
     }
   }
 }
@@ -204,7 +204,7 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
-  
+
   .foodCard:hover & {
     transform: scale(1.05);
   }
@@ -220,23 +220,30 @@
   transition: color 0.3s ease;
 }
 
+.foodPrice {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4ea199;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
 /* Override slick-carousel styles */
 @media (max-width: 768px) {
   .slideWrapper {
     padding: 0.25rem;
   }
-  
+
   .foodCard {
     padding: 0.75rem;
   }
-  
+
   .imageContainer {
     height: 120px;
     margin-bottom: 0.5rem;
   }
-  
+
   .foodTitle {
     font-size: 0.875rem;
   }
 }
-
