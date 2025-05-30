@@ -17,6 +17,7 @@ interface FoodItem {
   type: string;
   isSpecial: string;
   collegeId?: string;
+  price: number;
 }
 
 interface FavoriteItem {
@@ -38,6 +39,7 @@ interface ApiItem {
   isSpecial: string;
   collegeId?: string;
   category?: string;
+  price: number;
 }
 
 interface College {
@@ -236,6 +238,7 @@ const CollegePage = () => {
                 type: item.type,
                 isSpecial: item.isSpecial,
                 collegeId: item.collegeId,
+                price: item.price,
               }));
             })
           )
@@ -343,6 +346,7 @@ const CollegePage = () => {
                         />
                       </div>
                       <h4 className={styles.foodTitle}>{item.name}</h4>
+                      <p className={styles.foodPrice}>₹{item.price}</p>
                     </div>
                   </div>
                 ))}
@@ -373,6 +377,7 @@ const CollegePage = () => {
                             <img src={item.image} alt={item.title} className={styles.foodImage} />
                           </div>
                           <h4 className={styles.foodTitle}>{item.title}</h4>
+                          <p className={styles.foodPrice}>₹{item.price}</p>
                         </div>
                       </div>
                     ))}
@@ -397,6 +402,7 @@ const CollegePage = () => {
                         <img src={item.image} alt={item.title} className={styles.foodImage} />
                       </div>
                       <h4 className={styles.foodTitle}>{item.title}</h4>
+                      <p className={styles.foodPrice}>₹{item.price}</p>
                     </div>
                   </div>
                 ))}
