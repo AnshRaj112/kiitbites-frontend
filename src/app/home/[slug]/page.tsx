@@ -1,9 +1,11 @@
+// src/app/home/[slug]/page.tsx
+
 import { Metadata } from "next";
 import CollegePageClient from "./CollegePageClient";
 
 type Props = {
   params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -38,8 +40,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Page({ params }: Props) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { slug } = params;
+export default function Page() {
   return <CollegePageClient />;
 }
