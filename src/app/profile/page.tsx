@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   User, 
   Mail, 
-  Bell, 
+  // Bell, 
   ShoppingCart, 
   Book, 
   HelpCircle,
@@ -146,11 +146,12 @@ const UserProfile = () => {
             <ChevronRight className={styles.chevron} size={16} />
           </Link>
           
-          <Link href="/notifications" className={styles.menuItem}>
+          {/* Will be added later */}
+          {/* <Link href="/notifications" className={styles.menuItem}>
             <Bell className={styles.iconBlue} size={20} />
             <span>Notifications</span>
             <ChevronRight className={styles.chevron} size={16} />
-          </Link>
+          </Link> */} 
         </div>
 
         {/* Support Section */}
