@@ -1,106 +1,38 @@
-"use client";
+import HomePage from "./HomePage";
+import { Metadata } from "next";
 
-import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
-import styles from "./styles/Home.module.scss";
-import { useEffect, useState } from "react";
-
-interface College {
-  fullName: string;
-  slug?: string;
-  _id: string;
-}
-
-const generateSlug = (name: string): string => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-") // Replace any non-alphanumeric characters with hyphens
-    .replace(/^-+|-+$/g, ""); // Remove leading and trailing hyphens
+export const metadata: Metadata = {
+  title: "Home - Discover Campus Food Ordering",
+  description: "Explore BitesBay's campus food ordering platform. Find and order from the best restaurants at your college. Quick delivery and easy ordering for students.",
+  openGraph: {
+    title: "Home - Discover Campus Food Ordering",
+    description: "Explore BitesBay's campus food ordering platform. Find and order from the best restaurants at your college. Quick delivery and easy ordering for students.",
+    images: [
+      {
+        url: '/home-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'BitesBay Home',
+      },
+    ],
+    url: "https://bitesbay.com/home",
+    type: "website",
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Home - Discover Campus Food Ordering",
+    description: "Explore BitesBay's campus food ordering platform. Find and order from the best restaurants at your college. Quick delivery and easy ordering for students.",
+    images: ['/home-twitter.jpg'],
+  },
+  alternates: {
+    canonical: "https://bitesbay.com/home",
+  },
 };
 
-const HomePage = () => {
-  const router = useRouter();
-  const [colleges, setColleges] = useState<College[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  useEffect(() => {
-    const fetchColleges = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/user/auth/list`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch colleges");
-        }
-        const data = await response.json();
-        // Add slugs to the college data
-        const collegesWithSlugs = data.map((college: College) => ({
-          ...college,
-          slug: generateSlug(college.fullName),
-        }));
-        setColleges(collegesWithSlugs);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchColleges();
-  }, [BACKEND_URL]);
-
-  const handleCollegeClick = (college: College) => {
-    // Store the college ID in localStorage before navigation
-    localStorage.setItem('currentCollegeId', college._id);
-    router.push(`/home/${college.slug}`);
-  };
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <h1 className={styles.heading}>Loading colleges...</h1>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <h1 className={styles.heading}>Error loading colleges</h1>
-          <p className={styles.error}>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+export default function Home() {
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        <h1 className={styles.heading}>Pick your college</h1>
-
-        <div className={styles.collegeGrid}>
-          {colleges
-            .filter((college) => college.slug) // Ensure slug is defined
-            .map((college) => (
-              <div
-                key={college._id}
-                className={styles.collegeCard}
-                onClick={() => handleCollegeClick(college)}
-              >
-                <div className={styles.cardContent}>
-                  <span className={styles.collegeName}>{college.fullName}</span>
-                  <ChevronRight className={styles.chevronIcon} size={20} />
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
+    <div>
+      <HomePage />
     </div>
   );
-};
-
-export default HomePage;
+}

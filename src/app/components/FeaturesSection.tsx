@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import SectionTitle from "./ui/section-title";
 import FeatureCard from "./FeatureCard";
