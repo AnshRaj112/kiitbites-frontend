@@ -140,7 +140,7 @@ const UserProfile = () => {
             <ChevronRight className={styles.chevron} size={16} />
           </Link>
           
-          <Link href="/favourites" className={styles.menuItem}>
+          <Link href="/fav" className={styles.menuItem}>
             <User className={styles.iconOrange} size={20} />
             <span>Favourites</span>
             <ChevronRight className={styles.chevron} size={16} />
