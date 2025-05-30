@@ -1,14 +1,11 @@
-// src/app/home/[slug]/page.tsx
-
 import { Metadata } from "next";
 import CollegePageClient from "./CollegePageClient";
 
-type Props = {
+export async function generateMetadata({
+  params,
+}: {
   params: { slug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+}): Promise<Metadata> {
   const collegeName = decodeURIComponent(params.slug).toUpperCase().replace(/\s+/g, "-");
 
   return {
