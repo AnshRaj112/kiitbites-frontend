@@ -164,9 +164,41 @@
 //   );
 // }
 
-"use client";
 
 import SignupForm from "./SignupForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign Up - Create Your BitesBay Account",
+  description: "Join BitesBay to start ordering food from your favorite campus restaurants. Quick and easy signup process for KIIT University students.",
+  robots: {
+    index: false,
+    follow: true,
+  },
+  openGraph: {
+    title: "Sign Up - Create Your BitesBay Account",
+    description: "Join BitesBay to start ordering food from your favorite campus restaurants. Quick and easy signup process for KIIT University students.",
+    images: [
+      {
+        url: '/signup-og.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'BitesBay Sign Up',
+      },
+    ],
+    url: "https://bitesbay.com/signup",
+    type: "website",
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Sign Up - Create Your BitesBay Account",
+    description: "Join BitesBay to start ordering food from your favorite campus restaurants. Quick and easy signup process for KIIT University students.",
+    images: ['/signup-twitter.jpg'],
+  },
+  alternates: {
+    canonical: "https://bitesbay.com/signup",
+  },
+}; 
 
 
 export default function SignupPage() {
