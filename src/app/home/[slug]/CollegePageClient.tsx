@@ -330,28 +330,49 @@ const CollegePageClient = () => {
         {userFullName && favoriteItems.length > 0 && (
           <div className={styles.favoritesSection}>
             <h2 className={styles.favoritesTitle}>Your favourites</h2>
-            <div className={styles.carouselContainer}>
-              <Slider {...favoritesSliderSettings} className={styles.slider}>
-                {favoriteItems.map((item) => (
-                  <div key={item._id} className={styles.slideWrapper}>
-                    <div className={styles.foodCard}>
-                      <div className={styles.imageContainer}>
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className={styles.foodImage}
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder-image.png";
-                          }}
-                        />
+            {favoriteItems.length >= 5 ? (
+              <div className={styles.carouselContainer}>
+                <Slider {...favoritesSliderSettings} className={styles.slider}>
+                  {favoriteItems.map((item) => (
+                    <div key={item._id} className={styles.slideWrapper}>
+                      <div className={styles.foodCard}>
+                        <div className={styles.imageContainer}>
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className={styles.foodImage}
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-image.png";
+                            }}
+                          />
+                        </div>
+                        <h4 className={styles.foodTitle}>{item.name}</h4>
+                        <p className={styles.foodPrice}>₹{item.price}</p>
                       </div>
-                      <h4 className={styles.foodTitle}>{item.name}</h4>
-                      <p className={styles.foodPrice}>₹{item.price}</p>
                     </div>
+                  ))}
+                </Slider>
+              </div>
+            ) : (
+              <div className={styles.favoritesGrid}>
+                {favoriteItems.map((item) => (
+                  <div key={item._id} className={styles.foodCard}>
+                    <div className={styles.imageContainer}>
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={styles.foodImage}
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder-image.png";
+                        }}
+                      />
+                    </div>
+                    <h4 className={styles.foodTitle}>{item.name}</h4>
+                    <p className={styles.foodPrice}>₹{item.price}</p>
                   </div>
                 ))}
-              </Slider>
-            </div>
+              </div>
+            )}
           </div>
         )}
 
