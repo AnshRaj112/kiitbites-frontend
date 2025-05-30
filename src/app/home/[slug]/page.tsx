@@ -39,5 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { slug } = params;
   return <CollegePageClient />;
 }
