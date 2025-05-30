@@ -6,7 +6,9 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const collegeName = decodeURIComponent(params.slug).toUpperCase().replace(/\s+/g, "-");
+  const collegeName = decodeURIComponent(params.slug)
+    .toUpperCase()
+    .replace(/\s+/g, "-");
 
   return {
     title: `${collegeName} - Campus Food Ordering on BitesBay`,
@@ -37,7 +39,7 @@ export async function generateMetadata({
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function Page({ params }: { params: { slug: string } }) {
+  console.log('Page params:', params);
   return <CollegePageClient />;
 }
