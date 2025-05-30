@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import styles from './styles/FavouriteFoodPage.module.scss';
 import axios from 'axios';
@@ -30,7 +30,7 @@ interface User {
   name: string;
 }
 
-const FavouriteFoodPage: React.FC = () => {
+const FavouriteFoodPageContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -267,6 +267,14 @@ const FavouriteFoodPage: React.FC = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const FavouriteFoodPage: React.FC = () => {
+  return (
+    <Suspense fallback={<div className={styles.container}><div className={styles.header}><h1>Loading...</h1></div></div>}>
+      <FavouriteFoodPageContent />
+    </Suspense>
   );
 };
 
