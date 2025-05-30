@@ -4,12 +4,6 @@
 import React from 'react';
 import styles from "./styles/About.module.scss";
 import Link from 'next/link';
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "About Us",
-  description: "Learn more about BitesBay",
-}; 
 
 export default function AboutPage() {
   return (
