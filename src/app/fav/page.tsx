@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 }; 
 
 
-export default function SignupPage() {
+export default function FavPage() {
   return (
     <div>
       <FavouriteFoodPage />

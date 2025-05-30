@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function tnc() {
+export default function RefundCancellationPolicyPage() {
   return (
     <div>
       <RefundCancellationPolicy />
