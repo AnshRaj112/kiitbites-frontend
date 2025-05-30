@@ -40,6 +40,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default function Page({ params }: PageProps) {
+export default function Page() {
   return <CollegePageClient />;
 }
