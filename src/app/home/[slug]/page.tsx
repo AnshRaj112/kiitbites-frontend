@@ -1,13 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./styles/global.css";
 import styles from "./styles/CollegePage.module.scss";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface FoodItem {
   id: string;
@@ -19,6 +19,17 @@ interface FoodItem {
   collegeId?: string;
 }
 
+interface FavoriteItem {
+  _id: string;
+  name: string;
+  type: string;
+  uniId: string;
+  price: number;
+  image: string;
+  isSpecial: string;
+  kind: string;
+}
+
 interface ApiItem {
   _id: string;
   name: string;
@@ -26,218 +37,219 @@ interface ApiItem {
   type: string;
   isSpecial: string;
   collegeId?: string;
+  category?: string;
 }
 
 interface College {
   _id: string;
   name: string;
-  // Add other college properties as needed
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+interface ApiFavoritesResponse {
+  favourites: FavoriteItem[];
+}
 
-// Function to generate a short ID from a college ID
-const generateShortId = (collegeId: string): string => {
-  // Take first 6 characters of the college ID and convert to base36
-  return parseInt(collegeId.slice(0, 6), 16).toString(36);
-};
-
-// Function to convert short ID back to original college ID
-const convertShortIdToCollegeId = async (shortId: string): Promise<string | null> => {
-  try {
-    // Fetch all colleges from backend
-    const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
-      credentials: "include",
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch colleges');
-    }
-    
-    const colleges = await response.json() as College[];
-    
-    // Find the college that matches the short ID
-    const college = colleges.find((college) => 
-      generateShortId(college._id) === shortId
-    );
-    
-    return college ? college._id : null;
-  } catch (error) {
-    console.error('Error converting short ID:', error);
-    return null;
-  }
-};
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 const categories = {
-  produce: [
-    "combos-veg",
-    "combos-nonveg",
-    "veg",
-    "shakes",
-    "juices",
-    "soups",
-    "non-veg",
-  ],
-  retail: [
-    "biscuits",
-    "chips",
-    "icecream",
-    "drinks",
-    "snacks",
-    "sweets",
-    "nescafe",
-  ],
+  produce: ["combos-veg", "combos-nonveg", "veg", "shakes", "juices", "soups", "non-veg"],
+  retail: ["biscuits", "chips", "icecream", "drinks", "snacks", "sweets", "nescafe"],
 };
 
-const CustomPrevArrow = (props: { onClick?: () => void }) => {
-  const { onClick } = props;
-  return (
-    <button onClick={onClick} className={`${styles.carouselButton} ${styles.prevButton}`}>
-      <ChevronLeft size={20} />
-    </button>
-  );
-};
+const CustomPrevArrow = (props: { onClick?: () => void }) => (
+  <button onClick={props.onClick} className={`${styles.carouselButton} ${styles.prevButton}`}>
+    <ChevronLeft size={20} />
+  </button>
+);
 
-const CustomNextArrow = (props: { onClick?: () => void }) => {
-  const { onClick } = props;
-  return (
-    <button onClick={onClick} className={`${styles.carouselButton} ${styles.nextButton}`}>
-      <ChevronRight size={20} />
-    </button>
-  );
-};
+const CustomNextArrow = (props: { onClick?: () => void }) => (
+  <button onClick={props.onClick} className={`${styles.carouselButton} ${styles.nextButton}`}>
+    <ChevronRight size={20} />
+  </button>
+);
 
 const CollegePage = () => {
   const { collegeName } = useParams<{ collegeName: string }>();
+  const searchParams = useSearchParams();
+
+  const [uniId, setUniId] = useState<string | null>(null);
   const [userFullName, setUserFullName] = useState<string>("");
   const [items, setItems] = useState<{ [key: string]: FoodItem[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [uniId, setUniId] = useState<string | null>(null);
-  const [userFavorites, setUserFavorites] = useState<string[]>([]);
+  const [userFavorites, setUserFavorites] = useState<FavoriteItem[]>([]);
 
-  const collegeDisplayName =
-    collegeName?.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) || "College";
-  const displayName = userFullName ? userFullName.split(" ")[0] : "User";
+  const currentRequest = useRef<number>(0);
 
+  // Normalize college name for matching
+  const normalizeName = (name: string) =>
+    name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  // Update URL with college ID
+  const updateUrlWithCollegeId = (collegeId: string) => {
+    const currentPath = window.location.pathname;
+    const newUrl = `${currentPath}?cid=${collegeId}`;
+    window.history.replaceState({}, '', newUrl);
+  };
+
+  // Get college list and match collegeName to get actual college id
+  const fetchCollegesAndSetUniId = async (collegeSlug: string) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch colleges");
+      const colleges = (await response.json()) as College[];
+      
+      // Normalize the input slug
+      const normalizedSlug = normalizeName(collegeSlug);
+      
+      // Find the college that matches the normalized slug
+      const matchedCollege = colleges.find((college) => 
+        normalizeName(college.name) === normalizedSlug
+      );
+
+      if (matchedCollege) {
+        setUniId(matchedCollege._id);
+        localStorage.setItem("currentCollegeId", matchedCollege._id);
+        updateUrlWithCollegeId(matchedCollege._id);
+        return true;
+      } else {
+        console.error(`No college found matching slug: ${collegeSlug}`);
+        setError(`College not found: ${collegeSlug}`);
+        return false;
+      }
+    } catch (err) {
+      console.error("Error fetching colleges:", err);
+      setError("Failed to load college information");
+      return false;
+    }
+  };
+
+  // On load, determine uniId from multiple sources:
   useEffect(() => {
-    const getCollegeId = async () => {
-      // First try to get from URL hash
-      const hash = window.location.hash;
-      const hashParams = new URLSearchParams(hash.substring(1));
-      const hashCollegeId = hashParams.get('cid');
-      
-      // Then try localStorage
-      const localCollegeId = localStorage.getItem("currentCollegeId");
-      
-      let collegeId = null;
-      
-      // If we have a hash college ID, use it
-      if (hashCollegeId) {
-        // Check if it's a short ID (less than 10 characters)
-        if (hashCollegeId.length < 10) {
-          collegeId = await convertShortIdToCollegeId(hashCollegeId);
+    // 1. Try from URL search param cid
+    const cid = searchParams.get("cid");
+
+    // 2. Try from URL path param collegeName (slug)
+    // 3. Try localStorage fallback
+    const localCollegeId = localStorage.getItem("currentCollegeId");
+
+    const resolveCollegeId = async () => {
+      if (cid) {
+        // If cid is short id (length < 10), convert it
+        if (cid.length < 10) {
+          // Convert short id to full id by fetching list and matching
+          try {
+            const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
+            if (!response.ok) throw new Error("Failed to fetch colleges");
+            const colleges = (await response.json()) as College[];
+            const found = colleges.find((c) => c._id.startsWith(cid));
+            if (found) {
+              setUniId(found._id);
+              localStorage.setItem("currentCollegeId", found._id);
+              updateUrlWithCollegeId(found._id);
+              return;
+            }
+          } catch {
+            // ignore error
+          }
         } else {
-          collegeId = hashCollegeId;
+          // Use full id directly
+          setUniId(cid);
+          localStorage.setItem("currentCollegeId", cid);
+          updateUrlWithCollegeId(cid);
+          return;
         }
-        
-        if (collegeId) {
-          localStorage.setItem("currentCollegeId", collegeId);
-        }
-      } else if (localCollegeId) {
-        collegeId = localCollegeId;
       }
-      
-      if (collegeId) {
-        // Update URL hash with short ID
-        const shortId = generateShortId(collegeId);
-        if (!window.location.hash.includes('cid=')) {
-          window.location.hash = `cid=${shortId}`;
-        }
-        return collegeId;
+
+      if (collegeName) {
+        const success = await fetchCollegesAndSetUniId(collegeName);
+        if (success) return;
       }
-      
-      return null;
+
+      if (localCollegeId) {
+        setUniId(localCollegeId);
+        updateUrlWithCollegeId(localCollegeId);
+      }
     };
 
-    getCollegeId().then(collegeId => {
-      if (collegeId) {
-        setUniId(collegeId);
-      } else {
-        setError("College ID not found");
-      }
-    });
-  }, [collegeName]);
+    resolveCollegeId();
+  }, [collegeName, searchParams]);
 
+  // Fetch user & favorites
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndFavorites = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const response = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+        if (!token || !uniId) return;
+        
+        // Fetch user data
+        const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
+        if (!userResponse.ok) return;
+        const userData = await userResponse.json();
+        setUserFullName(userData.fullName);
 
-        if (response.ok) {
-          const data = await response.json();
-          setUserFullName(data.fullName);
-          setUserFavorites(data.favorites || []);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        // Fetch favorites using the new API endpoint
+        const favoritesResponse = await fetch(`${BACKEND_URL}/fav/${userData._id}/${uniId}`, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!favoritesResponse.ok) return;
+        const favoritesData = await favoritesResponse.json() as ApiFavoritesResponse;
+        setUserFavorites(favoritesData.favourites);
+      } catch (err) {
+        console.error("Error fetching user or favorites:", err);
+        setUserFavorites([]);
       }
     };
+    fetchUserAndFavorites();
+  }, [uniId]);
 
-    fetchUser();
-  }, []);
-
+  // Fetch food items for given uniId and categories
   useEffect(() => {
+    if (!uniId) return;
+
+    const requestId = ++currentRequest.current;
+
     const fetchItems = async () => {
-      if (!uniId) return;
+      setLoading(true);
+      setError(null);
+
+      const allItems: { [key: string]: FoodItem[] } = {};
 
       try {
-        setLoading(true);
-        setError(null);
-
-        const allItems: { [key: string]: FoodItem[] } = {};
-
         await Promise.all(
           Object.entries(categories).flatMap(([category, types]) =>
             types.map(async (type) => {
-              const response = await fetch(
-                `${BACKEND_URL}/items/${category}/${type}/${uniId}`,
-                {
-                  credentials: "include",
-                }
-              );
-
-              if (response.ok) {
-                const data = (await response.json()) as ApiItem[];
-                const key = `${category}-${type}`;
-                allItems[key] = data.map((item) => ({
-                  id: item._id,
-                  title: item.name,
-                  image: item.image,
-                  category: type,
-                  type: item.type,
-                  isSpecial: item.isSpecial,
-                  collegeId: item.collegeId,
-                }));
-              }
+              const url = `${BACKEND_URL}/items/${category}/${type}/${uniId}`;
+              const response = await fetch(url, { credentials: "include" });
+              if (!response.ok) return;
+              const data = (await response.json()) as ApiItem[];
+              const key = `${category}-${type}`;
+              allItems[key] = data.map((item) => ({
+                id: item._id,
+                title: item.name,
+                image: item.image,
+                category: type,
+                type: item.type,
+                isSpecial: item.isSpecial,
+                collegeId: item.collegeId,
+              }));
             })
           )
         );
 
-        setItems(allItems);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-        setError("Failed to load items. Please try again later.");
-      } finally {
-        setLoading(false);
+        if (requestId === currentRequest.current) {
+          setItems(allItems);
+          setLoading(false);
+        }
+      } catch {
+        if (requestId === currentRequest.current) {
+          setError("Failed to load items.");
+          setLoading(false);
+        }
       }
     };
 
@@ -245,10 +257,8 @@ const CollegePage = () => {
   }, [uniId]);
 
   const getFavoriteItems = () => {
-    if (!userFavorites.length || !uniId) return [];
-    return Object.values(items)
-      .flat()
-      .filter((item) => userFavorites.includes(item.id) && item.collegeId === uniId);
+    if (!userFavorites || !Array.isArray(userFavorites)) return [];
+    return userFavorites;
   };
 
   const favoriteItems = getFavoriteItems();
@@ -265,18 +275,9 @@ const CollegePage = () => {
     prevArrow: <CustomPrevArrow />,
     nextArrow: <CustomNextArrow />,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: { slidesToShow: 3, slidesToScroll: 1 },
-      },
-      {
-        breakpoint: 768,
-        settings: { slidesToShow: 2, slidesToScroll: 1, arrows: false },
-      },
-      {
-        breakpoint: 480,
-        settings: { slidesToShow: 1, slidesToScroll: 1, arrows: false },
-      },
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } },
+      { breakpoint: 480, settings: { slidesToShow: 1, arrows: false } },
     ],
   };
 
@@ -285,20 +286,16 @@ const CollegePage = () => {
     slidesToShow: 5,
     autoplaySpeed: 2000,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: { slidesToShow: 4, slidesToScroll: 1 },
-      },
-      {
-        breakpoint: 768,
-        settings: { slidesToShow: 3, slidesToScroll: 1, arrows: false },
-      },
-      {
-        breakpoint: 480,
-        settings: { slidesToShow: 2, slidesToScroll: 1, arrows: false },
-      },
+      { breakpoint: 1024, settings: { slidesToShow: 4 } },
+      { breakpoint: 768, settings: { slidesToShow: 3, arrows: false } },
+      { breakpoint: 480, settings: { slidesToShow: 2, arrows: false } },
     ],
   };
+
+  const displayName = userFullName ? userFullName.split(" ")[0] : "User";
+  const collegeDisplayName = collegeName
+    ? collegeName.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    : "College";
 
   if (loading) {
     return (
@@ -333,12 +330,19 @@ const CollegePage = () => {
             <div className={styles.carouselContainer}>
               <Slider {...favoritesSliderSettings} className={styles.slider}>
                 {favoriteItems.map((item) => (
-                  <div key={item.id} className={styles.slideWrapper}>
+                  <div key={item._id} className={styles.slideWrapper}>
                     <div className={styles.foodCard}>
                       <div className={styles.imageContainer}>
-                        <img src={item.image} alt={item.title} className={styles.foodImage} />
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className={styles.foodImage}
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder-image.png";
+                          }}
+                        />
                       </div>
-                      <h4 className={styles.foodTitle}>{item.title}</h4>
+                      <h4 className={styles.foodTitle}>{item.name}</h4>
                     </div>
                   </div>
                 ))}
@@ -351,7 +355,6 @@ const CollegePage = () => {
           types.map((type) => {
             const key = `${category}-${type}`;
             const categoryItems = items[key] || [];
-
             if (categoryItems.length === 0) return null;
 
             return (
