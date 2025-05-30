@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -70,8 +70,7 @@ const CustomNextArrow = (props: { onClick?: () => void }) => (
   </button>
 );
 
-const CollegePageClient = () => {
-  const { collegeName } = useParams<{ collegeName: string }>();
+const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   const searchParams = useSearchParams();
 
   const [uniId, setUniId] = useState<string | null>(null);
@@ -85,7 +84,7 @@ const CollegePageClient = () => {
 
   // Normalize college name for matching
   const normalizeName = (name: string) =>
-    name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-") || "";
 
   // Update URL with college ID
   const updateUrlWithCollegeId = (collegeId: string) => {
@@ -97,6 +96,7 @@ const CollegePageClient = () => {
   // Get college list and match collegeName to get actual college id
   const fetchCollegesAndSetUniId = async (collegeSlug: string) => {
     try {
+      setLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch colleges");
       const colleges = (await response.json()) as College[];
@@ -105,37 +105,45 @@ const CollegePageClient = () => {
       const normalizedSlug = normalizeName(collegeSlug);
       
       // Find the college that matches the normalized slug
-      const matchedCollege = colleges.find((college) => 
-        normalizeName(college.name) === normalizedSlug
-      );
+      const matchedCollege = colleges.find((college) => {
+        const normalizedCollegeName = normalizeName(college.name);
+        return normalizedCollegeName === normalizedSlug;
+      });
 
       if (matchedCollege) {
         setUniId(matchedCollege._id);
         localStorage.setItem("currentCollegeId", matchedCollege._id);
         updateUrlWithCollegeId(matchedCollege._id);
+        setLoading(false);
         return true;
       } else {
-        console.error(`No college found matching slug: ${collegeSlug}`);
-        setError(`College not found: ${collegeSlug}`);
+        // Only set error if we've actually tried to load the data
+        if (colleges.length > 0) {
+          setError(`College not found: ${collegeSlug}`);
+        }
+        setLoading(false);
         return false;
       }
     } catch (err) {
       console.error("Error fetching colleges:", err);
       setError("Failed to load college information");
+      setLoading(false);
       return false;
     }
   };
 
   // On load, determine uniId from multiple sources:
   useEffect(() => {
-    // 1. Try from URL search param cid
-    const cid = searchParams.get("cid");
-
-    // 2. Try from URL path param collegeName (slug)
-    // 3. Try localStorage fallback
-    const localCollegeId = localStorage.getItem("currentCollegeId");
+    let isMounted = true;
 
     const resolveCollegeId = async () => {
+      // 1. Try from URL search param cid
+      const cid = searchParams.get("cid");
+
+      // 2. Try from URL path param collegeName (slug)
+      // 3. Try localStorage fallback
+      const localCollegeId = localStorage.getItem("currentCollegeId");
+
       if (cid) {
         // If cid is short id (length < 10), convert it
         if (cid.length < 10) {
@@ -145,7 +153,7 @@ const CollegePageClient = () => {
             if (!response.ok) throw new Error("Failed to fetch colleges");
             const colleges = (await response.json()) as College[];
             const found = colleges.find((c) => c._id.startsWith(cid));
-            if (found) {
+            if (found && isMounted) {
               setUniId(found._id);
               localStorage.setItem("currentCollegeId", found._id);
               updateUrlWithCollegeId(found._id);
@@ -156,26 +164,32 @@ const CollegePageClient = () => {
           }
         } else {
           // Use full id directly
-          setUniId(cid);
-          localStorage.setItem("currentCollegeId", cid);
-          updateUrlWithCollegeId(cid);
+          if (isMounted) {
+            setUniId(cid);
+            localStorage.setItem("currentCollegeId", cid);
+            updateUrlWithCollegeId(cid);
+          }
           return;
         }
       }
 
-      if (collegeName) {
-        const success = await fetchCollegesAndSetUniId(collegeName);
+      if (slug) {
+        const success = await fetchCollegesAndSetUniId(slug);
         if (success) return;
       }
 
-      if (localCollegeId) {
+      if (localCollegeId && isMounted) {
         setUniId(localCollegeId);
         updateUrlWithCollegeId(localCollegeId);
       }
     };
 
     resolveCollegeId();
-  }, [collegeName, searchParams]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug, searchParams]);
 
   // Fetch user & favorites
   useEffect(() => {
@@ -296,8 +310,8 @@ const CollegePageClient = () => {
   };
 
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
-  const collegeDisplayName = collegeName
-    ? collegeName.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+  const collegeDisplayName = slug
+    ? slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
     : "College";
 
   if (loading) {

@@ -1,11 +1,16 @@
+// src/app/home/[slug]/page.tsx
+
 import { Metadata } from "next";
 import CollegePageClient from "./CollegePageClient";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+type PageProps = {
+  params: {
+    slug: string;
+  };
+};
+
+// For metadata generation
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const collegeName = decodeURIComponent(params.slug)
     .toUpperCase()
     .replace(/\s+/g, "-");
@@ -39,7 +44,8 @@ export async function generateMetadata({
   };
 }
 
-export default function Page({ params }: { params: { slug: string } }) {
+// Main page component
+export default function Page({ params }: PageProps) {
   console.log('Page params:', params);
-  return <CollegePageClient />;
+  return <CollegePageClient slug={params.slug} />;
 }
