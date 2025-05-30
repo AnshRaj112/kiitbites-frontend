@@ -8,14 +8,12 @@ import Link from 'next/link';
 export default function AboutPage() {
   return (
 <div className={styles.aboutUsContainer}>
-      <section className={styles.section}>
         <h1>About Us</h1>
         <p>
           Welcome to BitesBay — your trusted partner in redefining how food is ordered and managed 
           within college food courts. We are committed to streamlining the campus dining experience 
           by making food ordering more efficient for students, staff, and vendors alike.
         </p>
-      </section>
 
       <section className={styles.section}>
         <h2>Our Mission</h2>
