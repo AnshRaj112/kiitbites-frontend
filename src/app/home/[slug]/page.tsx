@@ -37,6 +37,7 @@ export async function generateMetadata({
   };
 }
 
-export default function Page() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function Page({ params }: { params: { slug: string } }) {
   return <CollegePageClient />;
 }
