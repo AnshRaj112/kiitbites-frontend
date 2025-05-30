@@ -3,13 +3,13 @@
 import { Metadata } from "next";
 import CollegePageClient from "./CollegePageClient";
 
-type Props = {
+interface PageProps {
   params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
 
 // For metadata generation
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const collegeName = decodeURIComponent(params.slug)
     .toUpperCase()
     .replace(/\s+/g, "-");
@@ -44,6 +44,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // Main page component
-export default async function Page({ params }: Props) {
+export default function Page({ params }: PageProps) {
   return <CollegePageClient slug={params.slug} />;
 }
