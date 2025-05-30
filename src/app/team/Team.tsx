@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import TeamCard from "../components/TeamCard";
 import SkeletonCard from "../components/SkeletonCard"; // Import SkeletonCard
