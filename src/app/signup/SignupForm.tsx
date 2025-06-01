@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaChevronDown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -211,6 +211,26 @@ export default function SignupForm() {
     setShowCollegeDropdown(false);
   };
 
+  const genderDropdownRef = useRef<HTMLDivElement>(null);
+  const collegeDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (genderDropdownRef.current && !genderDropdownRef.current.contains(event.target as Node)) {
+        setShowGenderDropdown(false);
+      }
+      if (collegeDropdownRef.current && !collegeDropdownRef.current.contains(event.target as Node)) {
+        setShowCollegeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className={styles.container}>
       <div className={styles.box}>
@@ -287,7 +307,7 @@ export default function SignupForm() {
           {step === 3 && (
             <>
               {/* Gender Selection */}
-              <div className={styles.genderField}>
+              <div className={styles.genderField} ref={genderDropdownRef}>
                 <input
                   name="gender"
                   value={formData.gender}
@@ -296,25 +316,22 @@ export default function SignupForm() {
                   onClick={() => setShowGenderDropdown(!showGenderDropdown)}
                 />
                 <FaChevronDown
-                  className={styles.dropdownIcon}
-                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                  className={`${styles.dropdownIcon} ${showGenderDropdown ? styles.open : ''}`}
                 />
-                {showGenderDropdown && (
-                  <ul className={styles.genderList}>
-                    {["Male", "Female"].map((genderOption) => (
-                      <li
-                        key={genderOption}
-                        onClick={() => handleGenderSelection(genderOption)}
-                      >
-                        {genderOption}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ul className={`${styles.genderList} ${showGenderDropdown ? styles.show : ''}`}>
+                  {["Male", "Female"].map((genderOption) => (
+                    <li
+                      key={genderOption}
+                      onClick={() => handleGenderSelection(genderOption)}
+                    >
+                      {genderOption}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* College Selection */}
-              <div className={styles.collegeField}>
+              <div className={styles.collegeField} ref={collegeDropdownRef}>
                 <input
                   name="college"
                   value={
@@ -326,21 +343,18 @@ export default function SignupForm() {
                   onClick={() => setShowCollegeDropdown(!showCollegeDropdown)}
                 />
                 <FaChevronDown
-                  className={styles.dropdownIcon}
-                  onClick={() => setShowCollegeDropdown(!showCollegeDropdown)}
+                  className={`${styles.dropdownIcon} ${showCollegeDropdown ? styles.open : ''}`}
                 />
-                {showCollegeDropdown && (
-                  <ul className={styles.collegeList}>
-                    {colleges.map((college) => (
-                      <li
-                        key={college._id}
-                        onClick={() => handleCollegeSelection(college._id)}
-                      >
-                        {college.fullName}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ul className={`${styles.collegeList} ${showCollegeDropdown ? styles.show : ''}`}>
+                  {colleges.map((college) => (
+                    <li
+                      key={college._id}
+                      onClick={() => handleCollegeSelection(college._id)}
+                    >
+                      {college.fullName}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </>
           )}

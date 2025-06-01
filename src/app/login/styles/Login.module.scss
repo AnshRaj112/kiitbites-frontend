@@ -3,20 +3,21 @@
   justify-content: center;
   align-items: center;
   height: 115.25dvh; /* Full-screen height */
-  background-color: #f0f4f8; /* Subtle background color for contrast */
+  background-color: #f8fafc; /* Subtle background color for contrast */
 
   .box {
-    background-color: white;
+    background: #e5e7eb;
     padding: 30px;
     border-radius: 15px; /* Curved corners */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Floating box shadow */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Floating box shadow */
     max-width: 400px;
     width: 90%; /* Responsive width */
     text-align: center;
-    transition: transform 0.2s ease-in-out;
+    transition: all 0.3s ease;
 
     &:hover {
-      transform: translateY(-5px); /* Subtle lift effect on hover */
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     .text-black {
@@ -25,8 +26,12 @@
 
     h1 {
       margin-bottom: 20px;
-      color: #333;
-      font-size: 30px;
+      background: linear-gradient(90deg, #000, #000);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 2rem;
+      font-weight: 500;
     }
 
     form {
@@ -38,13 +43,15 @@
         padding: 12px;
         font-size: 1em;
         border-radius: 8px; /* Curved input fields */
-        border: 1px solid #ddd;
+        border: 1px solid rgba(78, 161, 153, 0.5);
         outline: none;
         transition: box-shadow 0.2s;
+        background-color: #fff;
 
         &:focus {
           box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
           border-color: #4ea199;
+          background-color: white;
         }
       }
 
@@ -72,8 +79,8 @@
       }
 
       button {
-        background-color: #4ea199;
-        color: black;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        color: white;
         padding: 12px;
         border: none;
         border-radius: 8px; /* Match input curvature */
@@ -82,7 +89,8 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #3a8273;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(78, 161, 153, 0.3);
         }
       }
     }
@@ -130,7 +138,10 @@
     }
 
     .forgotPassword {
-      color: #4ea199;
+      background: linear-gradient(90deg, #4ea199, #6fc3bd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       text-decoration: none;
       transition: color 0.2s;
       margin-bottom: 10px;
@@ -145,7 +156,10 @@
       margin-top: 20px;
 
       a {
-        color: #4ea199;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         text-decoration: none;
         transition: color 0.2s;
 
