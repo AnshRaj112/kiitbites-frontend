@@ -2,44 +2,49 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 115dvh; /* Full-screen height */
-  background-color: #f0f4f8; /* Subtle background color for contrast */
+  height: 105dvh; /* Full-screen height */
+  background-color: #f8fafc; /* Subtle background color for contrast */
 
   .box {
-    background-color: white;
+    background: #e5e7eb;
     padding: 30px;
     border-radius: 15px; /* Curved corners */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Floating box shadow */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Floating box shadow */
     max-width: 400px;
     width: 90%; /* Responsive width */
     text-align: center;
-    transition: transform 0.2s ease-in-out;
+    transition: all 0.3s ease;
 
     &:hover {
-      transform: translateY(-5px); /* Subtle lift effect on hover */
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     h1 {
       margin-bottom: 20px;
-      color: #333;
-      font-size: 30px;
+      background: linear-gradient(90deg, #000, #000);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 2rem;
+      font-weight: 500;
     }
 
     form {
       display: flex;
       flex-direction: column;
-      margin-top: -1.5rem;
 
       input {
         margin: 10px 0;
         padding: 12px;
         font-size: 1em;
         border-radius: 8px; /* Curved input fields */
-        border: 1px solid #ddd;
+        border: 1px solid rgba(78, 161, 153, 0.5);
         outline: none;
         color: black;
         transition: box-shadow 0.2s;
         cursor: pointer;
+        background-color: #fff;
 
         &:focus {
           box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
@@ -48,8 +53,8 @@
       }
 
       button {
-        background-color: #4ea199;
-        color: black;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        color: white;
         padding: 12px;
         border: none;
         border-radius: 8px; /* Match input curvature */
@@ -62,103 +67,113 @@
         }
       }
 
-      .genderField {
+      .genderField, .collegeField {
         display: flex;
         align-items: center;
         position: relative;
-        border-radius: 8px;
+        border-radius: 12px;
+        margin: 10px 0;
 
         input {
-          flex-grow: 1;
-          padding-right: 40px; /* Space for eye icon */
-        }
-
-        .dropdownIcon {
-          position: absolute;
-          right: 10px;
+          width: 100%;
+          background: #fff;
+          border: 1px solid #d1d5db;
+          border-radius: 12px;
+          padding: 1rem 1.5rem;
+          font-size: 1rem;
           cursor: pointer;
-          font-size: 1.2em;
-          color: #4ea199; /* Match the button color */
-        }
-
-        .dropdownIcon:hover {
-          color: #01796f;
-        }
-
-        ul {
-          list-style: none;
-          padding: 0;
-          margin-top: 140px; // Add space below the input
-          width: 100%; // Ensure full width below input
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           color: black;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
-          display: block; // Initially hide it
-          position: absolute;
-          z-index: 10;
 
-          li {
-            padding: 10px;
-            cursor: pointer;
-            text-align: left;
-            display: block; // Ensure it takes full width
-            width: 100%; // Make it occupy full width
-            border-radius: 8px;
+          &:hover {
+            background: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          }
 
-            &:hover {
-              background: #f0f4f8;
-            }
+          &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #4ea199;
           }
         }
-      }
-
-      .collegeField {
-        display: flex;
-        align-items: center;
-        position: relative;
-        border-radius: 8px;
-
-        input {
-          flex-grow: 1;
-          padding-right: 40px; /* Space for eye icon */
-        }
 
         .dropdownIcon {
           position: absolute;
-          right: 10px;
+          right: 1.5rem;
           cursor: pointer;
           font-size: 1.2em;
-          color: #4ea199; /* Match the button color */
-        }
+          color: #4ea199;
+          transition: transform 0.3s ease;
+          pointer-events: none;
 
-        .dropdownIcon:hover {
-          color: #01796f;
+          &.open {
+            transform: rotate(180deg);
+          }
         }
 
         ul {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #d1d5db;
+          border-radius: 12px;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          z-index: 50;
+          margin-top: 0.5rem;
+          overflow: hidden;
           list-style: none;
           padding: 0;
-          margin-top: 230px; // Add space below the input
-          width: 100%; // Ensure full width below input
-          color: black;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5);
-          display: block; // Initially hide it
-          position: absolute;
-          z-index: 10;
+          opacity: 0;
+          transform: translateY(-10px);
+          visibility: hidden;
+          transition: all 0.3s ease;
+          max-height: 250px;
+          overflow-y: auto;
+
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Hide scrollbar for IE, Edge and Firefox */
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+
+          &.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+          }
 
           li {
-            padding: 10px;
-            cursor: pointer;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: white;
+            border: none;
             text-align: left;
-            display: block; // Ensure it takes full width
-            width: 100%; // Make it occupy full width
-            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f3f4f6;
+            color: black;
+
+            &:last-child {
+              border-bottom: none;
+            }
 
             &:hover {
-              background: #f0f4f8;
+              background: #f9fafb;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
           }
         }
@@ -214,8 +229,8 @@
       margin-top: 20px;
 
       .stepButton {
-        background-color: #4ea199;
-        color: black;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        color: white;
         padding: 12px;
         border: none;
         border-radius: 8px; /* Match input curvature */
@@ -237,8 +252,8 @@
       margin-top: 20px;
 
       .stepButton {
-        background-color: #4ea199;
-        color: black;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        color: white;
         border: none;
         padding: 10px 20px;
         cursor: pointer;
@@ -275,7 +290,10 @@
 
       .loginLink {
         cursor: pointer;
-        color: #4ea199;
+        background: linear-gradient(90deg, #4ea199, #6fc3bd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         text-decoration: none;
         transition: color 0.2s;
 
