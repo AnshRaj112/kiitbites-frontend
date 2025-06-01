@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { ChevronRight, ChevronDown } from 'lucide-react';
-import styles from './styles/FavouriteFoodPage.module.scss';
-import axios from 'axios';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import styles from "./styles/FavouriteFoodPage.module.scss";
+import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 interface FoodItem {
   _id: string;
@@ -43,8 +44,8 @@ const FavouriteFoodPageContent: React.FC = () => {
 
   // Get auth token
   const getAuthToken = () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
     }
     return null;
   };
@@ -54,8 +55,8 @@ const FavouriteFoodPageContent: React.FC = () => {
     const token = getAuthToken();
     return {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     };
   };
 
@@ -65,7 +66,7 @@ const FavouriteFoodPageContent: React.FC = () => {
       try {
         const token = getAuthToken();
         if (!token) {
-          router.push('/login');
+          router.push("/login");
           return;
         }
 
@@ -75,9 +76,9 @@ const FavouriteFoodPageContent: React.FC = () => {
         );
         setUser(response.data);
       } catch (error) {
-        console.error('Error fetching user details:', error);
+        console.error("Error fetching user details:", error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-          router.push('/login');
+          router.push("/login");
         }
       }
     };
@@ -94,9 +95,9 @@ const FavouriteFoodPageContent: React.FC = () => {
         );
         setColleges(response.data);
       } catch (error) {
-        console.error('Error fetching colleges:', error);
+        console.error("Error fetching colleges:", error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-          router.push('/login');
+          router.push("/login");
         }
       }
     };
@@ -105,9 +106,9 @@ const FavouriteFoodPageContent: React.FC = () => {
 
   // Handle URL query parameter on initial load
   useEffect(() => {
-    const collegeId = searchParams.get('college');
+    const collegeId = searchParams.get("college");
     if (collegeId && colleges.length > 0) {
-      const college = colleges.find(c => c._id === collegeId);
+      const college = colleges.find((c) => c._id === collegeId);
       if (college) {
         setSelectedCollege(college);
       }
@@ -115,8 +116,8 @@ const FavouriteFoodPageContent: React.FC = () => {
       setSelectedCollege(null);
       // Remove college parameter from URL if no college is selected
       const params = new URLSearchParams(window.location.search);
-      params.delete('college');
-      window.history.pushState(null, '', `?${params.toString()}`);
+      params.delete("college");
+      window.history.pushState(null, "", `?${params.toString()}`);
     }
   }, [searchParams, colleges]);
 
@@ -124,19 +125,19 @@ const FavouriteFoodPageContent: React.FC = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user?._id) return;
-      
+
       try {
         setLoading(true);
-        const url = selectedCollege 
+        const url = selectedCollege
           ? `${BACKEND_URL}/fav/${user._id}/${selectedCollege._id}`
           : `${BACKEND_URL}/fav/${user._id}`;
-        
+
         const response = await axios.get(url, getAuthConfig());
         setFavorites(response.data.favourites);
       } catch (error) {
-        console.error('Error fetching favorites:', error);
+        console.error("Error fetching favorites:", error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
-          router.push('/login');
+          router.push("/login");
         }
       } finally {
         setLoading(false);
@@ -149,17 +150,20 @@ const FavouriteFoodPageContent: React.FC = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
     if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
 
@@ -167,11 +171,11 @@ const FavouriteFoodPageContent: React.FC = () => {
     setSelectedCollege(college);
     const params = new URLSearchParams(window.location.search);
     if (college) {
-      params.set('college', college._id);
+      params.set("college", college._id);
     } else {
-      params.delete('college');
+      params.delete("college");
     }
-    window.history.pushState(null, '', `?${params.toString()}`);
+    window.history.pushState(null, "", `?${params.toString()}`);
     setIsDropdownOpen(false);
   };
 
@@ -195,11 +199,11 @@ const FavouriteFoodPageContent: React.FC = () => {
           <span>
             {selectedCollege ? selectedCollege.fullName : "Select your college"}
           </span>
-          <ChevronDown 
-            size={20} 
-            style={{ 
-              transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease'
+          <ChevronDown
+            size={20}
+            style={{
+              transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
             }}
           />
         </button>
@@ -250,7 +254,7 @@ const FavouriteFoodPageContent: React.FC = () => {
                 />
                 {!selectedCollege && (
                   <div className={styles.collegeTag}>
-                    {colleges.find(c => c._id === food.uniId)?.fullName}
+                    {colleges.find((c) => c._id === food.uniId)?.fullName}
                   </div>
                 )}
                 <h3 className={styles.foodName}>{food.name}</h3>
@@ -272,7 +276,15 @@ const FavouriteFoodPageContent: React.FC = () => {
 
 const FavouriteFoodPage: React.FC = () => {
   return (
-    <Suspense fallback={<div className={styles.container}><div className={styles.header}><h1>Loading...</h1></div></div>}>
+    <Suspense
+      fallback={
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <h1>Loading...</h1>
+          </div>
+        </div>
+      }
+    >
       <FavouriteFoodPageContent />
     </Suspense>
   );
