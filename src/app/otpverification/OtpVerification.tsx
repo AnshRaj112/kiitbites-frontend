@@ -29,7 +29,17 @@ export default function OtpVerificationClient() {
   return email ? (
     <OtpForm email={email} fromPage={fromPage} />
   ) : (
-    <p>Loading...</p>
+    <div className={styles.container}>
+      <h1 style={{
+        marginBottom: '20px',
+        background: 'linear-gradient(90deg, #4ea199, #6fc3bd)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '3rem',
+        fontWeight: 500
+      }}>Loading...</h1>
+    </div>
   );
 }
 
@@ -97,14 +107,14 @@ function OtpForm({
       if (res.ok) {
         // Store token first
         localStorage.setItem("token", data.token);
-        
+
         // After successful OTP verification, get user data
         const userRes = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           method: "GET",
           credentials: "include",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${data.token}`
+            Authorization: `Bearer ${data.token}`,
           },
         });
 
@@ -112,27 +122,35 @@ function OtpForm({
           const userData = await userRes.json();
           // Store user data
           localStorage.setItem("user", JSON.stringify(userData));
-          
+
           toast.success("OTP verified successfully!");
           console.log("Redirecting based on fromPage:", fromPage);
 
-          setTimeout(() => {
-            if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
-              console.log("Redirecting to resetpassword");
-              router.replace(`/resetpassword?email=${encodeURIComponent(email)}`);
-            } else {
-              console.log("Redirecting to home");
-              router.replace("/home");
-              // Reload the page to update the header
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
-            }
-          }, 2000);
+          // Handle different redirection cases
+          if (fromPage === "forgotpassword" || fromPage === "/forgotpassword") {
+            console.log("Redirecting to resetpassword");
+            router.push(`/resetpassword?email=${encodeURIComponent(email)}`);
+          } else if (fromPage === "signup") {
+            console.log("Redirecting to home after signup");
+            router.push("/home");
+            // Force a page reload after a short delay
+            setTimeout(() => {
+              window.location.href = "/home";
+            }, 100);
+          } else {
+            console.log("Redirecting to home");
+            router.push("/home");
+            // Force a page reload after a short delay
+            setTimeout(() => {
+              window.location.href = "/home";
+            }, 100);
+          }
         } else {
           const errorData = await userRes.json();
           console.error("User data fetch error:", errorData);
-          toast.error(errorData.message || "Failed to fetch user data after verification.");
+          toast.error(
+            errorData.message || "Failed to fetch user data after verification."
+          );
         }
       } else {
         toast.error(data.message || "Failed to verify OTP.");

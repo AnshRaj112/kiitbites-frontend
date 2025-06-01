@@ -55,7 +55,7 @@ export default function LoginForm() {
 
       if (res.status === 400 && data.redirectTo) {
         // If user is unverified, redirect them to /otpverification
-        toast.error("Account not verified. OTP sent to email.");
+        notify("Account not verified. OTP sent to email.", "error");
         setTimeout(() => {
           router.push(
             `/otpverification?email=${encodeURIComponent(
