@@ -2,11 +2,11 @@ import TeamPage from "./Team"; // Adjust the path if necessary
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Meet Our Team | BitesBay",
+  title: "Meet Our Team",
   description: "Learn about BitesBay Team.",
   keywords: "About BitesBay, College Food Ordering, Campus Dining Tech, Inventory Management",
   openGraph: {
-    title: "Meet Our Team | BitesBay",
+    title: "Meet Our Team",
     description: "Learn about BitesBay Team.",
     images: ["https://bitebay.in/og-image.jpg"],
     url: "https://bitesbay.com/team",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Meet Our Team | BitesBay",
+    title: "Meet Our Team",
     description: "Learn about BitesBay Team.",
     images: ["https://bitebay.in/twitter-card.jpg"],
   },
