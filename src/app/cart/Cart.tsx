@@ -8,6 +8,32 @@ import { FoodItem, CartItem } from "../cart/types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
 
+interface ExtraItem {
+  itemId: string;
+  name: string;
+  price: number;
+  image: string;
+  kind: string;
+}
+
+interface CartResponse {
+  cart: Array<{
+    itemId: string;
+    name: string;
+    image: string;
+    unit: string;
+    price: number;
+    quantity: number;
+    kind: string;
+    totalPrice: number;
+  }>;
+}
+
+interface ExtrasResponse {
+  message: string;
+  extras: ExtraItem[];
+}
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -24,22 +50,21 @@ export default function Cart() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [extras, setExtras] = useState<FoodItem[]>([]);
   const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
-  const [userFullName, setUserFullName] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{ _id: string; foodcourtId: string } | null>(null);
 
   useEffect(() => {
     console.log("[Cart.tsx] BACKEND_URL =", BACKEND_URL);
     const fetchExtras = async () => {
       try {
         console.log("[Cart.tsx] ▶︎ Calling GET", `${BACKEND_URL}/cart/extras`);
-        const response = await axios.get(
+        const response = await axios.get<ExtrasResponse>(
           `${BACKEND_URL}/cart/extras`,
           getAuthHeaders()
         );
         console.log("[Cart.tsx] ← /cart/extras responded with:", response.data);
 
-        // Response shape is { message, extras: [ { itemId, name, price, image, kind }, ... ] }
         const rawExtras = response.data.extras || [];
-        const formatted: FoodItem[] = rawExtras.map((e: any) => ({
+        const formatted: FoodItem[] = rawExtras.map((e: ExtraItem) => ({
           _id: e.itemId,
           name: e.name,
           image: e.image,
@@ -48,11 +73,12 @@ export default function Cart() {
         }));
         console.log("[Cart.tsx] → setExtras(...) to:", formatted);
         setExtras(formatted);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as { response?: { status: number; data: unknown }; message: string };
         console.error(
           "[Cart.tsx] ❌ Error loading /cart/extras:",
-          err.response?.status,
-          err.response?.data || err.message
+          error.response?.status,
+          error.response?.data || error.message
         );
         setExtras([]);
       }
@@ -78,8 +104,6 @@ export default function Cart() {
       }
 
       try {
-        // 👀 Make sure this URL is correct for your backend.
-        // If your user/auth route is still actually “/api/user/auth/user”, put that back in.
         const authUrl = `${BACKEND_URL}/api/user/auth/user`;
         console.log("[Cart.tsx] ▶︎ Calling FETCH", authUrl);
         const res = await fetch(authUrl, {
@@ -111,34 +135,40 @@ export default function Cart() {
         const userData = await res.json();
         console.log("[Cart.tsx] ← /user/auth/user returned JSON:", userData);
         setUserLoggedIn(true);
-        setUserFullName(userData.fullName);
+        setUserData(userData);
 
         /** ─── GET /cart ─── **/
         console.log("[Cart.tsx] ▶︎ Calling GET", `${BACKEND_URL}/cart`);
-        const cartRes = await axios.get(
+        const cartRes = await axios.get<CartResponse>(
           `${BACKEND_URL}/cart`,
           getAuthHeaders()
         );
         console.log("[Cart.tsx] ← /cart responded with:", cartRes.data);
 
-        // cartRes.data.cart is [ { itemId, name, image, unit, price, quantity, kind, totalPrice }, … ]
         const rawCart = cartRes.data.cart || [];
-        const detailedCart: CartItem[] = rawCart.map((c: any) => ({
+        const detailedCart: CartItem[] = rawCart.map((c) => ({
           _id: c.itemId,
-          name: c.name,
-          image: c.image,
-          unit: c.unit,
-          price: c.price,
+          userId: userData._id,
+          foodcourtId: userData.foodcourtId,
+          itemId: {
+            _id: c.itemId,
+            name: c.name,
+            price: c.price,
+            image: c.image,
+            kind: c.kind
+          },
           quantity: c.quantity,
           kind: c.kind,
-          totalPrice: c.totalPrice,
+          name: c.name,
+          price: c.price,
+          image: c.image
         }));
         console.log("[Cart.tsx] → setCart(...) to:", detailedCart);
         setCart(detailedCart);
 
         /** ─── GET /cart/extras (only if logged in and cart loaded) ─── **/
         await fetchExtras();
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("[Cart.tsx] ❌ Error in fetchUserAndCart():", error);
         localStorage.removeItem("token");
         setUserLoggedIn(false);
@@ -150,22 +180,30 @@ export default function Cart() {
 
   const reFetchCart = async () => {
     try {
+      if (!userData) return;
       console.log("[Cart.tsx] ▶︎ reFetchCart → GET", `${BACKEND_URL}/cart`);
-      const cartRes = await axios.get(`${BACKEND_URL}/cart`, getAuthHeaders());
+      const cartRes = await axios.get<CartResponse>(`${BACKEND_URL}/cart`, getAuthHeaders());
       console.log("[Cart.tsx] ← reFetchCart →", cartRes.data);
       const raw = cartRes.data.cart || [];
-      const updated: CartItem[] = raw.map((c: any) => ({
+      const updated: CartItem[] = raw.map((c) => ({
         _id: c.itemId,
-        name: c.name,
-        image: c.image,
-        unit: c.unit,
-        price: c.price,
+        userId: userData._id,
+        foodcourtId: userData.foodcourtId,
+        itemId: {
+          _id: c.itemId,
+          name: c.name,
+          price: c.price,
+          image: c.image,
+          kind: c.kind
+        },
         quantity: c.quantity,
         kind: c.kind,
-        totalPrice: c.totalPrice,
+        name: c.name,
+        price: c.price,
+        image: c.image
       }));
       setCart(updated);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("[Cart.tsx] ❌ reFetchCart error:", err);
     }
   };
@@ -283,7 +321,7 @@ export default function Cart() {
   };
 
   const addToCart = (item: FoodItem) => {
-    if (userLoggedIn) {
+    if (userLoggedIn && userData) {
       console.log(
         `[Cart.tsx] ▶︎ POST /cart/add { itemId: ${item._id}, kind: ${item.kind}, quantity: 1 }`
       );
@@ -304,11 +342,21 @@ export default function Cart() {
         .catch((err) => console.error("[Cart.tsx] ❌ /cart/add error:", err));
     } else {
       const existingItem = cart.find((i) => i._id === item._id);
-      const updatedCart: CartItem[] = existingItem
+      const updatedCart = existingItem
         ? cart.map((i) =>
             i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
           )
-        : [...cart, { ...item, quantity: 1 }];
+        : [...cart, {
+            _id: item._id,
+            userId: 'guest',
+            foodcourtId: 'guest',
+            itemId: item,
+            quantity: 1,
+            kind: item.kind,
+            name: item.name,
+            price: item.price,
+            image: item.image
+          }];
       console.log("[Cart.tsx] (guest) addToCart → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));

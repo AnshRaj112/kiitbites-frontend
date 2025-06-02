@@ -124,13 +124,10 @@
   }
   
   .collegeName {
-    font-size: 2rem;
-    font-weight: bold;
-    background: linear-gradient(90deg, #4ea199, #6fc3bd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #4ea199;
+    margin: 0;
+    font-weight: 500;
   }
   
   @media (max-width: 768px) {
@@ -192,18 +189,42 @@
     display: inline-block;
   }
   
+  .foodInfo {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
   .foodName {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 0.5rem 0;
+    margin: 0;
+  }
+  
+  .vendorName {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+    font-style: italic;
   }
   
   .foodPrice {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: #4ea199;
-    margin: 0 0 1rem 0;
+    margin: 0;
+  }
+  
+  .vendorId {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+    font-family: monospace;
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
   }
   
   .addToCartButton {
@@ -217,6 +238,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-top: 1rem;
   }
   
   .addToCartButton:hover {

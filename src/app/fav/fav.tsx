@@ -18,12 +18,18 @@ interface FoodItem {
   image: string;
   isSpecial: string;
   kind: string;
+  vendorId: string;
 }
 
 interface College {
   _id: string;
   fullName: string;
   shortName: string;
+}
+
+interface Vendor {
+  _id: string;
+  fullName: string;
 }
 
 interface User {
@@ -40,6 +46,7 @@ const FavouriteFoodPageContent: React.FC = () => {
   const [favorites, setFavorites] = useState<FoodItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [vendors, setVendors] = useState<{ [key: string]: string }>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get auth token
@@ -104,6 +111,81 @@ const FavouriteFoodPageContent: React.FC = () => {
     fetchColleges();
   }, [router]);
 
+  // Fetch favorites based on selected college
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user?._id) return;
+
+      try {
+        setLoading(true);
+        const url = selectedCollege
+          ? `${BACKEND_URL}/fav/${user._id}/${selectedCollege._id}`
+          : `${BACKEND_URL}/fav/${user._id}`;
+
+        const response = await axios.get(url, getAuthConfig());
+        // Log each favorite item's vendorId
+        response.data.favourites.forEach((fav: FoodItem) => {
+          console.log(`Favorite item ${fav.name} has vendorId:`, fav.vendorId);
+        });
+        setFavorites(response.data.favourites);
+      } catch (error) {
+        console.error("Error fetching favorites:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          router.push("/login");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFavorites();
+  }, [user?._id, selectedCollege, router]);
+
+  // Fetch vendors list
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        if (selectedCollege) {
+          // Fetch vendors for selected college
+          const response = await axios.get(
+            `${BACKEND_URL}/api/vendor/list/uni/${selectedCollege._id}`,
+            getAuthConfig()
+          );
+          const vendorsMap = response.data.reduce((acc: { [key: string]: string }, vendor: Vendor) => {
+            acc[vendor._id] = vendor.fullName;
+            return acc;
+          }, {});
+          console.log('Created vendors map:', vendorsMap);
+          setVendors(vendorsMap);
+        } else {
+          // Fetch vendors for all colleges
+          const vendorPromises = colleges.map(college => 
+            axios.get(
+              `${BACKEND_URL}/api/vendor/list/uni/${college._id}`,
+              getAuthConfig()
+            )
+          );
+          
+          const responses = await Promise.all(vendorPromises);
+          const allVendors = responses.flatMap(response => response.data);
+          
+          const vendorsMap = allVendors.reduce((acc: { [key: string]: string }, vendor: Vendor) => {
+            acc[vendor._id] = vendor.fullName;
+            return acc;
+          }, {});
+          
+          setVendors(vendorsMap);
+        }
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+      }
+    };
+
+    if (colleges.length > 0) {
+      fetchVendors();
+    }
+  }, [selectedCollege, colleges]);
+
   // Handle URL query parameter on initial load
   useEffect(() => {
     const collegeId = searchParams.get("college");
@@ -120,32 +202,6 @@ const FavouriteFoodPageContent: React.FC = () => {
       window.history.pushState(null, "", `?${params.toString()}`);
     }
   }, [searchParams, colleges]);
-
-  // Fetch favorites based on selected college
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!user?._id) return;
-
-      try {
-        setLoading(true);
-        const url = selectedCollege
-          ? `${BACKEND_URL}/fav/${user._id}/${selectedCollege._id}`
-          : `${BACKEND_URL}/fav/${user._id}`;
-
-        const response = await axios.get(url, getAuthConfig());
-        setFavorites(response.data.favourites);
-      } catch (error) {
-        console.error("Error fetching favorites:", error);
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-          router.push("/login");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFavorites();
-  }, [user?._id, selectedCollege, router]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -182,6 +238,19 @@ const FavouriteFoodPageContent: React.FC = () => {
   const handleAddToCart = (foodItem: FoodItem) => {
     console.log(`Added ${foodItem.name} to cart for ₹${foodItem.price}`);
     // Here you would typically add the item to a cart context or state
+  };
+
+  // const getCollegeName = (uniId: string) => {
+  //   return colleges.find(college => college._id === uniId)?.fullName || 'Unknown College';
+  // };
+
+  const getVendorName = (vendorId: string) => {
+    if (!vendorId) {
+      console.log('No vendorId provided');
+      return 'Unknown Vendor';
+    }
+    const vendorName = vendors[vendorId.toString()];
+    return vendorName || 'Unknown Vendor';
   };
 
   return (
@@ -258,6 +327,7 @@ const FavouriteFoodPageContent: React.FC = () => {
                   </div>
                 )}
                 <h3 className={styles.foodName}>{food.name}</h3>
+                <p className={styles.vendorName}>{getVendorName(food.vendorId)}</p>
                 <p className={styles.foodPrice}>₹{food.price}</p>
                 <button
                   className={styles.addToCartButton}
@@ -276,15 +346,7 @@ const FavouriteFoodPageContent: React.FC = () => {
 
 const FavouriteFoodPage: React.FC = () => {
   return (
-    <Suspense
-      fallback={
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <h1>Loading...</h1>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div>Loading...</div>}>
       <FavouriteFoodPageContent />
     </Suspense>
   );
