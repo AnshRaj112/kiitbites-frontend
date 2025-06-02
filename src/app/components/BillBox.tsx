@@ -1,5 +1,5 @@
 import styles from "./styles/BillBox.module.scss";
-import { CartItem } from "../types";
+import { CartItem } from "../cart/types";
 
 interface Props {
   items: CartItem[];

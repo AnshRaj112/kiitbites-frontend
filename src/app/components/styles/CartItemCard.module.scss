@@ -19,9 +19,9 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
-  &:focus-within {
-    box-shadow: 0 0 0 3px rgba(1, 121, 111, 0.3);
-  }
+  // &:focus-within {
+  //   box-shadow: 0 0 0 3px rgba(1, 121, 111, 0.3);
+  // }
 
   @media (max-width: 768px) {
     flex-direction: column;
