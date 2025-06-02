@@ -137,17 +137,11 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     let isMounted = true;
 
     const resolveCollegeId = async () => {
-      // 1. Try from URL search param cid
       const cid = searchParams.get("cid");
-
-      // 2. Try from URL path param collegeName (slug)
-      // 3. Try localStorage fallback
       const localCollegeId = localStorage.getItem("currentCollegeId");
 
       if (cid) {
-        // If cid is short id (length < 10), convert it
         if (cid.length < 10) {
-          // Convert short id to full id by fetching list and matching
           try {
             const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
             if (!response.ok) throw new Error("Failed to fetch colleges");
@@ -160,10 +154,8 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
               return;
             }
           } catch {
-            // ignore error
           }
         } else {
-          // Use full id directly
           if (isMounted) {
             setUniId(cid);
             localStorage.setItem("currentCollegeId", cid);
