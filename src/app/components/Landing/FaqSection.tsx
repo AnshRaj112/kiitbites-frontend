@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect } from "react";
-import SectionTitle from "./ui/section-title";
+import SectionTitle from "../ui/section-title";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "./ui/accordion";
+} from "../ui/accordion";
 
 const FaqSection: React.FC = () => {
   useEffect(() => {

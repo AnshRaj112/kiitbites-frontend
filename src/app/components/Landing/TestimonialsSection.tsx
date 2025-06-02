@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import SectionTitle from "./ui/section-title";
+import SectionTitle from "../ui/section-title";
 import TestimonialCard from "./TestimonialCard";
 
 const TestimonialsSection: React.FC = () => {
