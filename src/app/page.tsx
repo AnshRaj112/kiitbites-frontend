@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect } from "react";
-import HeroSection from "./components/HeroSection";
-import WhatWeDoSection from "./components/WhatWeDoSection";
-import FeaturesSection from "./components/FeaturesSection";
+import HeroSection from "./components/Landing/HeroSection";
+import WhatWeDoSection from "./components/Landing/WhatWeDoSection";
+import FeaturesSection from "./components/Landing/FeaturesSection";
 // import TestimonialsSection from "@/components/TestimonialsSection";
 import CollegesSection from "./components/CollegesSection";
-import FaqSection from "./components/FaqSection";
+import FaqSection from "./components/Landing/FaqSection";
 import Header from "./components/Header";
 
 const Index = () => {
