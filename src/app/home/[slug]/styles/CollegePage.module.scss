@@ -56,7 +56,7 @@
   font-weight: 600;
   color: #01796f;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 
   @media (max-width: 768px) {
     margin-bottom: 1.5rem;
@@ -91,7 +91,7 @@
 }
 
 .categorySection {
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
 
   &:last-child {
     margin-bottom: 0;
@@ -101,7 +101,7 @@
 .categoryHeader {
   padding: 1rem 1.5rem;
   border-radius: 12px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 5.5rem;
 }
 
 .categoryTitle {
@@ -174,7 +174,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  height: 150%;
+  height: 350px;
 
   &:hover {
     transform: translateY(-4px);
@@ -189,7 +189,7 @@
 
 .imageContainer {
   width: 100%;
-  height: 150px;
+  height: 250px;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 0.75rem;
