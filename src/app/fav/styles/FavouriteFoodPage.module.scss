@@ -243,15 +243,63 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 1rem;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(78, 161, 153, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
-.addToCartButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(78, 161, 153, 0.3);
+.quantityControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
-.addToCartButton:active {
-  transform: translateY(0);
+.quantityButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #4ea199;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #3d8a82;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.quantity {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 24px;
+  text-align: center;
 }
 
 .emptyState {
