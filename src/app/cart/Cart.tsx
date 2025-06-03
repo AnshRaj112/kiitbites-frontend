@@ -375,7 +375,7 @@ export default function Cart() {
           console.log(
             `[Cart.tsx] ← /cart/remove-item succeeded, re-fetching cart`
           );
-          toast.warning(`${thisItem.name} removed from cart`);
+          toast.error(`${thisItem.name} removed from cart`);
           reFetchCart();
         })
         .catch((err) => {
@@ -387,7 +387,7 @@ export default function Cart() {
       console.log("[Cart.tsx] (guest) removeItem → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));
-      toast.warning(`${thisItem.name} removed from cart`);
+      toast.error(`${thisItem.name} removed from cart`);
     }
   };
 
