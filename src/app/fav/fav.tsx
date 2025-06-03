@@ -220,22 +220,24 @@ const FavouriteFoodPageContent: React.FC = () => {
           `${BACKEND_URL}/cart/${user._id}`,
           getAuthConfig()
         );
-        console.log("Cart response:", response.data); // Debug log
+        console.log("Cart API Response:", response.data); // Debug log
         const cartData = response.data.cart || [];
         const formattedCartItems = cartData.map((item: CartResponseItem) => ({
           _id: item.itemId,
           quantity: item.quantity,
           kind: item.kind,
-          vendorId: item.vendorId,
-          vendorName: item.vendorName
+          vendorId: response.data.vendorId, // Get vendorId from the response
+          vendorName: response.data.vendorName // Get vendorName from the response
         }));
         
-        console.log("Formatted cart items:", formattedCartItems); // Debug log
+        console.log("Formatted Cart Items:", formattedCartItems); // Debug log
         setCartItems(formattedCartItems);
         
         // Set current vendor ID if there are items in cart
         if (formattedCartItems.length > 0) {
           setCurrentVendorId(formattedCartItems[0].vendorId);
+        } else {
+          setCurrentVendorId(null);
         }
       } catch (error) {
         console.error("Error fetching cart items:", error);
@@ -244,45 +246,6 @@ const FavouriteFoodPageContent: React.FC = () => {
 
     fetchCartItems();
   }, [user?._id]);
-
-  // Add a function to refetch cart
-  const reFetchCart = async () => {
-    if (!user?._id) return;
-
-    try {
-      const response = await axios.get(
-        `${BACKEND_URL}/cart/${user._id}`,
-        getAuthConfig()
-      );
-      console.log("Refetch cart response:", response.data); // Debug log
-      const cartData = response.data.cart || [];
-      const formattedCartItems = cartData.map((item: CartResponseItem) => ({
-        _id: item.itemId,
-        quantity: item.quantity,
-        kind: item.kind,
-        vendorId: item.vendorId,
-        vendorName: item.vendorName
-      }));
-      
-      console.log("Refetch formatted cart items:", formattedCartItems); // Debug log
-      setCartItems(formattedCartItems);
-      
-      // Update current vendor ID based on cart contents
-      if (formattedCartItems.length === 0) {
-        console.log("Cart is empty, resetting vendor ID"); // Debug log
-        setCurrentVendorId(null);
-      } else {
-        const firstItem = formattedCartItems[0];
-        console.log("Setting vendor ID to:", firstItem.vendorId); // Debug log
-        setCurrentVendorId(firstItem.vendorId);
-      }
-    } catch (error) {
-      console.error("Error refetching cart:", error);
-      // If there's an error, reset the cart state
-      setCartItems([]);
-      setCurrentVendorId(null);
-    }
-  };
 
   // Handle URL query parameter on initial load
   useEffect(() => {
@@ -339,12 +302,6 @@ const FavouriteFoodPageContent: React.FC = () => {
     }
 
     try {
-      console.log("Adding to cart:", {
-        itemId: foodItem._id,
-        vendorId: foodItem.vendorId,
-        currentVendorId: currentVendorId
-      }); // Debug log
-
       // Check if cart is empty or if item is from same vendor
       if (currentVendorId && currentVendorId !== foodItem.vendorId) {
         toast.error("You can only add items from the same vendor. Please clear your cart first.");
@@ -368,13 +325,6 @@ const FavouriteFoodPageContent: React.FC = () => {
           },
           getAuthConfig()
         );
-        // Update local state immediately
-        setCartItems(prev => prev.map(item =>
-          item._id === foodItem._id && item.vendorId === foodItem.vendorId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        ));
-        toast.success(`Increased quantity of ${foodItem.name}`);
       } else {
         // If item doesn't exist, add new item
         await axios.post(
@@ -387,25 +337,30 @@ const FavouriteFoodPageContent: React.FC = () => {
           },
           getAuthConfig()
         );
-        // Update local state immediately
-        setCartItems(prev => [...prev, {
-          _id: foodItem._id,
-          quantity: 1,
-          kind: foodItem.kind,
-          vendorId: foodItem.vendorId,
-          vendorName: foodItem.vendorName || getVendorName(foodItem.vendorId)
-        }]);
-        toast.success(`${foodItem.name} added to cart!`);
       }
 
+      // Fetch updated cart after adding item
+      const response = await axios.get(
+        `${BACKEND_URL}/cart/${user._id}`,
+        getAuthConfig()
+      );
+      const cartData = response.data.cart || [];
+      const formattedCartItems = cartData.map((item: CartResponseItem) => ({
+        _id: item.itemId,
+        quantity: item.quantity,
+        kind: item.kind,
+        vendorId: item.vendorId,
+        vendorName: item.vendorName
+      }));
+      
+      setCartItems(formattedCartItems);
+      
       // Set current vendor if not set
       if (!currentVendorId) {
-        console.log("Setting new vendor ID:", foodItem.vendorId); // Debug log
         setCurrentVendorId(foodItem.vendorId);
       }
 
-      // Refetch cart to ensure state is in sync
-      await reFetchCart();
+      toast.success(`${foodItem.name} added to cart!`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -437,17 +392,22 @@ const FavouriteFoodPageContent: React.FC = () => {
         getAuthConfig()
       );
 
-      // Update local state immediately
-      setCartItems(prev => prev.map(item =>
-        item._id === foodItem._id && item.vendorId === foodItem.vendorId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
-
-      toast.success(`Increased quantity of ${foodItem.name}`);
+      // Fetch updated cart after increasing quantity
+      const response = await axios.get(
+        `${BACKEND_URL}/cart/${user._id}`,
+        getAuthConfig()
+      );
+      const cartData = response.data.cart || [];
+      const formattedCartItems = cartData.map((item: CartResponseItem) => ({
+        _id: item.itemId,
+        quantity: item.quantity,
+        kind: item.kind,
+        vendorId: response.data.vendorId,
+        vendorName: response.data.vendorName
+      }));
       
-      // Refetch cart to ensure state is in sync
-      await reFetchCart();
+      setCartItems(formattedCartItems);
+      toast.success(`Increased quantity of ${foodItem.name}`);
     } catch (error) {
       console.error("Error increasing quantity:", error);
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -479,26 +439,28 @@ const FavouriteFoodPageContent: React.FC = () => {
         getAuthConfig()
       );
 
-      // Update local state immediately
-      setCartItems(prev => {
-        const updatedItems = prev.map(item =>
-          item._id === foodItem._id && item.vendorId === foodItem.vendorId
-            ? { ...item, quantity: Math.max(0, item.quantity - 1) }
-            : item
-        ).filter(item => item.quantity > 0);
-
-        // If cart becomes empty, reset current vendor
-        if (updatedItems.length === 0) {
-          setCurrentVendorId(null);
-        }
-
-        return updatedItems;
-      });
+      // Fetch updated cart after decreasing quantity
+      const response = await axios.get(
+        `${BACKEND_URL}/cart/${user._id}`,
+        getAuthConfig()
+      );
+      const cartData = response.data.cart || [];
+      const formattedCartItems = cartData.map((item: CartResponseItem) => ({
+        _id: item.itemId,
+        quantity: item.quantity,
+        kind: item.kind,
+        vendorId: response.data.vendorId,
+        vendorName: response.data.vendorName
+      }));
+      
+      setCartItems(formattedCartItems);
+      
+      // If cart becomes empty, reset current vendor
+      if (formattedCartItems.length === 0) {
+        setCurrentVendorId(null);
+      }
 
       toast.info(`Decreased quantity of ${foodItem.name}`);
-      
-      // Refetch cart to ensure state is in sync
-      await reFetchCart();
     } catch (error) {
       console.error("Error decreasing quantity:", error);
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -641,12 +603,38 @@ const FavouriteFoodPageContent: React.FC = () => {
           <div className={styles.foodGrid}>
             {favorites.map((food) => {
               // Find the cart item with matching itemId and vendorId
-              const cartItem = cartItems.find(
-                item => item._id === food._id && item.vendorId === food.vendorId
-              );
-              console.log("Cart item for food:", food._id, food.vendorId, cartItem); // Debug log
-              const quantity = cartItem?.quantity || 0;
+              console.log("Current cart items:", cartItems); // Debug log
+              console.log("Current food item:", food); // Debug log
+
+              const matchingCartItem = cartItems.find(item => {
+                console.log("Comparing cart item:", item); // Debug log
+                console.log("With food item:", food); // Debug log
+                const isMatch = item._id === food._id && item.vendorId === food.vendorId;
+                console.log("Match result:", isMatch, {
+                  itemIdMatch: item._id === food._id,
+                  vendorIdMatch: item.vendorId === food.vendorId,
+                  cartItemId: item._id,
+                  foodItemId: food._id,
+                  cartVendorId: item.vendorId,
+                  foodVendorId: food.vendorId
+                }); // Debug log
+                return isMatch;
+              });
+
+              console.log("Found matching cart item:", matchingCartItem); // Debug log
+              const quantity = matchingCartItem?.quantity || 0;
               const isSameVendor = !currentVendorId || currentVendorId === food.vendorId;
+              const isInCart = matchingCartItem !== undefined;
+              
+              console.log("Food item state:", {
+                foodId: food._id,
+                foodVendorId: food.vendorId,
+                quantity,
+                isSameVendor,
+                isInCart,
+                currentVendorId,
+                matchingCartItem
+              });
               
               return (
                 <div key={`${food._id}-${food.vendorId}`} className={styles.foodCard}>
@@ -665,7 +653,7 @@ const FavouriteFoodPageContent: React.FC = () => {
                     {food.vendorName || getVendorName(food.vendorId)}
                   </p>
                   <p className={styles.foodPrice}>₹{food.price}</p>
-                  {quantity > 0 ? (
+                  {isInCart && isSameVendor ? (
                     <div className={styles.quantityControls}>
                       <button
                         className={styles.quantityButton}
