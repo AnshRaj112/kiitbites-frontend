@@ -176,7 +176,8 @@ export default function Cart() {
           name: c.name,
           price: c.price,
           image: c.image,
-          vendorName: cartRes.data.vendorName
+          vendorName: cartRes.data.vendorName,
+          vendorId: cartRes.data.vendorId
         }));
         console.log("[Cart.tsx] → setCart(...) to:", detailedCart);
         setCart(detailedCart);
@@ -254,7 +255,8 @@ export default function Cart() {
         name: c.name,
         price: c.price,
         image: c.image,
-        vendorName: cartRes.data.vendorName
+        vendorName: cartRes.data.vendorName,
+        vendorId: cartRes.data.vendorId
       }));
       setCart(updated);
     } catch (err: unknown) {
@@ -393,8 +395,15 @@ export default function Cart() {
 
   const addToCart = (item: FoodItem) => {
     if (userLoggedIn && userData) {
+      // Get vendorId from the first item in cart
+      const vendorId = cart[0]?.vendorId;
+      if (!vendorId) {
+        toast.error("Cannot add items without a vendor selected");
+        return;
+      }
+
       console.log(
-        `[Cart.tsx] ▶︎ POST /cart/add/${userData._id} { itemId: ${item._id}, kind: ${item.kind}, quantity: 1 }`
+        `[Cart.tsx] ▶︎ POST /cart/add/${userData._id} { itemId: ${item._id}, kind: ${item.kind}, quantity: 1, vendorId: ${vendorId} }`
       );
       axios
         .post(
@@ -403,6 +412,7 @@ export default function Cart() {
             itemId: item._id,
             kind: item.kind,
             quantity: 1,
+            vendorId: vendorId
           },
           getAuthHeaders()
         )
@@ -443,7 +453,9 @@ export default function Cart() {
             kind: item.kind || 'Retail',
             name: item.name,
             price: item.price,
-            image: item.image
+            image: item.image,
+            vendorName: 'guest',
+            vendorId: 'guest'
           }];
       console.log("[Cart.tsx] (guest) addToCart → new cart:", updatedCart);
       setCart(updatedCart);
