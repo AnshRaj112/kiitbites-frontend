@@ -226,8 +226,8 @@ const FavouriteFoodPageContent: React.FC = () => {
           _id: item.itemId,
           quantity: item.quantity,
           kind: item.kind,
-          vendorId: response.data.vendorId, // Get vendorId from the response
-          vendorName: response.data.vendorName // Get vendorName from the response
+          vendorId: item.vendorId || response.data.vendorId, // Prefer vendorId from item, fallback to response
+          vendorName: item.vendorName || response.data.vendorName // Prefer vendorName from item, fallback to response
         }));
         
         console.log("Formatted Cart Items:", formattedCartItems); // Debug log
