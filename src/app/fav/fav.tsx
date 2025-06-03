@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, Minus } from "lucide-react";
 import styles from "./styles/FavouriteFoodPage.module.scss";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
@@ -37,6 +39,22 @@ interface User {
   name: string;
 }
 
+interface CartItem {
+  _id: string;
+  quantity: number;
+  kind: string;
+  vendorId: string;
+  vendorName: string;
+}
+
+interface CartResponseItem {
+  itemId: string;
+  quantity: number;
+  kind: string;
+  vendorId: string;
+  vendorName: string;
+}
+
 const FavouriteFoodPageContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,7 +65,9 @@ const FavouriteFoodPageContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [vendors, setVendors] = useState<{ [key: string]: string }>({});
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [currentVendorId, setCurrentVendorId] = useState<string | null>(null);
 
   // Get auth token
   const getAuthToken = () => {
@@ -123,10 +143,6 @@ const FavouriteFoodPageContent: React.FC = () => {
           : `${BACKEND_URL}/fav/${user._id}`;
 
         const response = await axios.get(url, getAuthConfig());
-        // Log each favorite item's vendorId
-        response.data.favourites.forEach((fav: FoodItem) => {
-          console.log(`Favorite item ${fav.name} has vendorId:`, fav.vendorId);
-        });
         setFavorites(response.data.favourites);
       } catch (error) {
         console.error("Error fetching favorites:", error);
@@ -146,7 +162,6 @@ const FavouriteFoodPageContent: React.FC = () => {
     const fetchVendors = async () => {
       try {
         if (selectedCollege) {
-          // Fetch vendors for selected college
           const response = await axios.get(
             `${BACKEND_URL}/api/vendor/list/uni/${selectedCollege._id}`,
             getAuthConfig()
@@ -158,10 +173,8 @@ const FavouriteFoodPageContent: React.FC = () => {
             },
             {}
           );
-          console.log("Created vendors map:", vendorsMap);
           setVendors(vendorsMap);
         } else {
-          // Fetch vendors for all colleges
           const vendorPromises = colleges.map((college) =>
             axios.get(
               `${BACKEND_URL}/api/vendor/list/uni/${college._id}`,
@@ -192,6 +205,32 @@ const FavouriteFoodPageContent: React.FC = () => {
     }
   }, [selectedCollege, colleges]);
 
+  // Fetch cart items
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      if (!user?._id) return;
+
+      try {
+        const response = await axios.get(
+          `${BACKEND_URL}/cart/${user._id}`,
+          getAuthConfig()
+        );
+        const cartData = response.data.cart || [];
+        setCartItems(cartData.map((item: CartResponseItem) => ({
+          _id: item.itemId,
+          quantity: item.quantity,
+          kind: item.kind,
+          vendorId: item.vendorId,
+          vendorName: item.vendorName
+        })));
+      } catch (error) {
+        console.error("Error fetching cart items:", error);
+      }
+    };
+
+    fetchCartItems();
+  }, [user?._id]);
+
   // Handle URL query parameter on initial load
   useEffect(() => {
     const collegeId = searchParams.get("college");
@@ -202,7 +241,6 @@ const FavouriteFoodPageContent: React.FC = () => {
       }
     } else {
       setSelectedCollege(null);
-      // Remove college parameter from URL if no college is selected
       const params = new URLSearchParams(window.location.search);
       params.delete("college");
       window.history.pushState(null, "", `?${params.toString()}`);
@@ -241,14 +279,149 @@ const FavouriteFoodPageContent: React.FC = () => {
     setIsDropdownOpen(false);
   };
 
-  const handleAddToCart = (foodItem: FoodItem) => {
-    console.log(`Added ${foodItem.name} to cart for ₹${foodItem.price}`);
-    // Here you would typically add the item to a cart context or state
+  const handleAddToCart = async (foodItem: FoodItem) => {
+    if (!user?._id) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      // Check if cart is empty or if item is from same vendor
+      if (currentVendorId && currentVendorId !== foodItem.vendorId) {
+        toast.error("You can only add items from the same vendor. Please clear your cart first.");
+        return;
+      }
+
+      // Check if item is already in cart
+      const existingItem = cartItems.find(item => item._id === foodItem._id);
+      
+      if (existingItem) {
+        // If item exists, increase quantity
+        await axios.post(
+          `${BACKEND_URL}/cart/add-one/${user._id}`,
+          { itemId: foodItem._id, kind: foodItem.kind },
+          getAuthConfig()
+        );
+        toast.success(`Increased quantity of ${foodItem.name}`);
+      } else {
+        // If item doesn't exist, add new item
+        await axios.post(
+          `${BACKEND_URL}/cart/add/${user._id}`,
+          { itemId: foodItem._id, kind: foodItem.kind, quantity: 1 },
+          getAuthConfig()
+        );
+        toast.success(`${foodItem.name} added to cart!`);
+      }
+
+      // Update local cart state
+      setCartItems(prev => {
+        const existing = prev.find(item => item._id === foodItem._id);
+        if (existing) {
+          return prev.map(item =>
+            item._id === foodItem._id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        }
+        return [...prev, { 
+          _id: foodItem._id, 
+          quantity: 1, 
+          kind: foodItem.kind,
+          vendorId: foodItem.vendorId,
+          vendorName: getVendorName(foodItem.vendorId)
+        }];
+      });
+
+      // Set current vendor if not set
+      if (!currentVendorId) {
+        setCurrentVendorId(foodItem.vendorId);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        const errorMsg = error.response.data.message;
+        if (errorMsg.includes("max quantity")) {
+          toast.warning(`Maximum limit reached for ${foodItem.name}`);
+        } else if (errorMsg.includes("Only")) {
+          toast.warning(`Only ${errorMsg.split("Only ")[1]} available for ${foodItem.name}`);
+        } else {
+          toast.error(errorMsg);
+        }
+      } else {
+        toast.error("Failed to add item to cart");
+      }
+    }
   };
 
-  // const getCollegeName = (uniId: string) => {
-  //   return colleges.find(college => college._id === uniId)?.fullName || 'Unknown College';
-  // };
+  const handleIncreaseQuantity = async (foodItem: FoodItem) => {
+    if (!user?._id) return;
+
+    try {
+      await axios.post(
+        `${BACKEND_URL}/cart/add-one/${user._id}`,
+        { itemId: foodItem._id, kind: foodItem.kind },
+        getAuthConfig()
+      );
+
+      setCartItems(prev =>
+        prev.map(item =>
+          item._id === foodItem._id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+      toast.success(`Increased quantity of ${foodItem.name}`);
+    } catch (error) {
+      console.error("Error increasing quantity:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        const errorMsg = error.response.data.message;
+        if (errorMsg.includes("max quantity")) {
+          toast.warning(`Maximum limit reached for ${foodItem.name}`);
+        } else if (errorMsg.includes("Only")) {
+          toast.warning(`Only ${errorMsg.split("Only ")[1]} available for ${foodItem.name}`);
+        } else {
+          toast.error(errorMsg);
+        }
+      } else {
+        toast.error("Failed to increase quantity");
+      }
+    }
+  };
+
+  const handleDecreaseQuantity = async (foodItem: FoodItem) => {
+    if (!user?._id) return;
+
+    try {
+      await axios.post(
+        `${BACKEND_URL}/cart/remove-one/${user._id}`,
+        { itemId: foodItem._id, kind: foodItem.kind },
+        getAuthConfig()
+      );
+
+      setCartItems(prev => {
+        const updatedItems = prev.map(item =>
+          item._id === foodItem._id
+            ? { ...item, quantity: Math.max(0, item.quantity - 1) }
+            : item
+        ).filter(item => item.quantity > 0);
+
+        // If cart becomes empty, reset current vendor
+        if (updatedItems.length === 0) {
+          setCurrentVendorId(null);
+        }
+
+        return updatedItems;
+      });
+      toast.info(`Decreased quantity of ${foodItem.name}`);
+    } catch (error) {
+      console.error("Error decreasing quantity:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to decrease quantity");
+      }
+    }
+  };
 
   const getVendorName = (vendorId: string) => {
     if (!vendorId) {
@@ -261,6 +434,18 @@ const FavouriteFoodPageContent: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className={styles.header}>
         <h1>Your Favorites</h1>
       </div>
@@ -318,33 +503,70 @@ const FavouriteFoodPageContent: React.FC = () => {
           <div className={styles.header}>
             <h1>Loading...</h1>
           </div>
+        ) : favorites.length === 0 ? (
+          <div className={styles.emptyState}>
+            <h2>Oops! You have no favorites yet</h2>
+            <p>Start adding your favorite items to see them here!</p>
+            <button 
+              className={styles.homeButton}
+              onClick={() => router.push('/')}
+            >
+              Go to Home
+            </button>
+          </div>
         ) : (
           <div className={styles.foodGrid}>
-            {favorites.map((food) => (
-              <div key={food._id} className={styles.foodCard}>
-                <img
-                  src={food.image}
-                  alt={food.name}
-                  className={styles.foodImage}
-                />
-                {!selectedCollege && (
-                  <div className={styles.collegeTag}>
-                    {colleges.find((c) => c._id === food.uniId)?.fullName}
-                  </div>
-                )}
-                <h3 className={styles.foodName}>{food.name}</h3>
-                <p className={styles.vendorName}>
-                  {getVendorName(food.vendorId)}
-                </p>
-                <p className={styles.foodPrice}>₹{food.price}</p>
-                <button
-                  className={styles.addToCartButton}
-                  onClick={() => handleAddToCart(food)}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            ))}
+            {favorites.map((food) => {
+              const cartItem = cartItems.find(item => item._id === food._id);
+              const quantity = cartItem?.quantity || 0;
+              
+              return (
+                <div key={food._id} className={styles.foodCard}>
+                  <img
+                    src={food.image}
+                    alt={food.name}
+                    className={styles.foodImage}
+                  />
+                  {!selectedCollege && (
+                    <div className={styles.collegeTag}>
+                      {colleges.find((c) => c._id === food.uniId)?.fullName}
+                    </div>
+                  )}
+                  <h3 className={styles.foodName}>{food.name}</h3>
+                  <p className={styles.vendorName}>
+                    {getVendorName(food.vendorId)}
+                  </p>
+                  <p className={styles.foodPrice}>₹{food.price}</p>
+                  {quantity === 0 ? (
+                    <button
+                      className={styles.addToCartButton}
+                      onClick={() => handleAddToCart(food)}
+                      disabled={currentVendorId !== null && currentVendorId !== food.vendorId}
+                    >
+                      {currentVendorId !== null && currentVendorId !== food.vendorId
+                        ? "Different Vendor"
+                        : "Add to Cart"}
+                    </button>
+                  ) : (
+                    <div className={styles.quantityControls}>
+                      <button
+                        className={styles.quantityButton}
+                        onClick={() => handleDecreaseQuantity(food)}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className={styles.quantity}>{quantity}</span>
+                      <button
+                        className={styles.quantityButton}
+                        onClick={() => handleIncreaseQuantity(food)}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
