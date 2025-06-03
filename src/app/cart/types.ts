@@ -18,9 +18,10 @@ export interface CartItem extends FoodItem {
     kind: string;
   };
   quantity: number;
-  kind?: string;
+  kind: string;
   name: string;
   price: number;
   image: string;
-  vendorName?: string;
+  vendorName: string;
+  vendorId: string;
 }
