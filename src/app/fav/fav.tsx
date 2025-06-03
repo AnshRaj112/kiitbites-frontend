@@ -449,7 +449,7 @@ const FavouriteFoodPageContent: React.FC = () => {
         _id: item.itemId,
         quantity: item.quantity,
         kind: item.kind,
-        vendorId: response.data.vendorId,
+        vendorId: item.vendorId || response.data.vendorId,
         vendorName: response.data.vendorName
       }));
       
