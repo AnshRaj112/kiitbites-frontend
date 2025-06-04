@@ -32,7 +32,13 @@ interface College {
 
 interface Vendor {
   _id: string;
-  fullName: string;
+  name: string;
+  price: number;
+  inventoryValue: {
+    price: number;
+    quantity: number;
+    isAvailable?: string;
+  };
 }
 
 interface User {
@@ -55,6 +61,11 @@ interface CartResponseItem {
   vendorId: string;
   vendorName: string;
 }
+
+const categories = {
+  produce: ["combos-veg", "combos-nonveg", "veg", "shakes", "juices", "soups", "non-veg"],
+  retail: ["biscuits", "chips", "icecream", "drinks", "snacks", "sweets", "nescafe"],
+};
 
 const FavouriteFoodPageContent: React.FC = () => {
   const router = useRouter();
@@ -169,7 +180,7 @@ const FavouriteFoodPageContent: React.FC = () => {
           );
           const vendorsMap = response.data.reduce(
             (acc: { [key: string]: string }, vendor: Vendor) => {
-              acc[vendor._id] = vendor.fullName;
+              acc[vendor._id] = vendor.name;
               return acc;
             },
             {}
@@ -191,7 +202,7 @@ const FavouriteFoodPageContent: React.FC = () => {
           const vendorsMap = allVendors.reduce(
             (acc: { [key: string]: string }, vendor: Vendor) => {
               if (!acc[vendor._id]) {
-                acc[vendor._id] = vendor.fullName;
+                acc[vendor._id] = vendor.name;
               }
               return acc;
             },
@@ -295,6 +306,61 @@ const FavouriteFoodPageContent: React.FC = () => {
     setIsDropdownOpen(false);
   };
 
+  // Add function to check vendor availability
+  const checkVendorAvailability = async (vendorId: string, itemId: string, itemType: string) => {
+    try {
+      console.log('Checking availability for:', { vendorId, itemId, itemType });
+      
+      // Determine if item is retail or produce based on category
+      const isRetail = Object.values(categories.retail).includes(itemType);
+      const isProduce = Object.values(categories.produce).includes(itemType);
+      
+      console.log('Item category check:', { itemType, isRetail, isProduce });
+      
+      const response = await fetch(`${BACKEND_URL}/items/vendors/${itemId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch vendors for item ${itemId}:`, await response.text());
+        return false;
+      }
+      
+      const vendors = await response.json() as Vendor[];
+      console.log('Fetched vendors:', vendors);
+      
+      const vendor = vendors.find((v) => v._id === vendorId);
+      console.log('Found vendor:', vendor);
+      
+      if (!vendor || !vendor.inventoryValue) {
+        console.log(`Vendor or inventoryValue not found for item ${itemId}`);
+        return false;
+      }
+      
+      // For retail items, check quantity
+      if (isRetail) {
+        const quantity = vendor.inventoryValue.quantity;
+        console.log(`Retail item quantity:`, quantity);
+        const isAvailable = typeof quantity === 'number' && quantity > 0;
+        console.log(`Retail item is available:`, isAvailable);
+        return isAvailable;
+      } 
+      // For produce items, check isAvailable flag
+      else if (isProduce) {
+        const isAvailable = vendor.inventoryValue.isAvailable === 'Y';
+        console.log(`Produce item is available:`, isAvailable);
+        return isAvailable;
+      }
+      
+      console.log('Unknown item type:', itemType);
+      return false;
+    } catch (error) {
+      console.error("Error checking vendor availability:", error);
+      return false;
+    }
+  };
+
   const handleAddToCart = async (foodItem: FoodItem) => {
     if (!user?._id) {
       router.push("/login");
@@ -302,9 +368,20 @@ const FavouriteFoodPageContent: React.FC = () => {
     }
 
     try {
+      console.log('Adding to cart:', foodItem);
+      
       // Check if cart is empty or if item is from same vendor
       if (currentVendorId && currentVendorId !== foodItem.vendorId) {
         toast.error("You can only add items from the same vendor. Please clear your cart first.");
+        return;
+      }
+
+      // Check vendor availability before proceeding
+      const isVendorAvailable = await checkVendorAvailability(foodItem.vendorId, foodItem._id, foodItem.type);
+      console.log('Vendor availability check result:', isVendorAvailable);
+      
+      if (!isVendorAvailable) {
+        toast.error("This item is currently unavailable from the vendor. Please try again later.");
         return;
       }
 
@@ -345,12 +422,14 @@ const FavouriteFoodPageContent: React.FC = () => {
         getAuthConfig()
       );
       const cartData = response.data.cart || [];
+      
+      // Update cart items with correct vendor information
       const formattedCartItems = cartData.map((item: CartResponseItem) => ({
         _id: item.itemId,
         quantity: item.quantity,
         kind: item.kind,
-        vendorId: item.vendorId,
-        vendorName: item.vendorName
+        vendorId: foodItem.vendorId,
+        vendorName: foodItem.vendorName || getVendorName(foodItem.vendorId)
       }));
       
       setCartItems(formattedCartItems);
@@ -382,6 +461,13 @@ const FavouriteFoodPageContent: React.FC = () => {
     if (!user?._id) return;
 
     try {
+      // Check vendor availability before proceeding
+      const isVendorAvailable = await checkVendorAvailability(foodItem.vendorId, foodItem._id, foodItem.type);
+      if (!isVendorAvailable) {
+        toast.error("This item is currently unavailable from the vendor. Please try again later.");
+        return;
+      }
+
       await axios.post(
         `${BACKEND_URL}/cart/add-one/${user._id}`,
         { 
@@ -398,12 +484,14 @@ const FavouriteFoodPageContent: React.FC = () => {
         getAuthConfig()
       );
       const cartData = response.data.cart || [];
+      
+      // Update cart items with correct vendor information
       const formattedCartItems = cartData.map((item: CartResponseItem) => ({
         _id: item.itemId,
         quantity: item.quantity,
         kind: item.kind,
-        vendorId: response.data.vendorId,
-        vendorName: response.data.vendorName
+        vendorId: foodItem.vendorId,
+        vendorName: foodItem.vendorName || getVendorName(foodItem.vendorId)
       }));
       
       setCartItems(formattedCartItems);
@@ -445,12 +533,14 @@ const FavouriteFoodPageContent: React.FC = () => {
         getAuthConfig()
       );
       const cartData = response.data.cart || [];
+      
+      // Update cart items with correct vendor information
       const formattedCartItems = cartData.map((item: CartResponseItem) => ({
         _id: item.itemId,
         quantity: item.quantity,
         kind: item.kind,
-        vendorId: item.vendorId || response.data.vendorId,
-        vendorName: response.data.vendorName
+        vendorId: foodItem.vendorId, // Use the vendor ID from the food item
+        vendorName: foodItem.vendorName || getVendorName(foodItem.vendorId) // Use the vendor name from the food item or look it up
       }));
       
       setCartItems(formattedCartItems);

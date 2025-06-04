@@ -37,10 +37,14 @@ const HeroSection: React.FC = () => {
               enjoy your favorite campus food delivered right to your doorstep.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button className="bg-[#0e6e6e] hover:bg-[#0a5858] text-white px-8 py-6 rounded-md text-lg">
+              <Button
+                asChild
+                className="bg-[#0e6e6e] hover:bg-[#0a5858] text-white px-8 py-6 rounded-md text-lg"
+              >
                 <Link href="/home">Order Now</Link>
               </Button>
               <Button
+                asChild
                 variant="outline"
                 className="border-[#0e6e6e] text-[#0e6e6e] hover:bg-[#d3eeea] px-8 py-6 rounded-md text-lg"
               >
