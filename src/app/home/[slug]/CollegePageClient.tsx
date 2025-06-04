@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
 import Slider from "react-slick";
@@ -32,6 +33,8 @@ interface FavoriteItem {
   image: string;
   isSpecial: string;
   kind: string;
+  vendorId: string;
+  vendorName?: string;
 }
 
 interface ApiItem {
@@ -233,7 +236,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         setUserId(userData._id);
 
         // Fetch favorites using the new API endpoint
-        const favoritesResponse = await fetch(`${BACKEND_URL}/fav/${userData._id}/${uniId}`, {
+        const favoritesResponse = await fetch(`${BACKEND_URL}/fav/${userData._id}`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -331,7 +334,18 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
   const getFavoriteItems = () => {
     if (!userFavorites || !Array.isArray(userFavorites)) return [];
-    return userFavorites;
+    
+    // Create a map to store unique items by their name
+    const uniqueItems = new Map<string, FavoriteItem>();
+    
+    userFavorites.forEach(item => {
+      // If item doesn't exist in map or if current item is special, add/update it
+      if (!uniqueItems.has(item.name) || item.isSpecial === 'Y') {
+        uniqueItems.set(item.name, item);
+      }
+    });
+    
+    return Array.from(uniqueItems.values());
   };
 
   const favoriteItems = getFavoriteItems();
@@ -363,6 +377,341 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       { breakpoint: 768, settings: { slidesToShow: 3, arrows: false } },
       { breakpoint: 480, settings: { slidesToShow: 2, arrows: false } },
     ],
+  };
+
+  // Add function to check vendor availability
+  const checkVendorAvailability = async (vendorId: string, itemId: string, itemType: string) => {
+    try {
+      console.log('Checking availability for:', { vendorId, itemId, itemType });
+      
+      const response = await fetch(`${BACKEND_URL}/items/vendors/${itemId}`, {
+              credentials: "include",
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+            
+            if (!response.ok) {
+        console.error(`Failed to fetch vendors for item ${itemId}:`, await response.text());
+        return false;
+      }
+      
+      const vendors = await response.json() as Vendor[];
+      const vendor = vendors.find((v) => v._id === vendorId);
+              
+              if (!vendor || !vendor.inventoryValue) {
+        return false;
+              }
+              
+      // For retail items, check quantity
+      if (itemType === 'retail') {
+              const quantity = vendor.inventoryValue.quantity;
+        return typeof quantity === 'number' && quantity > 0;
+      } 
+              // For produce items, check isAvailable flag
+      else {
+        return vendor.inventoryValue.isAvailable === 'Y';
+            }
+          } catch (error) {
+      console.error("Error checking vendor availability:", error);
+      return false;
+    }
+  };
+
+  // Add function to check if vendor is in university
+  // const checkVendorInUni = async (vendorId: string) => {
+  //   try {
+  //     const response = await fetch(`${BACKEND_URL}/api/vendor/list/uni/${uniId}`, {
+  //       credentials: "include",
+  //       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  //     });
+      
+  //     if (!response.ok) return false;
+      
+  //     const vendors = await response.json();
+  //     return vendors.some((vendor: Vendor) => vendor._id === vendorId);
+  //   } catch (error) {
+  //     console.error("Error checking vendor in university:", error);
+  //     return false;
+  //   }
+  // };
+
+  const handleAddToCart = async (item: FoodItem) => {
+    if (!userId) {
+      toast.error("Please login to add items to cart");
+      return;
+    }
+
+    // If cart has items, check if item is from same vendor
+    if (cartItems.length > 0 && currentVendorId) {
+      if (item.vendorId !== currentVendorId) {
+        toast.error("You can only add items from the same vendor");
+        return;
+      }
+
+      // Check availability for current vendor
+      const isAvailable = await checkVendorAvailability(currentVendorId, item.id, item.type);
+        if (!isAvailable) {
+        toast.error("Item is not available from this vendor at the moment");
+          return;
+        }
+
+      // If available, add to cart
+      try {
+        const kind = item.type === 'retail' ? 'Retail' : 'Produce';
+        const addResponse = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
+          method: 'POST',
+          credentials: "include",
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            itemId: item.id,
+            kind: kind,
+            quantity: 1,
+            vendorId: currentVendorId
+          }),
+        });
+
+        if (!addResponse.ok) {
+          throw new Error("Failed to add item to cart");
+        }
+
+        // Refresh cart items
+        const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const cartData = await cartResponse.json();
+        setCartItems(cartData.cart || []);
+        
+        toast.success(`${item.title} added to cart!`);
+      } catch (error) {
+        console.error("Error adding to cart:", error);
+        toast.error("Failed to add item to cart");
+      }
+      return;
+    }
+
+    // If cart is empty, show vendor selection
+    try {
+      // For favorite items, use the vendors from favorites API
+      if (item.id) {
+        const favoriteItems = userFavorites.filter(fav => fav._id === item.id);
+        if (favoriteItems.length > 0) {
+          const vendors: Vendor[] = [];
+          
+          // Check each vendor's availability
+          for (const fav of favoriteItems) {
+            const isAvailable = await checkVendorAvailability(fav.vendorId, item.id, item.type);
+            if (isAvailable) {
+              vendors.push({
+                _id: fav.vendorId,
+                name: fav.vendorName || "Unknown Vendor",
+                price: fav.price,
+                inventoryValue: {
+                  price: fav.price,
+                  quantity: 1,
+                  isAvailable: fav.isSpecial === "Y" ? "Y" : "N"
+                }
+              });
+            }
+          }
+
+          if (vendors.length === 0) {
+            toast.error("No vendors have this item available at the moment");
+            return;
+          }
+
+          setAvailableVendors(vendors);
+          setSelectedItem(item);
+          setShowVendorModal(true);
+          return;
+        }
+      }
+
+      // For non-favorite items, fetch vendors from items API
+      const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch vendors");
+      }
+
+      const vendors = await response.json();
+      
+      // Filter out vendors where the item is not available
+      const availableVendors = vendors.filter((vendor: Vendor) => {
+        if (!vendor.inventoryValue) return false;
+
+        if (item.type === 'retail') {
+          const quantity = vendor.inventoryValue.quantity;
+          return typeof quantity === 'number' && quantity > 0;
+        } else {
+          return vendor.inventoryValue.isAvailable === 'Y';
+        }
+      });
+      
+      if (availableVendors.length === 0) {
+        toast.error("No vendors have this item available at the moment");
+        return;
+      }
+
+      setAvailableVendors(availableVendors);
+      setSelectedItem(item);
+      setShowVendorModal(true);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+      toast.error("Failed to fetch available vendors");
+    }
+  };
+
+  const handleVendorSelect = async (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+  };
+
+  const handleVendorConfirm = async () => {
+    if (!selectedItem || !selectedVendor || !userId) return;
+
+    try {
+      // Determine the kind based on the item's category
+      const kind = selectedItem.type === 'retail' ? 'Retail' : 'Produce';
+
+      const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
+        method: 'POST',
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          itemId: selectedItem.id,
+          kind: kind,
+          quantity: 1,
+          vendorId: selectedVendor._id
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+
+      // Refresh cart items
+      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const cartData = await cartResponse.json();
+      const updatedCartItems = cartData.cart || [];
+      
+      // Update cart items with correct vendor information
+      const formattedCartItems = updatedCartItems.map((item: CartItem) => ({
+        ...item,
+        vendorId: selectedVendor._id,
+        vendorName: selectedVendor.name
+      }));
+      
+      setCartItems(formattedCartItems);
+      
+      if (formattedCartItems.length > 0) {
+        setCurrentVendorId(selectedVendor._id);
+      }
+
+      toast.success(`${selectedItem.title} added to cart!`);
+      
+      // Close modal and reset state
+      setShowVendorModal(false);
+      setSelectedItem(null);
+      setSelectedVendor(null);
+      setAvailableVendors([]);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
+    }
+  };
+
+  const handleIncreaseQuantity = async (item: FoodItem) => {
+    try {
+      // Determine the kind based on the item's category
+      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
+
+      const response = await fetch(`${BACKEND_URL}/cart/add-one/${userId}`, {
+        method: 'POST',
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          kind: kind,
+          vendorId: item.vendorId
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+
+      // Refresh cart items
+      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const cartData = await cartResponse.json();
+      setCartItems(cartData.cart || []);
+      
+      toast.success(`Increased quantity of ${item.title}`);
+    } catch (error) {
+      console.error("Error increasing quantity:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to increase quantity");
+    }
+  };
+
+  const handleDecreaseQuantity = async (item: FoodItem) => {
+    try {
+      // Determine the kind based on the item's category
+      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
+
+      const response = await fetch(`${BACKEND_URL}/cart/remove-one/${userId}`, {
+        method: 'POST',
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          kind: kind,
+          vendorId: item.vendorId
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+
+      // Refresh cart items
+      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const cartData = await cartResponse.json();
+      setCartItems(cartData.cart || []);
+      
+      if (cartData.cart.length === 0) {
+        setCurrentVendorId(null);
+      }
+      
+      toast.info(`Decreased quantity of ${item.title}`);
+    } catch (error) {
+      console.error("Error decreasing quantity:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to decrease quantity");
+    }
   };
 
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
@@ -462,294 +811,6 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     updateFilteredItems();
   }, [items, currentVendorId]);
 
-  const handleAddToCart = async (item: FoodItem) => {
-    if (!userId) {
-      toast.error("Please login to add items to cart");
-      return;
-    }
-
-    console.log(`Adding item to cart:`, item);
-    console.log(`Item type:`, item.type);
-
-    // If cart has items, check if item is from same vendor
-    if (cartItems.length > 0 && currentVendorId) {
-      if (item.vendorId !== currentVendorId) {
-        toast.error("You can only add items from the same vendor");
-        return;
-      }
-
-      // For same vendor, check availability directly
-      try {
-        console.log(`Fetching vendors for item ${item.id}`);
-        const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message);
-        }
-
-        const vendors = await response.json();
-        console.log(`Vendors for item:`, vendors);
-        
-        const currentVendor = vendors.find((v: Vendor) => v._id === currentVendorId);
-        console.log(`Current vendor:`, currentVendor);
-        
-        if (!currentVendor || !currentVendor.inventoryValue) {
-          toast.error("Item is not available from this vendor");
-          return;
-        }
-
-        // Check availability based on item type
-        let isAvailable = false;
-        if (item.type === 'retail') {
-          // For retail items, check quantity from inventoryValue
-          const quantity = currentVendor.inventoryValue.quantity;
-          console.log(`Retail item quantity:`, quantity);
-          isAvailable = typeof quantity === 'number' && quantity > 0;
-          console.log(`Retail item is available:`, isAvailable);
-        } else {
-          // For produce items, check isAvailable from inventoryValue
-          isAvailable = currentVendor.inventoryValue.isAvailable === 'Y';
-        }
-
-        if (!isAvailable) {
-          toast.error("Item is not available at the moment");
-          return;
-        }
-
-        // If available, add directly to cart
-        const kind = item.type === 'retail' ? 'Retail' : 'Produce';
-        console.log(`Adding to cart with kind:`, kind);
-        
-        const addResponse = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
-          method: 'POST',
-          credentials: "include",
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            itemId: item.id,
-            kind: kind,
-            quantity: 1,
-            vendorId: currentVendorId
-          }),
-        });
-
-        if (!addResponse.ok) {
-          const error = await addResponse.json();
-          throw new Error(error.message);
-        }
-
-        // Refresh cart items
-        const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const cartData = await cartResponse.json();
-        setCartItems(cartData.cart || []);
-        
-        toast.success(`${item.title} added to cart!`);
-      } catch (error) {
-        console.error("Error adding to cart:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
-      }
-      return;
-    }
-
-    // If cart is empty, show vendor selection
-    try {
-      console.log(`Fetching vendors for empty cart item ${item.id}`);
-      const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      const vendors = await response.json();
-      console.log(`All vendors for item:`, vendors);
-      
-      // Filter out vendors where the item is not available
-      const availableVendors = vendors.filter((vendor: Vendor) => {
-        if (!vendor.inventoryValue) {
-          console.log(`Vendor ${vendor._id} has no inventoryValue`);
-          return false;
-        }
-
-        if (item.type === 'retail') {
-          // For retail items, check quantity from inventoryValue
-          const quantity = vendor.inventoryValue.quantity;
-          console.log(`Vendor ${vendor._id} quantity:`, quantity);
-          const isAvailable = typeof quantity === 'number' && quantity > 0;
-          console.log(`Vendor ${vendor._id} is available:`, isAvailable);
-          return isAvailable;
-        } else {
-          // For produce items, check isAvailable from inventoryValue
-          return vendor.inventoryValue.isAvailable === 'Y';
-        }
-      });
-      
-      console.log(`Available vendors:`, availableVendors);
-      
-      if (availableVendors.length === 0) {
-        toast.error("No vendors have this item available at the moment");
-        return;
-      }
-
-      setAvailableVendors(availableVendors);
-      setSelectedItem(item);
-      setShowVendorModal(true);
-    } catch (error) {
-      console.error("Error fetching vendors:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to fetch available vendors");
-    }
-  };
-
-  const handleVendorSelect = async (vendor: Vendor) => {
-    setSelectedVendor(vendor);
-  };
-
-  const handleVendorConfirm = async () => {
-    if (!selectedItem || !selectedVendor || !userId) return;
-
-    try {
-      // Determine the kind based on the item's category
-      const kind = selectedItem.type === 'retail' ? 'Retail' : 'Produce';
-
-      const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: selectedItem.id,
-          kind: kind,
-          quantity: 1,
-          vendorId: selectedVendor._id
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      if (cartData.cart.length > 0) {
-        setCurrentVendorId(cartData.cart[0].vendorId);
-      }
-
-      toast.success(`${selectedItem.title} added to cart!`);
-      
-      // Close modal and reset state
-      setShowVendorModal(false);
-      setSelectedItem(null);
-      setSelectedVendor(null);
-      setAvailableVendors([]);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
-    }
-  };
-
-  const handleIncreaseQuantity = async (item: FoodItem) => {
-    try {
-      // Determine the kind based on the item's category
-      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
-
-      const response = await fetch(`${BACKEND_URL}/cart/add-one/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: item.id,
-          kind: kind,
-          vendorId: item.vendorId
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      toast.success(`Increased quantity of ${item.title}`);
-    } catch (error) {
-      console.error("Error increasing quantity:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to increase quantity");
-    }
-  };
-
-  const handleDecreaseQuantity = async (item: FoodItem) => {
-    try {
-      // Determine the kind based on the item's category
-      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
-
-      const response = await fetch(`${BACKEND_URL}/cart/remove-one/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: item.id,
-          kind: kind,
-          vendorId: item.vendorId
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      if (cartData.cart.length === 0) {
-        setCurrentVendorId(null);
-      }
-      
-      toast.info(`Decreased quantity of ${item.title}`);
-    } catch (error) {
-      console.error("Error decreasing quantity:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to decrease quantity");
-    }
-  };
-
   if (loading) {
     return (
       <div className={styles.container}>
@@ -795,7 +856,16 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             {favoriteItems.length >= 5 ? (
               <div className={styles.carouselContainer}>
                 <Slider {...favoritesSliderSettings} className={styles.slider}>
-                  {favoriteItems.map((item) => (
+                  {favoriteItems.map((item) => {
+                    // Find matching cart item
+                    const cartItem = cartItems.find(cartItem => 
+                      cartItem.itemId === item._id && 
+                      cartItem.vendorId === item.vendorId
+                    );
+                    const quantity = cartItem?.quantity || 0;
+                    const isSameVendor = !currentVendorId || currentVendorId === item.vendorId;
+
+                    return (
                     <div key={item._id} className={styles.slideWrapper}>
                       <div className={styles.foodCard}>
                         <div className={styles.imageContainer}>
@@ -810,14 +880,76 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                         </div>
                         <h4 className={styles.foodTitle}>{item.name}</h4>
                         <p className={styles.foodPrice}>₹{item.price}</p>
+                          {quantity > 0 && isSameVendor ? (
+                            <div className={styles.quantityControls}>
+                              <button
+                                className={styles.quantityButton}
+                                onClick={() => handleDecreaseQuantity({
+                                  id: item._id,
+                                  title: item.name,
+                                  image: item.image,
+                                  category: item.type,
+                                  type: item.kind.toLowerCase(),
+                                  isSpecial: item.isSpecial,
+                                  price: item.price,
+                                  vendorId: item.vendorId
+                                })}
+                              >
+                                <Minus size={16} />
+                              </button>
+                              <span className={styles.quantity}>{quantity}</span>
+                              <button
+                                className={styles.quantityButton}
+                                onClick={() => handleIncreaseQuantity({
+                                  id: item._id,
+                                  title: item.name,
+                                  image: item.image,
+                                  category: item.type,
+                                  type: item.kind.toLowerCase(),
+                                  isSpecial: item.isSpecial,
+                                  price: item.price,
+                                  vendorId: item.vendorId
+                                })}
+                              >
+                                <Plus size={16} />
+                              </button>
                       </div>
+                          ) : (
+                            <button
+                              className={styles.addToCartButton}
+                              onClick={() => handleAddToCart({
+                                id: item._id,
+                                title: item.name,
+                                image: item.image,
+                                category: item.type,
+                                type: item.kind.toLowerCase(),
+                                isSpecial: item.isSpecial,
+                                price: item.price,
+                                vendorId: item.vendorId
+                              })}
+                              disabled={!isSameVendor}
+                            >
+                              {!isSameVendor ? "Different Vendor" : "Add to Cart"}
+                            </button>
+                          )}
                     </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </Slider>
               </div>
             ) : (
               <div className={styles.favoritesGrid}>
-                {favoriteItems.map((item) => (
+                {favoriteItems.map((item) => {
+                  // Find matching cart item
+                  const cartItem = cartItems.find(cartItem => 
+                    cartItem.itemId === item._id && 
+                    cartItem.vendorId === item.vendorId
+                  );
+                  const quantity = cartItem?.quantity || 0;
+                  const isSameVendor = !currentVendorId || currentVendorId === item.vendorId;
+
+                  return (
                   <div key={item._id} className={styles.foodCard}>
                     <div className={styles.imageContainer}>
                       <img
@@ -831,8 +963,61 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                     </div>
                     <h4 className={styles.foodTitle}>{item.name}</h4>
                     <p className={styles.foodPrice}>₹{item.price}</p>
+                      {quantity > 0 && isSameVendor ? (
+                        <div className={styles.quantityControls}>
+                          <button
+                            className={styles.quantityButton}
+                            onClick={() => handleDecreaseQuantity({
+                              id: item._id,
+                              title: item.name,
+                              image: item.image,
+                              category: item.type,
+                              type: item.kind.toLowerCase(),
+                              isSpecial: item.isSpecial,
+                              price: item.price,
+                              vendorId: item.vendorId
+                            })}
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className={styles.quantity}>{quantity}</span>
+                          <button
+                            className={styles.quantityButton}
+                            onClick={() => handleIncreaseQuantity({
+                              id: item._id,
+                              title: item.name,
+                              image: item.image,
+                              category: item.type,
+                              type: item.kind.toLowerCase(),
+                              isSpecial: item.isSpecial,
+                              price: item.price,
+                              vendorId: item.vendorId
+                            })}
+                          >
+                            <Plus size={16} />
+                          </button>
                   </div>
-                ))}
+                      ) : (
+                        <button
+                          className={styles.addToCartButton}
+                          onClick={() => handleAddToCart({
+                            id: item._id,
+                            title: item.name,
+                            image: item.image,
+                            category: item.type,
+                            type: item.kind.toLowerCase(),
+                            isSpecial: item.isSpecial,
+                            price: item.price,
+                            vendorId: item.vendorId
+                          })}
+                          disabled={!isSameVendor}
+                        >
+                          {!isSameVendor ? "Different Vendor" : "Add to Cart"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -913,7 +1098,13 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             <Slider {...sliderSettings} className={styles.slider}>
               {Object.values(items)
                 .flat()
-                .filter((item) => item.isSpecial === "Y")
+                .filter((item) => {
+                  // Only show items that are marked as special
+                  if (item.isSpecial !== "Y") return false;
+                  
+                  // Check if the item is available from any vendor
+                  return item.vendorId && checkVendorAvailability(item.vendorId, item.id, item.type);
+                })
                 .map((item) => (
                   <div key={item.id} className={styles.slideWrapper}>
                     <div className={styles.foodCard}>
@@ -922,6 +1113,14 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                       </div>
                       <h4 className={styles.foodTitle}>{item.title}</h4>
                       <p className={styles.foodPrice}>₹{item.price}</p>
+                      {userFullName && (
+                        <button
+                          className={styles.addToCartButton}
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          Add to Cart
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -935,7 +1134,16 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             <div className={styles.modal}>
               <h2>Select Vendor</h2>
               <div className={styles.vendorList}>
-                {availableVendors.map((vendor) => (
+                {availableVendors
+                  .filter(vendor => {
+                    // For special items, only show vendors that have marked it as special
+                    if (selectedItem?.isSpecial === "Y") {
+                      return vendor.inventoryValue?.isAvailable === 'Y';
+                    }
+                    // For favorite items, show all available vendors
+                    return true;
+                  })
+                  .map((vendor) => (
                   <div
                     key={vendor._id}
                     className={`${styles.vendorItem} ${
