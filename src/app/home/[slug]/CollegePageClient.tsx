@@ -60,6 +60,11 @@ interface Vendor {
   price: number;
   quantity?: number;
   isAvailable?: string;
+  inventoryValue?: {
+    price: number;
+    quantity?: number;
+    isAvailable?: string;
+  };
 }
 
 interface CartItem {
@@ -269,7 +274,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                 title: item.name,
                 image: item.image,
                 category: type,
-                type: item.type,
+                type: category,
                 isSpecial: item.isSpecial,
                 collegeId: item.collegeId,
                 price: item.price,
@@ -280,10 +285,12 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         );
 
         if (requestId === currentRequest.current) {
+          console.log('Fetched items:', allItems);
           setItems(allItems);
           setLoading(false);
         }
-      } catch {
+      } catch (error) {
+        console.error('Error fetching items:', error);
         if (requestId === currentRequest.current) {
           setError("Failed to load items.");
           setLoading(false);
@@ -372,29 +379,48 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       const itemsWithVendors = await Promise.all(
         items.map(async (item) => {
           try {
+            console.log(`Checking availability for item ${item.id} (type: ${item.type})`);
             const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
               credentials: "include",
               headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             
-            if (!response.ok) return null;
-            
-            const vendors = await response.json();
-            const vendor = vendors.find((v: Vendor) => v._id === currentVendorId);
-            
-            if (!vendor) return null;
-            
-            // Check if item is available from this vendor
-            let isAvailable = false;
-            if (item.type === 'retail') {
-              // For retail items, check if quantity is greater than 0
-              isAvailable = vendor.quantity !== undefined && vendor.quantity > 0;
-            } else {
-              // For produce items, check isAvailable flag
-              isAvailable = vendor.isAvailable === 'Y';
+            if (!response.ok) {
+              console.error(`Failed to fetch vendors for item ${item.id}:`, await response.text());
+              return null;
             }
             
-            return isAvailable ? item : null;
+            const vendors = await response.json();
+            console.log(`Vendors for item ${item.id}:`, vendors);
+            
+            // For retail items, only check quantity
+            if (item.type === 'retail') {
+              const vendor = vendors.find((v: Vendor) => v._id === currentVendorId);
+              console.log(`Found vendor for retail item:`, vendor);
+              
+              if (!vendor || !vendor.inventoryValue) {
+                console.log(`Vendor or inventoryValue not found for retail item`);
+                return null;
+              }
+              
+              // For retail items, check quantity from inventoryValue
+              const quantity = vendor.inventoryValue.quantity;
+              console.log(`Retail item quantity:`, quantity);
+              
+              const isAvailable = typeof quantity === 'number' && quantity > 0;
+              console.log(`Retail item is available:`, isAvailable);
+              
+              return isAvailable ? item : null;
+            } else {
+              // For produce items, check isAvailable flag
+              const vendor = vendors.find((v: Vendor) => v._id === currentVendorId);
+              if (!vendor || !vendor.inventoryValue) {
+                return null;
+              }
+              
+              // For produce items, check isAvailable from inventoryValue
+              return vendor.inventoryValue.isAvailable === 'Y' ? item : null;
+            }
           } catch (error) {
             console.error("Error checking item availability:", error);
             return null;
@@ -403,7 +429,9 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       );
       
       // Filter out null values and return only available items
-      return itemsWithVendors.filter((item): item is FoodItem => item !== null);
+      const availableItems = itemsWithVendors.filter((item): item is FoodItem => item !== null);
+      console.log(`Available items after filtering:`, availableItems);
+      return availableItems;
     } catch (error) {
       console.error("Error filtering items:", error);
       return [];
@@ -440,6 +468,9 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       return;
     }
 
+    console.log(`Adding item to cart:`, item);
+    console.log(`Item type:`, item.type);
+
     // If cart has items, check if item is from same vendor
     if (cartItems.length > 0 && currentVendorId) {
       if (item.vendorId !== currentVendorId) {
@@ -449,6 +480,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
       // For same vendor, check availability directly
       try {
+        console.log(`Fetching vendors for item ${item.id}`);
         const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -460,9 +492,12 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         }
 
         const vendors = await response.json();
-        const currentVendor = vendors.find((v: Vendor) => v._id === currentVendorId);
+        console.log(`Vendors for item:`, vendors);
         
-        if (!currentVendor) {
+        const currentVendor = vendors.find((v: Vendor) => v._id === currentVendorId);
+        console.log(`Current vendor:`, currentVendor);
+        
+        if (!currentVendor || !currentVendor.inventoryValue) {
           toast.error("Item is not available from this vendor");
           return;
         }
@@ -470,11 +505,14 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         // Check availability based on item type
         let isAvailable = false;
         if (item.type === 'retail') {
-          // For retail items, check if quantity is greater than 0
-          isAvailable = currentVendor.quantity !== undefined && currentVendor.quantity > 0;
+          // For retail items, check quantity from inventoryValue
+          const quantity = currentVendor.inventoryValue.quantity;
+          console.log(`Retail item quantity:`, quantity);
+          isAvailable = typeof quantity === 'number' && quantity > 0;
+          console.log(`Retail item is available:`, isAvailable);
         } else {
-          // For produce items, check isAvailable flag
-          isAvailable = currentVendor.isAvailable === 'Y';
+          // For produce items, check isAvailable from inventoryValue
+          isAvailable = currentVendor.inventoryValue.isAvailable === 'Y';
         }
 
         if (!isAvailable) {
@@ -484,6 +522,8 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
         // If available, add directly to cart
         const kind = item.type === 'retail' ? 'Retail' : 'Produce';
+        console.log(`Adding to cart with kind:`, kind);
+        
         const addResponse = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
           method: 'POST',
           credentials: "include",
@@ -522,6 +562,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
     // If cart is empty, show vendor selection
     try {
+      console.log(`Fetching vendors for empty cart item ${item.id}`);
       const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -533,17 +574,29 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       }
 
       const vendors = await response.json();
+      console.log(`All vendors for item:`, vendors);
       
       // Filter out vendors where the item is not available
       const availableVendors = vendors.filter((vendor: Vendor) => {
+        if (!vendor.inventoryValue) {
+          console.log(`Vendor ${vendor._id} has no inventoryValue`);
+          return false;
+        }
+
         if (item.type === 'retail') {
-          // For retail items, check if quantity is greater than 0
-          return vendor.quantity !== undefined && vendor.quantity > 0;
+          // For retail items, check quantity from inventoryValue
+          const quantity = vendor.inventoryValue.quantity;
+          console.log(`Vendor ${vendor._id} quantity:`, quantity);
+          const isAvailable = typeof quantity === 'number' && quantity > 0;
+          console.log(`Vendor ${vendor._id} is available:`, isAvailable);
+          return isAvailable;
         } else {
-          // For produce items, check isAvailable flag
-          return vendor.isAvailable === 'Y';
+          // For produce items, check isAvailable from inventoryValue
+          return vendor.inventoryValue.isAvailable === 'Y';
         }
       });
+      
+      console.log(`Available vendors:`, availableVendors);
       
       if (availableVendors.length === 0) {
         toast.error("No vendors have this item available at the moment");
