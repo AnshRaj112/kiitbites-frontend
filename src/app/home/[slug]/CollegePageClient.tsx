@@ -449,10 +449,10 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
       // Check availability for current vendor
       const isAvailable = await checkVendorAvailability(currentVendorId, item.id, item.type);
-        if (!isAvailable) {
+      if (!isAvailable) {
         toast.error("Item is not available from this vendor at the moment");
-          return;
-        }
+        return;
+      }
 
       // If available, add to cart
       try {
@@ -482,7 +482,8 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         const cartData = await cartResponse.json();
-        setCartItems(cartData.cart || []);
+        const updatedCartItems = cartData.cart || [];
+        setCartItems(updatedCartItems);
         
         toast.success(`${item.title} added to cart!`);
       } catch (error) {
@@ -662,7 +663,21 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
+      const updatedCartItems = cartData.cart || [];
+      
+      // Update cart items with correct vendor information
+      const formattedCartItems = updatedCartItems.map((item: CartItem) => ({
+        ...item,
+        vendorId: item.vendorId,
+        vendorName: item.vendorName
+      }));
+      
+      setCartItems(formattedCartItems);
+      
+      // Ensure current vendor is set
+      if (!currentVendorId && formattedCartItems.length > 0) {
+        setCurrentVendorId(formattedCartItems[0].vendorId);
+      }
       
       toast.success(`Increased quantity of ${item.title}`);
     } catch (error) {
@@ -701,9 +716,19 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
+      const updatedCartItems = cartData.cart || [];
       
-      if (cartData.cart.length === 0) {
+      // Update cart items with correct vendor information
+      const formattedCartItems = updatedCartItems.map((item: CartItem) => ({
+        ...item,
+        vendorId: item.vendorId,
+        vendorName: item.vendorName
+      }));
+      
+      setCartItems(formattedCartItems);
+      
+      // Only reset current vendor if cart is empty
+      if (formattedCartItems.length === 0) {
         setCurrentVendorId(null);
       }
       
@@ -712,6 +737,17 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       console.error("Error decreasing quantity:", error);
       toast.error(error instanceof Error ? error.message : "Failed to decrease quantity");
     }
+  };
+
+  // Add a function to check if an item is in cart
+  // const isItemInCart = (itemId: string, vendorId: string) => {
+  //   return cartItems.some(item => item.itemId === itemId && item.vendorId === vendorId);
+  // };
+
+  // Add a function to get item quantity from cart
+  const getItemQuantity = (itemId: string, vendorId: string) => {
+    const cartItem = cartItems.find(item => item.itemId === itemId && item.vendorId === vendorId);
+    return cartItem?.quantity || 0;
   };
 
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
@@ -857,12 +893,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
               <div className={styles.carouselContainer}>
                 <Slider {...favoritesSliderSettings} className={styles.slider}>
                   {favoriteItems.map((item) => {
-                    // Find matching cart item
-                    const cartItem = cartItems.find(cartItem => 
-                      cartItem.itemId === item._id && 
-                      cartItem.vendorId === item.vendorId
-                    );
-                    const quantity = cartItem?.quantity || 0;
+                    const quantity = getItemQuantity(item._id, item.vendorId);
                     const isSameVendor = !currentVendorId || currentVendorId === item.vendorId;
 
                     return (
@@ -880,7 +911,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                         </div>
                         <h4 className={styles.foodTitle}>{item.name}</h4>
                         <p className={styles.foodPrice}>₹{item.price}</p>
-                          {quantity > 0 && isSameVendor ? (
+                          {quantity > 0 ? (
                             <div className={styles.quantityControls}>
                               <button
                                 className={styles.quantityButton}
@@ -913,7 +944,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                               >
                                 <Plus size={16} />
                               </button>
-                      </div>
+                            </div>
                           ) : (
                             <button
                               className={styles.addToCartButton}
@@ -932,8 +963,8 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                               {!isSameVendor ? "Different Vendor" : "Add to Cart"}
                             </button>
                           )}
-                    </div>
                       </div>
+                    </div>
                     );
                   })}
                 </Slider>
@@ -941,12 +972,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             ) : (
               <div className={styles.favoritesGrid}>
                 {favoriteItems.map((item) => {
-                  // Find matching cart item
-                  const cartItem = cartItems.find(cartItem => 
-                    cartItem.itemId === item._id && 
-                    cartItem.vendorId === item.vendorId
-                  );
-                  const quantity = cartItem?.quantity || 0;
+                  const quantity = getItemQuantity(item._id, item.vendorId);
                   const isSameVendor = !currentVendorId || currentVendorId === item.vendorId;
 
                   return (
@@ -963,7 +989,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                     </div>
                     <h4 className={styles.foodTitle}>{item.name}</h4>
                     <p className={styles.foodPrice}>₹{item.price}</p>
-                      {quantity > 0 && isSameVendor ? (
+                      {quantity > 0 ? (
                         <div className={styles.quantityControls}>
                           <button
                             className={styles.quantityButton}
@@ -996,7 +1022,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                           >
                             <Plus size={16} />
                           </button>
-                  </div>
+                        </div>
                       ) : (
                         <button
                           className={styles.addToCartButton}
@@ -1015,7 +1041,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                           {!isSameVendor ? "Different Vendor" : "Add to Cart"}
                         </button>
                       )}
-                    </div>
+                  </div>
                   );
                 })}
               </div>
@@ -1098,32 +1124,98 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             <Slider {...sliderSettings} className={styles.slider}>
               {Object.values(items)
                 .flat()
-                .filter((item) => {
-                  // Only show items that are marked as special
-                  if (item.isSpecial !== "Y") return false;
+                .filter((item) => item.isSpecial === "Y")
+                .map((item) => {
+                  // Find all cart items for this special item
+                  const cartItemsForThisItem = cartItems.filter(cartItem => 
+                    cartItem.itemId === item.id
+                  );
                   
-                  // Check if the item is available from any vendor
-                  return item.vendorId && checkVendorAvailability(item.vendorId, item.id, item.type);
-                })
-                .map((item) => (
-                  <div key={item.id} className={styles.slideWrapper}>
-                    <div className={styles.foodCard}>
-                      <div className={styles.imageContainer}>
-                        <img src={item.image} alt={item.title} className={styles.foodImage} />
+                  // Get the quantity from the cart item with the current vendor ID
+                  const cartItem = cartItemsForThisItem.find(cartItem => 
+                    cartItem.vendorId === (currentVendorId || item.vendorId)
+                  );
+                  
+                  const quantity = cartItem?.quantity || 0;
+                  
+                  // Check if we can add this item based on vendor
+                  const canAddItem = !currentVendorId || 
+                    currentVendorId === item.vendorId || 
+                    cartItemsForThisItem.some(ci => ci.vendorId === currentVendorId);
+
+                  return (
+                    <div key={item.id} className={styles.slideWrapper}>
+                      <div className={styles.foodCard}>
+                        <div className={styles.imageContainer}>
+                          <img 
+                            src={item.image} 
+                            alt={item.title} 
+                            className={styles.foodImage}
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-image.png";
+                            }}
+                          />
+                        </div>
+                        <h4 className={styles.foodTitle}>{item.title}</h4>
+                        <p className={styles.foodPrice}>₹{item.price}</p>
+                        {userFullName && (
+                          quantity > 0 ? (
+                            <div className={styles.quantityControls}>
+                              <button
+                                className={styles.quantityButton}
+                                onClick={() => handleDecreaseQuantity({
+                                  id: item.id,
+                                  title: item.title,
+                                  image: item.image,
+                                  category: item.category,
+                                  type: item.type,
+                                  isSpecial: item.isSpecial,
+                                  price: item.price,
+                                  vendorId: cartItem?.vendorId || item.vendorId
+                                })}
+                              >
+                                <Minus size={16} />
+                              </button>
+                              <span className={styles.quantity}>{quantity}</span>
+                              <button
+                                className={styles.quantityButton}
+                                onClick={() => handleIncreaseQuantity({
+                                  id: item.id,
+                                  title: item.title,
+                                  image: item.image,
+                                  category: item.category,
+                                  type: item.type,
+                                  isSpecial: item.isSpecial,
+                                  price: item.price,
+                                  vendorId: cartItem?.vendorId || item.vendorId
+                                })}
+                              >
+                                <Plus size={16} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className={styles.addToCartButton}
+                              onClick={() => handleAddToCart({
+                                id: item.id,
+                                title: item.title,
+                                image: item.image,
+                                category: item.category,
+                                type: item.type,
+                                isSpecial: item.isSpecial,
+                                price: item.price,
+                                vendorId: item.vendorId
+                              })}
+                              disabled={!canAddItem}
+                            >
+                              {!canAddItem ? "Different Vendor" : "Add to Cart"}
+                            </button>
+                          )
+                        )}
                       </div>
-                      <h4 className={styles.foodTitle}>{item.title}</h4>
-                      <p className={styles.foodPrice}>₹{item.price}</p>
-                      {userFullName && (
-                        <button
-                          className={styles.addToCartButton}
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          Add to Cart
-                        </button>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </Slider>
           </div>
         </div>
