@@ -1,26 +1,257 @@
+// .container {
+//   display: grid;
+//   justify-content: center;
+//   // align-items: end;
+//   grid-template-rows: 10rem 2rem 50% 5rem;
+//   // height: 115.25dvh; /* Full-screen height */
+//   // height: 100%;
+//   height: auto;
+//   background-color: #f0f4f8; /* Subtle background color for contrast */
+// }
+
+// .inputC{
+//   display: flex;
+//   width: 100%;
+//   // height: 100%;
+//   // margin-top: 15rem;
+//   justify-content: center;
+//   align-self: end;
+// }
+
+// .searchInputWrapper {
+//   position: relative;
+//   width: 100%;
+// }
+
+// .searchInput {
+//   width: 100%;
+//   padding: 0.5rem 2.5rem 0.5rem 0.75rem; 
+//   border: 1px solid #ccc;
+//   border-radius: 0.375rem;
+// }
+
+// .searchIcon {
+//   position: absolute;
+//   right: 0.75rem;
+//   top: 50%;
+//   transform: translateY(-50%);
+//   pointer-events: none;
+//   color: #4ea199;
+//   font-size: 1rem;
+// }
+
+// .optionsFood{
+//   position: relative;
+//   z-index: 10;
+//   display: flex;
+//   width: 100%;
+//   // height: 100%;
+//   // margin-top: 13.5rem;
+//   justify-content: center;
+//   align-self: start;
+// }
+
+// .container input{
+//   width: 60vw;   
+//   position: relative;
+// }
+
+// .options{
+//   position: relative;
+
+//   width: 60vw;
+//   background-color: white; 
+//   border: 1px solid grey;
+//   border-radius: 0.25rem;
+// }
+
+// .popularGrid {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+//   gap: 1rem;
+//   margin-top: 1rem;
+// }
+
+// .foodCard {
+//   padding: 1rem;
+//   border: 1px solid #e5e7eb;
+//   border-radius: 0.5rem;
+//   box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+//   transition: box-shadow 0.2s ease;
+//   cursor: pointer;
+// }
+
+// .foodCard:hover {
+//   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+// }
+  
+// @media screen and (max-width: 769px) {
+//   .container input{
+//       width: 80vw;   
+//       position: relative;
+//   }
+// }
+
+// @media screen and (max-width: 578px) {
+//   .container input{
+//       width: 90vw;   
+//       position: relative;
+//   }
+// }
+
+// @media screen and (max-width: 515px) {
+//   .popularGrid{
+//       grid-template-columns: 1fr;
+//       width: 90vw;
+//   }
+// }
+
+
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 30.25dvh; /* Full-screen height */
-    background-color: #f0f4f8; /* Subtle background color for
-     contrast */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #f0f4f8;
+  padding: 1rem;
+  margin-top: 4.75rem;
+  min-height: 100vh;
+}
 
-    input {
-        // margin: 10px 0;
-        // padding: 12px;
-        font-size: 1em;
-        border-radius: 8px; /* Curved input fields */
-        border: 1px solid #ddd;
-        outline: none;
-        color: black;
-        transition: box-shadow 0.2s;
-        cursor: pointer;
+.header {
+  width: 100%;
+  display: flex;
+  transition: all 0.3s ease;
+}
 
-        &:focus {
-          box-shadow: 0 0 8px rgba(78, 161, 153, 0.5); /* Focus glow */
-          border-color: #1e90fc;
-        }
-      }
+.selectBar {
+  width: 16.25%;
+  margin-right: 1rem;
+  transition: all 0.3s ease;
+  opacity: 1;
+  max-height: 100px;
+  overflow: hidden;
+}
 
-}  
+.selectBarHidden {
+  opacity: 0;
+  max-height: 0;
+  width: 0;
+  margin-right: 0;
+}
+
+.searchBar {
+  width: 83.75%;
+  transition: all 0.3s ease;
+}
+
+.searchBarFull {
+  width: 100%;
+  // margin-left: 1rem;
+  margin-right: 2.25rem;
+}
+
+.dropdown {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  background-color: white;
+}
+
+.searchInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #4ea199;
+  font-size: 1.2rem;
+}
+
+.optionsFood {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.options {
+  width: 60vw;
+  background-color: white;
+  border: 1px solid grey;
+  border-radius: 0.25rem;
+}
+
+.popularChoices {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.popularGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.foodCard {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+  cursor: pointer;
+  background-color: white;
+}
+
+.foodCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.searchResults {
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 769px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .searchInput,
+  .dropdown {
+    width: 100%;
+  }
+
+  .options {
+    width: 80vw;
+  }
+}
+
+@media screen and (max-width: 578px) {
+  .options {
+    width: 90vw;
+  }
+}
+
+@media screen and (max-width: 515px) {
+  .popularGrid {
+    grid-template-columns: 1fr;
+    width: 90vw;
+  }
+}
