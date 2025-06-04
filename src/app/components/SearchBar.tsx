@@ -208,7 +208,7 @@ const SearchBar: React.FC = () => {
               onChange={handleUniversityChange}
               className={styles.dropdown}
             >
-              <option value="">Select University</option>
+              {/* <option value="">Select University</option> */}
               {universities.map((uni) => (
                 <option key={uni._id} value={uni._id}>
                   {uni.fullName}
