@@ -10,13 +10,13 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  // const [suggestions, setSuggestions] = useState<string[]>([]);
   const [universities, setUniversities] = useState<any[]>([]);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");
   const [popularFoods, setPopularFoods] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [userUniversity, setUserUniversity] = useState<string | null>(null);
-  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  // const [userUniversity, setUserUniversity] = useState<string | null>(null);
+  // const [isUserLoaded, setIsUserLoaded] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -62,7 +62,7 @@ const SearchBar: React.FC = () => {
         console.log("Fetched user:", user); // ✅ DEBUG LOG
     
         if (user?.uniID) {
-          setUserUniversity(user.uniID);
+          // setUserUniversity(user.uniID);
           setSelectedUniversity(user.uniID);
         } else {
           console.warn("No uniID found in user object");
@@ -144,14 +144,14 @@ const SearchBar: React.FC = () => {
     const value = e.target.value;
     setQuery(value);
     router.push(`?search=${value}`, undefined);
-    setSuggestions([]);
+    // setSuggestions([]);
     fetchSearchResults(value);
   };
 
   const handleSelectSuggestion = async (foodName: string) => {
     setQuery(foodName);
     router.push(`?search=${foodName}`, undefined);
-    setSuggestions([]);
+    // setSuggestions([]);
     fetchSearchResults(foodName);
 
     await fetch(`${BACKEND_URL}/api/increase-search`, {
