@@ -8,13 +8,41 @@ import styles from "./styles/Search.module.scss";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+interface University {
+  _id: string;
+  fullName: string;
+  // Add other fields if needed
+}
+
+interface FoodItem {
+  _id: string;
+  name: string;
+  type: string;
+  price: number;
+  image: string;
+  isSpecial: string;
+  vendorId?: {
+    location?: string;
+    // Add other fields if needed
+  };
+}
+
+type SearchFoodItem = {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  vendorLocation?: string;
+};
+
+
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState<string>("");
   // const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [universities, setUniversities] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<University[]>([]);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");
-  const [popularFoods, setPopularFoods] = useState<any[]>([]);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [popularFoods, setPopularFoods] = useState<FoodItem[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchFoodItem[]>([]);
   // const [userUniversity, setUserUniversity] = useState<string | null>(null);
   // const [isUserLoaded, setIsUserLoaded] = useState(false);
   const router = useRouter();
