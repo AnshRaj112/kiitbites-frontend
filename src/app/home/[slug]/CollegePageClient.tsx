@@ -331,7 +331,11 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
   const getFavoriteItems = () => {
     if (!userFavorites || !Array.isArray(userFavorites)) return [];
-    return userFavorites;
+    // Filter out duplicates by using a Map with _id as key
+    const uniqueItems = Array.from(
+      new Map(userFavorites.map(item => [item._id, item])).values()
+    );
+    return uniqueItems;
   };
 
   const favoriteItems = getFavoriteItems();
