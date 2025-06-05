@@ -281,61 +281,70 @@
   }
 }
 
-.addToCartButton {
-  width: 100%;
-  padding: 8px 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #45a049;
-  }
-
-  &:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-}
-
 .quantityControls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  width: 100%;
 }
 
 .quantityButton {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  color: #4ea199;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #4ea199;
+    color: white;
+    border-color: #4ea199;
   }
 
   &:active {
-    background-color: #e0e0e0;
+    transform: scale(0.95);
   }
 }
 
 .quantity {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  color: #2d3748;
   min-width: 24px;
   text-align: center;
+}
+
+.addToCartButton {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #4ea199;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+
+  &:hover {
+    background-color: #3d8a82;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .modalOverlay {

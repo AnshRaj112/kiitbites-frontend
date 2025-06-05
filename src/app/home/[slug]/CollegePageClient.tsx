@@ -1,96 +1,74 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
-import Slider from "react-slick";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+// import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./styles/global.css";
 import styles from "./styles/CollegePage.module.scss";
 import { useEffect, useRef, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-interface FoodItem {
-  id: string;
-  title: string;
-  image: string;
-  category: string;
-  type: string;
-  isSpecial: string;
-  collegeId?: string;
-  price: number;
-  vendorId?: string;
-}
-
-interface FavoriteItem {
-  _id: string;
-  name: string;
-  type: string;
-  uniId: string;
-  price: number;
-  image: string;
-  isSpecial: string;
-  kind: string;
-}
-
-interface ApiItem {
-  _id: string;
-  name: string;
-  image: string;
-  type: string;
-  isSpecial: string;
-  collegeId?: string;
-  category?: string;
-  price: number;
-}
-
-interface College {
-  _id: string;
-  name: string;
-}
-
-interface ApiFavoritesResponse {
-  favourites: FavoriteItem[];
-}
-
-interface Vendor {
-  _id: string;
-  name: string;
-  price: number;
-  quantity?: number;
-  isAvailable?: string;
-  inventoryValue?: {
-    price: number;
-    quantity?: number;
-    isAvailable?: string;
-  };
-}
-
-interface CartItem {
-  _id: string;
-  itemId: string;
-  quantity: number;
-  kind: string;
-  vendorId: string;
-  vendorName: string;
-}
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import FavoritesSection from "./components/FavoritesSection";
+import SpecialOffersSection from "./components/SpecialOffersSection";
+import CategorySection from "./components/CategorySection";
+import VendorModal from "./components/VendorModal";
+import {
+  FoodItem,
+  FavoriteItem,
+  CartItem,
+  Vendor,
+  College,
+  ApiFavoritesResponse,
+  ApiItem,
+} from "./types";
+import {
+  checkItemAvailability,
+  addToCart,
+  increaseQuantity,
+  decreaseQuantity,
+  fetchCartItems,
+} from "./utils/cartUtils";
+import { checkFavoriteItemAvailability } from "./utils/favoriteCartUtils";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 const categories = {
-  produce: ["combos-veg", "combos-nonveg", "veg", "shakes", "juices", "soups", "non-veg"],
-  retail: ["biscuits", "chips", "icecream", "drinks", "snacks", "sweets", "nescafe"],
+  produce: [
+    "combos-veg",
+    "combos-nonveg",
+    "veg",
+    "shakes",
+    "juices",
+    "soups",
+    "non-veg",
+  ],
+  retail: [
+    "biscuits",
+    "chips",
+    "icecream",
+    "drinks",
+    "snacks",
+    "sweets",
+    "nescafe",
+  ],
 };
 
 const CustomPrevArrow = (props: { onClick?: () => void }) => (
-  <button onClick={props.onClick} className={`${styles.carouselButton} ${styles.prevButton}`}>
+  <button
+    onClick={props.onClick}
+    className={`${styles.carouselButton} ${styles.prevButton}`}
+  >
     <ChevronLeft size={20} />
   </button>
 );
 
 const CustomNextArrow = (props: { onClick?: () => void }) => (
-  <button onClick={props.onClick} className={`${styles.carouselButton} ${styles.nextButton}`}>
+  <button
+    onClick={props.onClick}
+    className={`${styles.carouselButton} ${styles.nextButton}`}
+  >
     <ChevronRight size={20} />
   </button>
 );
@@ -116,26 +94,32 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
   // Normalize college name for matching
   const normalizeName = (name: string) =>
-    name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-") || "";
+    name
+      ?.toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-") || "";
 
   // Update URL with college ID
   const updateUrlWithCollegeId = (collegeId: string) => {
     const currentPath = window.location.pathname;
     const newUrl = `${currentPath}?cid=${collegeId}`;
-    window.history.replaceState({}, '', newUrl);
+    window.history.replaceState({}, "", newUrl);
   };
 
   // Get college list and match collegeName to get actual college id
   const fetchCollegesAndSetUniId = async (collegeSlug: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
+      const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch colleges");
       const colleges = (await response.json()) as College[];
-      
+
       // Normalize the input slug
       const normalizedSlug = normalizeName(collegeSlug);
-      
+
       // Find the college that matches the normalized slug
       const matchedCollege = colleges.find((college) => {
         const normalizedCollegeName = normalizeName(college.name);
@@ -175,7 +159,9 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       if (cid) {
         if (cid.length < 10) {
           try {
-            const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, { credentials: "include" });
+            const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
+              credentials: "include",
+            });
             if (!response.ok) throw new Error("Failed to fetch colleges");
             const colleges = (await response.json()) as College[];
             const found = colleges.find((c) => c._id.startsWith(cid));
@@ -185,8 +171,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
               updateUrlWithCollegeId(found._id);
               return;
             }
-          } catch {
-          }
+          } catch {}
         } else {
           if (isMounted) {
             setUniId(cid);
@@ -221,7 +206,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       try {
         const token = localStorage.getItem("token");
         if (!token || !uniId) return;
-        
+
         // Fetch user data
         const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
@@ -233,12 +218,16 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         setUserId(userData._id);
 
         // Fetch favorites using the new API endpoint
-        const favoritesResponse = await fetch(`${BACKEND_URL}/fav/${userData._id}/${uniId}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const favoritesResponse = await fetch(
+          `${BACKEND_URL}/fav/${userData._id}/${uniId}`,
+          {
+            credentials: "include",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (!favoritesResponse.ok) return;
-        const favoritesData = await favoritesResponse.json() as ApiFavoritesResponse;
+        const favoritesData =
+          (await favoritesResponse.json()) as ApiFavoritesResponse;
         setUserFavorites(favoritesData.favourites);
       } catch (err) {
         console.error("Error fetching user or favorites:", err);
@@ -285,12 +274,12 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         );
 
         if (requestId === currentRequest.current) {
-          console.log('Fetched items:', allItems);
+          console.log("Fetched items:", allItems);
           setItems(allItems);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error fetching items:', error);
+        console.error("Error fetching items:", error);
         if (requestId === currentRequest.current) {
           setError("Failed to load items.");
           setLoading(false);
@@ -303,39 +292,79 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
 
   // Fetch cart items
   useEffect(() => {
-    const fetchCartItems = async () => {
-      if (!userId) return;
-
+    const loadCartItems = async () => {
+      if (!userId) {
+        setCartItems([]);
+        return;
+      }
       try {
-        const response = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const data = await response.json();
-        const cartData = data.cart || [];
-        setCartItems(cartData);
-        
+        const cartData = await fetchCartItems(userId);
+        setCartItems(cartData || []);
+
         // Set current vendor if cart is not empty
-        if (cartData.length > 0) {
-          setCurrentVendorId(cartData[0].vendorId);
+        if (cartData && cartData.length > 0) {
+          const vendorId = cartData[0].vendorId;
+          setCurrentVendorId(vendorId);
+          // Store the vendor ID in localStorage for persistence
+          localStorage.setItem("currentVendorId", vendorId);
         } else {
           setCurrentVendorId(null);
+          localStorage.removeItem("currentVendorId");
         }
       } catch (error) {
-        console.error("Error fetching cart items:", error);
+        console.error("Error loading cart items:", error);
+        setCartItems([]);
       }
     };
 
-    fetchCartItems();
+    loadCartItems();
   }, [userId]);
+
+  // Load current vendor ID from localStorage on initial load
+  useEffect(() => {
+    const savedVendorId = localStorage.getItem("currentVendorId");
+    if (savedVendorId) {
+      setCurrentVendorId(savedVendorId);
+    }
+  }, []);
+
+  const convertFavoriteToFoodItem = (item: FavoriteItem): FoodItem => {
+    console.log("Converting FavoriteItem to FoodItem:", item);
+
+    // Determine if the item is retail based on its category
+    const isRetail = categories.retail.includes(item.kind);
+    console.log("Item kind:", item.kind);
+    console.log("Is retail:", isRetail);
+
+    const foodItem: FoodItem = {
+      id: item._id,
+      title: item.name,
+      image: item.image,
+      category: item.kind,
+      type: isRetail ? "retail" : "produce",
+      isSpecial: item.isSpecial,
+      price: item.price,
+      vendorId: item.vendorId,
+    };
+
+    console.log("Converted FoodItem:", foodItem);
+    return foodItem;
+  };
 
   const getFavoriteItems = () => {
     if (!userFavorites || !Array.isArray(userFavorites)) return [];
-    // Filter out duplicates by using a Map with _id as key
-    const uniqueItems = Array.from(
-      new Map(userFavorites.map(item => [item._id, item])).values()
-    );
-    return uniqueItems;
+
+    // Create a Map to store unique items by their _id and vendorId combination
+    const uniqueItemsMap = new Map();
+
+    userFavorites.forEach((item) => {
+      const key = `${item._id}-${item.vendorId}`;
+      if (!uniqueItemsMap.has(key)) {
+        uniqueItemsMap.set(key, item);
+      }
+    });
+
+    return Array.from(uniqueItemsMap.values());
   };
 
   const favoriteItems = getFavoriteItems();
@@ -358,17 +387,6 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     ],
   };
 
-  const favoritesSliderSettings = {
-    ...sliderSettings,
-    slidesToShow: 5,
-    autoplaySpeed: 2000,
-    responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 4 } },
-      { breakpoint: 768, settings: { slidesToShow: 3, arrows: false } },
-      { breakpoint: 480, settings: { slidesToShow: 2, arrows: false } },
-    ],
-  };
-
   const displayName = userFullName ? userFullName.split(" ")[0] : "User";
   const collegeDisplayName = slug
     ? slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
@@ -377,63 +395,75 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   // Filter items based on current vendor and availability
   const filterItemsByVendor = async (items: FoodItem[]) => {
     if (!currentVendorId) return items;
-    
+
     try {
       // Get all vendors for each item
       const itemsWithVendors = await Promise.all(
         items.map(async (item) => {
           try {
-            console.log(`Checking availability for item ${item.id} (type: ${item.type})`);
-            const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-              credentials: "include",
-              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-            
+            console.log(
+              `Checking availability for item ${item.id} (type: ${item.type})`
+            );
+            const response = await fetch(
+              `${BACKEND_URL}/items/vendors/${item.id}`,
+              {
+                credentials: "include",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+
             if (!response.ok) {
-              console.error(`Failed to fetch vendors for item ${item.id}:`, await response.text());
+              console.error(
+                `Failed to fetch vendors for item ${item.id}:`,
+                await response.text()
+              );
               return null;
             }
-            
+
             const vendors = await response.json();
             console.log(`Vendors for item ${item.id}:`, vendors);
-            
-            // For retail items, only check quantity
-            if (item.type === 'retail') {
-              const vendor = vendors.find((v: Vendor) => v._id === currentVendorId);
-              console.log(`Found vendor for retail item:`, vendor);
-              
-              if (!vendor || !vendor.inventoryValue) {
-                console.log(`Vendor or inventoryValue not found for retail item`);
-                return null;
+
+            // Filter out vendors where the item is not available
+            const availableVendors = vendors.filter((vendor: Vendor) => {
+              if (!vendor.inventoryValue) {
+                console.log(`Vendor ${vendor._id} has no inventoryValue`);
+                return false;
               }
-              
-              // For retail items, check quantity from inventoryValue
-              const quantity = vendor.inventoryValue.quantity;
-              console.log(`Retail item quantity:`, quantity);
-              
-              const isAvailable = typeof quantity === 'number' && quantity > 0;
-              console.log(`Retail item is available:`, isAvailable);
-              
-              return isAvailable ? item : null;
-            } else {
-              // For produce items, check isAvailable flag
-              const vendor = vendors.find((v: Vendor) => v._id === currentVendorId);
-              if (!vendor || !vendor.inventoryValue) {
-                return null;
+
+              if (item.type === "retail") {
+                // For retail items, check quantity from inventoryValue
+                const quantity = vendor.inventoryValue.quantity;
+                console.log(`Vendor ${vendor._id} quantity:`, quantity);
+                // Check if quantity exists and is greater than 0
+                return typeof quantity === "number" && quantity > 0;
+              } else {
+                // For produce items, check isAvailable from inventoryValue
+                return vendor.inventoryValue.isAvailable === "Y";
               }
-              
-              // For produce items, check isAvailable from inventoryValue
-              return vendor.inventoryValue.isAvailable === 'Y' ? item : null;
+            });
+
+            console.log(`Available vendors:`, availableVendors);
+
+            if (availableVendors.length === 0) {
+              console.log(`No vendors have this item available at the moment`);
+              return null;
             }
+
+            // Only store the vendor information, don't show the modal
+            return item;
           } catch (error) {
             console.error("Error checking item availability:", error);
             return null;
           }
         })
       );
-      
+
       // Filter out null values and return only available items
-      const availableItems = itemsWithVendors.filter((item): item is FoodItem => item !== null);
+      const availableItems = itemsWithVendors.filter(
+        (item): item is FoodItem => item !== null
+      );
       console.log(`Available items after filtering:`, availableItems);
       return availableItems;
     } catch (error) {
@@ -443,13 +473,15 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   };
 
   // Add state for filtered items
-  const [filteredItems, setFilteredItems] = useState<{ [key: string]: FoodItem[] }>({});
+  const [filteredItems, setFilteredItems] = useState<{
+    [key: string]: FoodItem[];
+  }>({});
 
   // Update filtered items when items or currentVendorId changes
   useEffect(() => {
     const updateFilteredItems = async () => {
       const newFilteredItems: { [key: string]: FoodItem[] } = {};
-      
+
       for (const [key, categoryItems] of Object.entries(items)) {
         if (currentVendorId) {
           // If we have a current vendor, only show items from that vendor
@@ -459,7 +491,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           newFilteredItems[key] = categoryItems;
         }
       }
-      
+
       setFilteredItems(newFilteredItems);
     };
 
@@ -467,153 +499,122 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   }, [items, currentVendorId]);
 
   const handleAddToCart = async (item: FoodItem) => {
-    if (!userId) {
+    console.log("\n=== Starting Add to Cart ===");
+    console.log("Item:", {
+      id: item.id,
+      type: item.type,
+      category: item.category,
+      title: item.title,
+    });
+
+    // Get user details from API
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("❌ No token found");
       toast.error("Please login to add items to cart");
       return;
     }
 
-    console.log(`Adding item to cart:`, item);
-    console.log(`Item type:`, item.type);
+    const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+      credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      console.log("❌ Failed to fetch user details");
+      toast.error("Please login to add items to cart");
+      return;
+    }
+
+    const userData = await userResponse.json();
+    const currentUserId = userData._id;
 
     // If cart has items, check if item is from same vendor
     if (cartItems.length > 0 && currentVendorId) {
+      console.log("Cart has items, checking vendor match");
       if (item.vendorId !== currentVendorId) {
+        console.log("❌ Vendor mismatch:", {
+          itemVendorId: item.vendorId,
+          currentVendorId,
+        });
         toast.error("You can only add items from the same vendor");
         return;
       }
 
-      // For same vendor, check availability directly
-      try {
-        console.log(`Fetching vendors for item ${item.id}`);
-        const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message);
-        }
+      // Check if this is a favorite item
+      const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
+      const { isAvailable } = isFavoriteItem
+        ? await checkFavoriteItemAvailability(
+            {
+              _id: item.id,
+              type: item.type,
+              kind: item.category,
+              name: item.title,
+              vendorId: item.vendorId,
+            } as FavoriteItem,
+            currentVendorId,
+            categories
+          )
+        : await checkItemAvailability(item, currentVendorId, categories);
 
-        const vendors = await response.json();
-        console.log(`Vendors for item:`, vendors);
-        
-        const currentVendor = vendors.find((v: Vendor) => v._id === currentVendorId);
-        console.log(`Current vendor:`, currentVendor);
-        
-        if (!currentVendor || !currentVendor.inventoryValue) {
-          toast.error("Item is not available from this vendor");
-          return;
-        }
+      if (!isAvailable) {
+        console.log("❌ Item not available at current vendor");
+        toast.error("Item is not available at the moment");
+        return;
+      }
 
-        // Check availability based on item type
-        let isAvailable = false;
-        if (item.type === 'retail') {
-          // For retail items, check quantity from inventoryValue
-          const quantity = currentVendor.inventoryValue.quantity;
-          console.log(`Retail item quantity:`, quantity);
-          isAvailable = typeof quantity === 'number' && quantity > 0;
-          console.log(`Retail item is available:`, isAvailable);
-        } else {
-          // For produce items, check isAvailable from inventoryValue
-          isAvailable = currentVendor.inventoryValue.isAvailable === 'Y';
-        }
-
-        if (!isAvailable) {
-          toast.error("Item is not available at the moment");
-          return;
-        }
-
-        // If available, add directly to cart
-        const kind = item.type === 'retail' ? 'Retail' : 'Produce';
-        console.log(`Adding to cart with kind:`, kind);
-        
-        const addResponse = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
-          method: 'POST',
-          credentials: "include",
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            itemId: item.id,
-            kind: kind,
-            quantity: 1,
-            vendorId: currentVendorId
-          }),
-        });
-
-        if (!addResponse.ok) {
-          const error = await addResponse.json();
-          throw new Error(error.message);
-        }
-
-        // Refresh cart items
-        const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-          credentials: "include",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const cartData = await cartResponse.json();
-        setCartItems(cartData.cart || []);
-        
-        toast.success(`${item.title} added to cart!`);
-      } catch (error) {
-        console.error("Error adding to cart:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
+      const success = await addToCart(currentUserId, item, currentVendorId);
+      if (success) {
+        console.log("✅ Item added to cart successfully");
+        const cartData = await fetchCartItems(currentUserId);
+        setCartItems(cartData);
+        // Ensure vendor ID is persisted
+        localStorage.setItem("currentVendorId", currentVendorId);
       }
       return;
     }
 
     // If cart is empty, show vendor selection
-    try {
-      console.log(`Fetching vendors for empty cart item ${item.id}`);
-      const response = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
+    console.log("Cart is empty, checking item availability");
 
-      const vendors = await response.json();
-      console.log(`All vendors for item:`, vendors);
-      
-      // Filter out vendors where the item is not available
-      const availableVendors = vendors.filter((vendor: Vendor) => {
-        if (!vendor.inventoryValue) {
-          console.log(`Vendor ${vendor._id} has no inventoryValue`);
-          return false;
-        }
+    // Check if this is a favorite item
+    const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
+    const { isAvailable, vendors } = isFavoriteItem
+      ? await checkFavoriteItemAvailability(
+          {
+            _id: item.id,
+            type: item.type,
+            kind: item.category,
+            name: item.title,
+            vendorId: item.vendorId,
+          } as FavoriteItem,
+          null,
+          categories
+        )
+      : await checkItemAvailability(item, null, categories);
 
-        if (item.type === 'retail') {
-          // For retail items, check quantity from inventoryValue
-          const quantity = vendor.inventoryValue.quantity;
-          console.log(`Vendor ${vendor._id} quantity:`, quantity);
-          const isAvailable = typeof quantity === 'number' && quantity > 0;
-          console.log(`Vendor ${vendor._id} is available:`, isAvailable);
-          return isAvailable;
-        } else {
-          // For produce items, check isAvailable from inventoryValue
-          return vendor.inventoryValue.isAvailable === 'Y';
-        }
-      });
-      
-      console.log(`Available vendors:`, availableVendors);
-      
-      if (availableVendors.length === 0) {
-        toast.error("No vendors have this item available at the moment");
-        return;
-      }
+    console.log("Availability check result:", {
+      isAvailable,
+      vendorsCount: vendors?.length,
+    });
 
-      setAvailableVendors(availableVendors);
-      setSelectedItem(item);
-      setShowVendorModal(true);
-    } catch (error) {
-      console.error("Error fetching vendors:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to fetch available vendors");
+    if (!vendors || vendors.length === 0) {
+      console.log("❌ No vendors found");
+      toast.error("No vendors have this item available at the moment");
+      return;
     }
+
+    // Show all available vendors
+    setAvailableVendors(vendors);
+    setSelectedItem(item);
+    setShowVendorModal(true);
+    console.log(
+      "✅ Vendor modal should be shown with",
+      vendors.length,
+      "vendors"
+    );
   };
 
   const handleVendorSelect = async (vendor: Vendor) => {
@@ -623,134 +624,45 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   const handleVendorConfirm = async () => {
     if (!selectedItem || !selectedVendor || !userId) return;
 
-    try {
-      // Determine the kind based on the item's category
-      const kind = selectedItem.type === 'retail' ? 'Retail' : 'Produce';
+    const success = await addToCart(userId, selectedItem, selectedVendor._id);
+    if (success) {
+      const cartData = await fetchCartItems(userId);
+      setCartItems(cartData);
 
-      const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: selectedItem.id,
-          kind: kind,
-          quantity: 1,
-          vendorId: selectedVendor._id
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
+      if (cartData.length > 0) {
+        setCurrentVendorId(selectedVendor._id);
+        // Store the vendor ID in localStorage for persistence
+        localStorage.setItem("currentVendorId", selectedVendor._id);
       }
 
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      if (cartData.cart.length > 0) {
-        setCurrentVendorId(cartData.cart[0].vendorId);
-      }
-
-      toast.success(`${selectedItem.title} added to cart!`);
-      
       // Close modal and reset state
       setShowVendorModal(false);
       setSelectedItem(null);
       setSelectedVendor(null);
       setAvailableVendors([]);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
     }
   };
 
   const handleIncreaseQuantity = async (item: FoodItem) => {
-    try {
-      // Determine the kind based on the item's category
-      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
-
-      const response = await fetch(`${BACKEND_URL}/cart/add-one/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: item.id,
-          kind: kind,
-          vendorId: item.vendorId
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      toast.success(`Increased quantity of ${item.title}`);
-    } catch (error) {
-      console.error("Error increasing quantity:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to increase quantity");
+    if (!userId) return;
+    const success = await increaseQuantity(userId, item);
+    if (success) {
+      const cartData = await fetchCartItems(userId);
+      setCartItems(cartData);
     }
   };
 
   const handleDecreaseQuantity = async (item: FoodItem) => {
-    try {
-      // Determine the kind based on the item's category
-      const kind = item.type === 'retail' ? 'Retail' : 'Produce';
+    if (!userId) return;
+    const success = await decreaseQuantity(userId, item);
+    if (success) {
+      const cartData = await fetchCartItems(userId);
+      setCartItems(cartData);
 
-      const response = await fetch(`${BACKEND_URL}/cart/remove-one/${userId}`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          itemId: item.id,
-          kind: kind,
-          vendorId: item.vendorId
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      // Refresh cart items
-      const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const cartData = await cartResponse.json();
-      setCartItems(cartData.cart || []);
-      
-      if (cartData.cart.length === 0) {
+      if (cartData.length === 0) {
         setCurrentVendorId(null);
+        localStorage.removeItem("currentVendorId");
       }
-      
-      toast.info(`Decreased quantity of ${item.title}`);
-    } catch (error) {
-      console.error("Error decreasing quantity:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to decrease quantity");
     }
   };
 
@@ -793,191 +705,55 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           Hi {displayName}, what are you craving for at {collegeDisplayName}?
         </h1>
 
-        {userFullName && favoriteItems.length > 0 && (
-          <div className={styles.favoritesSection}>
-            <h2 className={styles.favoritesTitle}>Your favourites</h2>
-            {favoriteItems.length >= 5 ? (
-              <div className={styles.carouselContainer}>
-                <Slider {...favoritesSliderSettings} className={styles.slider}>
-                  {favoriteItems.map((item) => (
-                    <div key={item._id} className={styles.slideWrapper}>
-                      <div className={styles.foodCard}>
-                        <div className={styles.imageContainer}>
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className={styles.foodImage}
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder-image.png";
-                            }}
-                          />
-                        </div>
-                        <h4 className={styles.foodTitle}>{item.name}</h4>
-                        <p className={styles.foodPrice}>₹{item.price}</p>
-                      </div>
-                    </div>
-                  ))}
-                </Slider>
-              </div>
-            ) : (
-              <div className={styles.favoritesGrid}>
-                {favoriteItems.map((item) => (
-                  <div key={item._id} className={styles.foodCard}>
-                    <div className={styles.imageContainer}>
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className={styles.foodImage}
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder-image.png";
-                        }}
-                      />
-                    </div>
-                    <h4 className={styles.foodTitle}>{item.name}</h4>
-                    <p className={styles.foodPrice}>₹{item.price}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {Object.entries(categories).map(([category, types]) =>
           types.map((type) => {
             const key = `${category}-${type}`;
             const categoryItems = filteredItems[key] || [];
-            
-            // Don't render the section if there are no items
-            if (categoryItems.length === 0) return null;
 
             return (
-              <section key={key} className={styles.categorySection}>
-                <div className={styles.categoryHeader}>
-                  <h3 className={styles.categoryTitle}>
-                    {type.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </h3>
-                </div>
-                <div className={styles.carouselContainer}>
-                  <Slider {...sliderSettings} className={styles.slider}>
-                    {categoryItems.map((item) => {
-                      const cartItem = cartItems.find(cartItem => 
-                        cartItem.itemId === item.id && 
-                        cartItem.vendorId === item.vendorId
-                      );
-                      const quantity = cartItem?.quantity || 0;
-
-                      return (
-                        <div key={item.id} className={styles.slideWrapper}>
-                          <div className={styles.foodCard}>
-                            <div className={styles.imageContainer}>
-                              <img src={item.image} alt={item.title} className={styles.foodImage} />
-                            </div>
-                            <h4 className={styles.foodTitle}>{item.title}</h4>
-                            <p className={styles.foodPrice}>₹{item.price}</p>
-                            {userFullName && (
-                              quantity > 0 ? (
-                                <div className={styles.quantityControls}>
-                                  <button
-                                    className={styles.quantityButton}
-                                    onClick={() => handleDecreaseQuantity(item)}
-                                  >
-                                    <Minus size={16} />
-                                  </button>
-                                  <span className={styles.quantity}>{quantity}</span>
-                                  <button
-                                    className={styles.quantityButton}
-                                    onClick={() => handleIncreaseQuantity(item)}
-                                  >
-                                    <Plus size={16} />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  className={styles.addToCartButton}
-                                  onClick={() => handleAddToCart(item)}
-                                >
-                                  Add to Cart
-                                </button>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </Slider>
-                </div>
-              </section>
+              <CategorySection
+                key={key}
+                categoryItems={categoryItems}
+                cartItems={cartItems}
+                userFullName={userFullName}
+                categoryTitle={type}
+                sliderSettings={sliderSettings}
+                handleAddToCart={handleAddToCart}
+                handleIncreaseQuantity={handleIncreaseQuantity}
+                handleDecreaseQuantity={handleDecreaseQuantity}
+              />
             );
           })
         )}
 
-        <div className={styles.specialSection}>
-          <h2 className={styles.specialTitle}>Special Offers</h2>
-          <div className={styles.carouselContainer}>
-            <Slider {...sliderSettings} className={styles.slider}>
-              {Object.values(items)
-                .flat()
-                .filter((item) => item.isSpecial === "Y")
-                .map((item) => (
-                  <div key={item.id} className={styles.slideWrapper}>
-                    <div className={styles.foodCard}>
-                      <div className={styles.imageContainer}>
-                        <img src={item.image} alt={item.title} className={styles.foodImage} />
-                      </div>
-                      <h4 className={styles.foodTitle}>{item.title}</h4>
-                      <p className={styles.foodPrice}>₹{item.price}</p>
-                    </div>
-                  </div>
-                ))}
-            </Slider>
-          </div>
-        </div>
+        <FavoritesSection
+          favoriteItems={favoriteItems}
+          cartItems={cartItems}
+          userFullName={userFullName}
+          handleIncreaseQuantity={handleIncreaseQuantity}
+          handleDecreaseQuantity={handleDecreaseQuantity}
+          convertFavoriteToFoodItem={convertFavoriteToFoodItem}
+          setCartItems={setCartItems}
+        />
 
-        {/* Vendor Selection Modal */}
-        {showVendorModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <h2>Select Vendor</h2>
-              <div className={styles.vendorList}>
-                {availableVendors.map((vendor) => (
-                  <div
-                    key={vendor._id}
-                    className={`${styles.vendorItem} ${
-                      selectedVendor?._id === vendor._id ? styles.selected : ""
-                    }`}
-                    onClick={() => handleVendorSelect(vendor)}
-                  >
-                    <h3>{vendor.name}</h3>
-                    <p>₹{vendor.price}</p>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.cancelButton}
-                  onClick={() => {
-                    setShowVendorModal(false);
-                    setSelectedItem(null);
-                    setSelectedVendor(null);
-                    setAvailableVendors([]);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.confirmButton}
-                  onClick={handleVendorConfirm}
-                  disabled={!selectedVendor}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SpecialOffersSection items={items} sliderSettings={sliderSettings} />
+
+        <VendorModal
+          show={showVendorModal}
+          availableVendors={availableVendors}
+          selectedVendor={selectedVendor}
+          onVendorSelect={handleVendorSelect}
+          onConfirm={handleVendorConfirm}
+          onCancel={() => {
+            setShowVendorModal(false);
+            setSelectedItem(null);
+            setSelectedVendor(null);
+            setAvailableVendors([]);
+          }}
+        />
       </div>
     </div>
   );
 };
 
-export default CollegePageClient; 
+export default CollegePageClient;
