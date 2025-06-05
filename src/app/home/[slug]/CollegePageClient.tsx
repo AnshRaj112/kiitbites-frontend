@@ -736,7 +736,15 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           setCartItems={setCartItems}
         />
 
-        <SpecialOffersSection items={items} sliderSettings={sliderSettings} />
+        <SpecialOffersSection 
+          items={items} 
+          sliderSettings={sliderSettings}
+          cartItems={cartItems}
+          userFullName={userFullName}
+          handleAddToCart={handleAddToCart}
+          handleIncreaseQuantity={handleIncreaseQuantity}
+          handleDecreaseQuantity={handleDecreaseQuantity}
+        />
 
         <VendorModal
           show={showVendorModal}
