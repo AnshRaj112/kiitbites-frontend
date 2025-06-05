@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-// import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./styles/global.css";
@@ -89,38 +88,42 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [currentVendorId, setCurrentVendorId] = useState<string | null>(null);
+  const [filteredItems, setFilteredItems] = useState<{
+    [key: string]: FoodItem[];
+  }>({});
 
   const currentRequest = useRef<number>(0);
 
-  // Normalize college name for matching
+  /** Helper: Normalize a college name into a slug-like form */
   const normalizeName = (name: string) =>
     name
-      ?.toLowerCase()
+      .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "")
       .replace(/-+/g, "-") || "";
 
-  // Update URL with college ID
+  /** Update the browser URL to include ?cid=<collegeId> without reloading the page */
   const updateUrlWithCollegeId = (collegeId: string) => {
     const currentPath = window.location.pathname;
     const newUrl = `${currentPath}?cid=${collegeId}`;
     window.history.replaceState({}, "", newUrl);
   };
 
-  // Get college list and match collegeName to get actual college id
+  /**
+   * Fetch the full list of colleges, match by slug, and set uniId if found.
+   * Returns true if a match was found; false otherwise.
+   */
   const fetchCollegesAndSetUniId = async (collegeSlug: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
+      const resp = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to fetch colleges");
-      const colleges = (await response.json()) as College[];
+      if (!resp.ok) throw new Error("Failed to fetch colleges");
 
-      // Normalize the input slug
+      const colleges = (await resp.json()) as College[];
       const normalizedSlug = normalizeName(collegeSlug);
 
-      // Find the college that matches the normalized slug
       const matchedCollege = colleges.find((college) => {
         const normalizedCollegeName = normalizeName(college.name);
         return normalizedCollegeName === normalizedSlug;
@@ -133,50 +136,57 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         setLoading(false);
         return true;
       } else {
-        // Only set error if we've actually tried to load the data
         if (colleges.length > 0) {
           setError(`College not found: ${collegeSlug}`);
         }
         setLoading(false);
         return false;
       }
-    } catch (err) {
-      console.error("Error fetching colleges:", err);
+    } catch {
       setError("Failed to load college information");
       setLoading(false);
       return false;
     }
   };
 
-  // On load, determine uniId from multiple sources:
+  /**
+   * On component mount (or when slug/searchParams change), resolve uniId from:
+   *  1) URL query param `cid`
+   *  2) If `cid` is short (<10 chars), do a prefix match against all colleges
+   *  3) If there's a slug prop, fetch colleges by name
+   *  4) localStorage fallback
+   */
   useEffect(() => {
     let isMounted = true;
 
     const resolveCollegeId = async () => {
-      const cid = searchParams.get("cid");
+      const cidParam = searchParams.get("cid");
       const localCollegeId = localStorage.getItem("currentCollegeId");
 
-      if (cid) {
-        if (cid.length < 10) {
+      if (cidParam) {
+        if (cidParam.length < 10) {
           try {
-            const response = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
+            const resp = await fetch(`${BACKEND_URL}/api/user/auth/list`, {
               credentials: "include",
             });
-            if (!response.ok) throw new Error("Failed to fetch colleges");
-            const colleges = (await response.json()) as College[];
-            const found = colleges.find((c) => c._id.startsWith(cid));
-            if (found && isMounted) {
-              setUniId(found._id);
-              localStorage.setItem("currentCollegeId", found._id);
-              updateUrlWithCollegeId(found._id);
-              return;
+            if (resp.ok) {
+              const colleges = (await resp.json()) as College[];
+              const found = colleges.find((c) => c._id.startsWith(cidParam));
+              if (found && isMounted) {
+                setUniId(found._id);
+                localStorage.setItem("currentCollegeId", found._id);
+                updateUrlWithCollegeId(found._id);
+                return;
+              }
             }
-          } catch {}
+          } catch {
+            /* ignore */
+          }
         } else {
           if (isMounted) {
-            setUniId(cid);
-            localStorage.setItem("currentCollegeId", cid);
-            updateUrlWithCollegeId(cid);
+            setUniId(cidParam);
+            localStorage.setItem("currentCollegeId", cidParam);
+            updateUrlWithCollegeId(cidParam);
           }
           return;
         }
@@ -194,59 +204,60 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     };
 
     resolveCollegeId();
-
     return () => {
       isMounted = false;
     };
   }, [slug, searchParams]);
 
-  // Fetch user & favorites
+  /**
+   * Once uniId is available, fetch the user's details and favorites.
+   */
   useEffect(() => {
     const fetchUserAndFavorites = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token || !uniId) return;
+      const token = localStorage.getItem("token");
+      if (!token || !uniId) return;
 
-        // Fetch user data
-        const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+      try {
+        // Fetch user data (contains userId and fullName)
+        const userResp = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!userResponse.ok) return;
-        const userData = await userResponse.json();
+        if (!userResp.ok) return;
+        const userData = await userResp.json();
         setUserFullName(userData.fullName);
         setUserId(userData._id);
 
-        // Fetch favorites using the new API endpoint
-        const favoritesResponse = await fetch(
+        // Fetch this user's favorites for the current college
+        const favResp = await fetch(
           `${BACKEND_URL}/fav/${userData._id}/${uniId}`,
           {
             credentials: "include",
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        if (!favoritesResponse.ok) return;
-        const favoritesData =
-          (await favoritesResponse.json()) as ApiFavoritesResponse;
-        setUserFavorites(favoritesData.favourites);
-      } catch (err) {
-        console.error("Error fetching user or favorites:", err);
+        if (!favResp.ok) return;
+        const favData = (await favResp.json()) as ApiFavoritesResponse;
+        setUserFavorites(favData.favourites);
+      } catch {
         setUserFavorites([]);
       }
     };
+
     fetchUserAndFavorites();
   }, [uniId]);
 
-  // Fetch food items for given uniId and categories
+  /**
+   * Once uniId is set, fetch all menu items for each category/type in parallel.
+   * Uses a "requestId" to ensure that only the latest request "wins" (cancels stale state updates).
+   */
   useEffect(() => {
     if (!uniId) return;
 
     const requestId = ++currentRequest.current;
-
-    const fetchItems = async () => {
+    const fetchAllItems = async () => {
       setLoading(true);
       setError(null);
-
       const allItems: { [key: string]: FoodItem[] } = {};
 
       try {
@@ -254,9 +265,9 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           Object.entries(categories).flatMap(([category, types]) =>
             types.map(async (type) => {
               const url = `${BACKEND_URL}/items/${category}/${type}/${uniId}`;
-              const response = await fetch(url, { credentials: "include" });
-              if (!response.ok) return;
-              const data = (await response.json()) as ApiItem[];
+              const resp = await fetch(url, { credentials: "include" });
+              if (!resp.ok) return;
+              const data = (await resp.json()) as ApiItem[];
               const key = `${category}-${type}`;
               allItems[key] = data.map((item) => ({
                 id: item._id,
@@ -273,13 +284,12 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           )
         );
 
+        // Only set state if this is the most recent request
         if (requestId === currentRequest.current) {
-          console.log("Fetched items:", allItems);
           setItems(allItems);
           setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching items:", error);
+      } catch {
         if (requestId === currentRequest.current) {
           setError("Failed to load items.");
           setLoading(false);
@@ -287,10 +297,13 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       }
     };
 
-    fetchItems();
+    fetchAllItems();
   }, [uniId]);
 
-  // Fetch cart items
+  /**
+   * Whenever userId changes (i.e., once we get it), fetch the cart items.
+   * Also sets currentVendorId based on items in cart (if any).
+   */
   useEffect(() => {
     const loadCartItems = async () => {
       if (!userId) {
@@ -301,18 +314,15 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         const cartData = await fetchCartItems(userId);
         setCartItems(cartData || []);
 
-        // Set current vendor if cart is not empty
         if (cartData && cartData.length > 0) {
           const vendorId = cartData[0].vendorId;
           setCurrentVendorId(vendorId);
-          // Store the vendor ID in localStorage for persistence
           localStorage.setItem("currentVendorId", vendorId);
         } else {
           setCurrentVendorId(null);
           localStorage.removeItem("currentVendorId");
         }
-      } catch (error) {
-        console.error("Error loading cart items:", error);
+      } catch {
         setCartItems([]);
       }
     };
@@ -320,7 +330,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     loadCartItems();
   }, [userId]);
 
-  // Load current vendor ID from localStorage on initial load
+  /** On initial mount, read any saved vendorId from localStorage */
   useEffect(() => {
     const savedVendorId = localStorage.getItem("currentVendorId");
     if (savedVendorId) {
@@ -328,15 +338,12 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     }
   }, []);
 
+  /**
+   * Convert a FavoriteItem into a FoodItem (used by FavoritesSection).
+   */
   const convertFavoriteToFoodItem = (item: FavoriteItem): FoodItem => {
-    console.log("Converting FavoriteItem to FoodItem:", item);
-
-    // Determine if the item is retail based on its category
     const isRetail = categories.retail.includes(item.kind);
-    console.log("Item kind:", item.kind);
-    console.log("Is retail:", isRetail);
-
-    const foodItem: FoodItem = {
+    return {
       id: item._id,
       title: item.name,
       image: item.image,
@@ -346,29 +353,25 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
       price: item.price,
       vendorId: item.vendorId,
     };
-
-    console.log("Converted FoodItem:", foodItem);
-    return foodItem;
   };
 
-  const getFavoriteItems = () => {
+  /**
+   * Return a deduplicated array of favorite items (unique by `_id` + `vendorId`).
+   */
+  const getUniqueFavoriteItems = (): FavoriteItem[] => {
     if (!userFavorites || !Array.isArray(userFavorites)) return [];
-
-    // Create a Map to store unique items by their _id and vendorId combination
-    const uniqueItemsMap = new Map();
-
+    const uniqueMap = new Map<string, FavoriteItem>();
     userFavorites.forEach((item) => {
       const key = `${item._id}-${item.vendorId}`;
-      if (!uniqueItemsMap.has(key)) {
-        uniqueItemsMap.set(key, item);
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
       }
     });
-
-    return Array.from(uniqueItemsMap.values());
+    return Array.from(uniqueMap.values());
   };
+  const favoriteItems = getUniqueFavoriteItems();
 
-  const favoriteItems = getFavoriteItems();
-
+  /** Slider settings stay the same */
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -392,19 +395,20 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     ? slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
     : "College";
 
-  // Filter items based on current vendor and availability
-  const filterItemsByVendor = async (items: FoodItem[]) => {
-    if (!currentVendorId) return items;
+  /**
+   * For a list of FoodItems, fetch vendor availability and return only those items that
+   * are in-stock for the currentVendorId. If no currentVendorId, return the items unchanged.
+   */
+  const filterItemsByVendor = async (itemsToFilter: FoodItem[]) => {
+    if (!currentVendorId) {
+      return itemsToFilter;
+    }
 
     try {
-      // Get all vendors for each item
-      const itemsWithVendors = await Promise.all(
-        items.map(async (item) => {
+      const availableItems = await Promise.all(
+        itemsToFilter.map(async (item) => {
           try {
-            console.log(
-              `Checking availability for item ${item.id} (type: ${item.type})`
-            );
-            const response = await fetch(
+            const resp = await fetch(
               `${BACKEND_URL}/items/vendors/${item.id}`,
               {
                 credentials: "include",
@@ -413,139 +417,71 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                 },
               }
             );
+            if (!resp.ok) return null;
+            const vendors = (await resp.json()) as Vendor[];
 
-            if (!response.ok) {
-              console.error(
-                `Failed to fetch vendors for item ${item.id}:`,
-                await response.text()
-              );
-              return null;
-            }
-
-            const vendors = await response.json();
-            console.log(`Vendors for item ${item.id}:`, vendors);
-
-            // Filter out vendors where the item is not available
-            const availableVendors = vendors.filter((vendor: Vendor) => {
-              if (!vendor.inventoryValue) {
-                console.log(`Vendor ${vendor._id} has no inventoryValue`);
-                return false;
-              }
-
+            // Keep only vendors where inventoryValue indicates availability
+            const filteredVendors = vendors.filter((vendor) => {
+              if (!vendor.inventoryValue) return false;
               if (item.type === "retail") {
-                // For retail items, check quantity from inventoryValue
-                const quantity = vendor.inventoryValue.quantity;
-                console.log(`Vendor ${vendor._id} quantity:`, quantity);
-                // Check if quantity exists and is greater than 0
-                return typeof quantity === "number" && quantity > 0;
+                const qty = vendor.inventoryValue.quantity;
+                return typeof qty === "number" && qty > 0;
               } else {
-                // For produce items, check isAvailable from inventoryValue
                 return vendor.inventoryValue.isAvailable === "Y";
               }
             });
-
-            console.log(`Available vendors:`, availableVendors);
-
-            if (availableVendors.length === 0) {
-              console.log(`No vendors have this item available at the moment`);
-              return null;
-            }
-
-            // Only store the vendor information, don't show the modal
-            return item;
-          } catch (error) {
-            console.error("Error checking item availability:", error);
+            return filteredVendors.length > 0 ? item : null;
+          } catch {
             return null;
           }
         })
       );
-
-      // Filter out null values and return only available items
-      const availableItems = itemsWithVendors.filter(
-        (item): item is FoodItem => item !== null
-      );
-      console.log(`Available items after filtering:`, availableItems);
-      return availableItems;
-    } catch (error) {
-      console.error("Error filtering items:", error);
+      return (availableItems.filter((i): i is FoodItem => i !== null) as FoodItem[]);
+    } catch {
       return [];
     }
   };
 
-  // Add state for filtered items
-  const [filteredItems, setFilteredItems] = useState<{
-    [key: string]: FoodItem[];
-  }>({});
-
-  // Update filtered items when items or currentVendorId changes
+  /**
+   * Whenever `items` or `currentVendorId` changes, recalculate `filteredItems`.
+   */
   useEffect(() => {
     const updateFilteredItems = async () => {
-      const newFilteredItems: { [key: string]: FoodItem[] } = {};
+      const newFiltered: { [key: string]: FoodItem[] } = {};
 
-      for (const [key, categoryItems] of Object.entries(items)) {
-        if (currentVendorId) {
-          // If we have a current vendor, only show items from that vendor
-          newFilteredItems[key] = await filterItemsByVendor(categoryItems);
-        } else {
-          // If no vendor is selected, show all items
-          newFilteredItems[key] = categoryItems;
-        }
-      }
-
-      setFilteredItems(newFilteredItems);
+      await Promise.all(
+        Object.entries(items).map(async ([key, itemList]) => {
+          newFiltered[key] = currentVendorId
+            ? await filterItemsByVendor(itemList)
+            : itemList;
+        })
+      );
+      setFilteredItems(newFiltered);
     };
-
     updateFilteredItems();
   }, [items, currentVendorId]);
 
+  /**
+   * Handle the "Add to Cart" button click.
+   * - If userId is missing, show an error toast.
+   * - If cart already has items, check vendor match and availability.
+   * - If cart is empty, fetch availability across vendors and show modal.
+   */
   const handleAddToCart = async (item: FoodItem) => {
-    console.log("\n=== Starting Add to Cart ===");
-    console.log("Item:", {
-      id: item.id,
-      type: item.type,
-      category: item.category,
-      title: item.title,
-    });
-
-    // Get user details from API
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("❌ No token found");
+    if (!userId) {
       toast.error("Please login to add items to cart");
       return;
     }
 
-    const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!userResponse.ok) {
-      console.log("❌ Failed to fetch user details");
-      toast.error("Please login to add items to cart");
-      return;
-    }
-
-    const userData = await userResponse.json();
-    const currentUserId = userData._id;
-
-    // If cart has items, check if item is from same vendor
+    // If cart already has items, ensure same-vendor rule and check availability
     if (cartItems.length > 0 && currentVendorId) {
-      console.log("Cart has items, checking vendor match");
       if (item.vendorId !== currentVendorId) {
-        console.log("❌ Vendor mismatch:", {
-          itemVendorId: item.vendorId,
-          currentVendorId,
-        });
         toast.error("You can only add items from the same vendor");
         return;
       }
 
-      // Check if this is a favorite item
-      const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
-      const { isAvailable } = isFavoriteItem
+      const isFav = userFavorites.some((fav) => fav._id === item.id);
+      const { isAvailable } = isFav
         ? await checkFavoriteItemAvailability(
             {
               _id: item.id,
@@ -560,28 +496,22 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         : await checkItemAvailability(item, currentVendorId, categories);
 
       if (!isAvailable) {
-        console.log("❌ Item not available at current vendor");
         toast.error("Item is not available at the moment");
         return;
       }
 
-      const success = await addToCart(currentUserId, item, currentVendorId);
+      const success = await addToCart(userId, item, currentVendorId);
       if (success) {
-        console.log("✅ Item added to cart successfully");
-        const cartData = await fetchCartItems(currentUserId);
-        setCartItems(cartData);
-        // Ensure vendor ID is persisted
+        const updatedCart = await fetchCartItems(userId);
+        setCartItems(updatedCart);
         localStorage.setItem("currentVendorId", currentVendorId);
       }
       return;
     }
 
-    // If cart is empty, show vendor selection
-    console.log("Cart is empty, checking item availability");
-
-    // Check if this is a favorite item
-    const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
-    const { isAvailable, vendors } = isFavoriteItem
+    // If cart is empty, check availability across all vendors
+    const isFav = userFavorites.some((fav) => fav._id === item.id);
+    const { vendors } = isFav
       ? await checkFavoriteItemAvailability(
           {
             _id: item.id,
@@ -595,47 +525,33 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         )
       : await checkItemAvailability(item, null, categories);
 
-    console.log("Availability check result:", {
-      isAvailable,
-      vendorsCount: vendors?.length,
-    });
-
     if (!vendors || vendors.length === 0) {
-      console.log("❌ No vendors found");
       toast.error("No vendors have this item available at the moment");
       return;
     }
 
-    // Show all available vendors
     setAvailableVendors(vendors);
     setSelectedItem(item);
     setShowVendorModal(true);
-    console.log(
-      "✅ Vendor modal should be shown with",
-      vendors.length,
-      "vendors"
-    );
   };
 
-  const handleVendorSelect = async (vendor: Vendor) => {
+  /** When a vendor is selected in the modal, store that choice in state. */
+  const handleVendorSelect = (vendor: Vendor) => {
     setSelectedVendor(vendor);
   };
 
+  /** Once the user confirms a vendor, actually add the item to cart under that vendorId */
   const handleVendorConfirm = async () => {
     if (!selectedItem || !selectedVendor || !userId) return;
 
     const success = await addToCart(userId, selectedItem, selectedVendor._id);
     if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
-
-      if (cartData.length > 0) {
+      const updatedCart = await fetchCartItems(userId);
+      setCartItems(updatedCart);
+      if (updatedCart.length > 0) {
         setCurrentVendorId(selectedVendor._id);
-        // Store the vendor ID in localStorage for persistence
         localStorage.setItem("currentVendorId", selectedVendor._id);
       }
-
-      // Close modal and reset state
       setShowVendorModal(false);
       setSelectedItem(null);
       setSelectedVendor(null);
@@ -643,23 +559,24 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     }
   };
 
+  /** Increase the quantity of an item already in cart */
   const handleIncreaseQuantity = async (item: FoodItem) => {
     if (!userId) return;
     const success = await increaseQuantity(userId, item);
     if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
+      const updatedCart = await fetchCartItems(userId);
+      setCartItems(updatedCart);
     }
   };
 
+  /** Decrease the quantity of an item already in cart; if final removal, clear currentVendorId */
   const handleDecreaseQuantity = async (item: FoodItem) => {
     if (!userId) return;
     const success = await decreaseQuantity(userId, item);
     if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
-
-      if (cartData.length === 0) {
+      const updatedCart = await fetchCartItems(userId);
+      setCartItems(updatedCart);
+      if ((updatedCart || []).length === 0) {
         setCurrentVendorId(null);
         localStorage.removeItem("currentVendorId");
       }
@@ -709,7 +626,6 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           types.map((type) => {
             const key = `${category}-${type}`;
             const categoryItems = filteredItems[key] || [];
-
             return (
               <CategorySection
                 key={key}
@@ -736,8 +652,8 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           setCartItems={setCartItems}
         />
 
-        <SpecialOffersSection 
-          items={items} 
+        <SpecialOffersSection
+          items={items}
           sliderSettings={sliderSettings}
           cartItems={cartItems}
           userFullName={userFullName}

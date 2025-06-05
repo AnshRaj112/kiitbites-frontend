@@ -9,162 +9,71 @@ export const checkFavoriteItemAvailability = async (
   categories: { retail: string[]; produce: string[] }
 ): Promise<{ isAvailable: boolean; vendors: Vendor[] | undefined }> => {
   try {
-    console.log('=== Starting Favorite Item Availability Check ===');
-    console.log('Favorite Item:', {
-      id: item._id,
-      type: item.type,
-      kind: item.kind,
-      name: item.name
-    });
-
-    // Get user details from API
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error('No token found');
       toast.error("Please login to add items to cart");
       return { isAvailable: false, vendors: undefined };
     }
 
-    const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+    const userRes = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
       credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-
-    if (!userResponse.ok) {
-      console.error('Failed to fetch user details');
+    if (!userRes.ok) {
       toast.error("Please login to add items to cart");
       return { isAvailable: false, vendors: undefined };
     }
+    const userId = (await userRes.json())._id;
 
-    const userData = await userResponse.json();
-    const userId = userData._id;
+    const [vendorRes, favRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/items/vendors/${item._id}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      fetch(`${BACKEND_URL}/fav/${userId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
 
-    // Get all vendors for the item first
-    const response = await fetch(`${BACKEND_URL}/items/vendors/${item._id}`, {
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`Failed to fetch vendors for favorite item ${item._id}:`, await response.text());
+    if (!vendorRes.ok || !favRes.ok) {
       return { isAvailable: false, vendors: undefined };
     }
 
-    const allVendors = await response.json();
-    console.log('Raw vendor response:', allVendors);
+    const allVendors: Vendor[] = await vendorRes.json();
+    const userFavorites: FavoriteItem[] = (await favRes.json()).favourites || [];
 
-    if (!allVendors || allVendors.length === 0) {
-      console.log('❌ No vendors found in response');
-      return { isAvailable: false, vendors: undefined };
-    }
+    const favoriteVendorSet = new Set(
+      userFavorites
+        .filter((fav) => fav._id === item._id)
+        .map((fav) => fav.vendorId)
+    );
 
-    // Then get user's favorites
-    const favoritesResponse = await fetch(`${BACKEND_URL}/fav/${userId}`, {
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const isRetail = item.kind.toLowerCase() === "retail" || categories.retail.includes(item.kind.toLowerCase());
 
-    if (!favoritesResponse.ok) {
-      console.error('Failed to fetch user favorites');
-      return { isAvailable: false, vendors: undefined };
-    }
-
-    const favoritesData = await favoritesResponse.json();
-    const userFavorites = favoritesData.favourites || [];
-
-    console.log('User favorites:', userFavorites);
-
-    // Filter vendors to only include those where the item is favorited
-    const favoriteVendors = allVendors.filter((vendor: Vendor) => {
-      // Check if this vendor has the item in favorites
-      const isFavoriteVendor = userFavorites.some((fav: FavoriteItem) => {
-        const isMatch = fav._id === item._id && fav.vendorId === vendor._id;
-        console.log(`Checking favorite match:`, {
-          favoriteId: fav._id,
-          itemId: item._id,
-          favoriteVendorId: fav.vendorId,
-          vendorId: vendor._id,
-          isMatch
-        });
-        return isMatch;
-      });
-
-      console.log(`Vendor ${vendor._id} is favorite:`, isFavoriteVendor);
-      return isFavoriteVendor;
-    });
-
-    console.log('Favorite vendors:', favoriteVendors);
-
-    if (favoriteVendors.length === 0) {
-      console.log('❌ No favorite vendors found for this item');
-      return { isAvailable: false, vendors: undefined };
-    }
-
-    // Filter out vendors where the item is not available
-    const availableVendors = favoriteVendors.filter((vendor: Vendor) => {
-      console.log(`\nChecking vendor ${vendor._id}:`, vendor);
-      
-      if (!vendor.inventoryValue) {
-        console.log(`❌ Vendor ${vendor._id} has no inventoryValue`);
-        return false;
-      }
-
-      // Check if the item is retail based on its category
-      const isRetail = item.kind.toLowerCase() === "retail" || categories.retail.includes(item.kind.toLowerCase());
-      console.log(`Item kind: ${item.kind}`);
-      console.log(`Is retail item: ${isRetail}`);
+    const availableVendors = allVendors.filter((vendor) => {
+      if (!favoriteVendorSet.has(vendor._id) || !vendor.inventoryValue) return false;
 
       if (isRetail) {
-        // For retail items, check quantity from inventoryValue
-        const quantity = vendor.inventoryValue.quantity;
-        console.log(`Retail item - Vendor ${vendor._id} quantity:`, quantity);
-        // Check if quantity exists and is greater than 0
-        const isAvailable = typeof quantity === "number" && quantity > 0;
-        console.log(`Retail item - Vendor ${vendor._id} is available:`, isAvailable);
-        return isAvailable;
+        return typeof vendor.inventoryValue.quantity === "number" && vendor.inventoryValue.quantity > 0;
       } else {
-        // For produce items, check isAvailable from inventoryValue
-        const isAvailable = vendor.inventoryValue.isAvailable === "Y";
-        console.log(`Produce item - Vendor ${vendor._id} isAvailable:`, vendor.inventoryValue.isAvailable);
-        console.log(`Produce item - Vendor ${vendor._id} is available:`, isAvailable);
-        return isAvailable;
+        return vendor.inventoryValue.isAvailable === "Y";
       }
     });
 
-    console.log('\n=== Availability Check Results ===');
-    console.log('Total favorite vendors:', favoriteVendors.length);
-    console.log('Available vendors:', availableVendors.length);
-    console.log('Available vendors details:', availableVendors);
-
-    // If currentVendorId is provided, check if that vendor is available
     if (currentVendorId) {
-      const currentVendor = availableVendors.find(
-        (v: Vendor) => v._id === currentVendorId
-      );
-      console.log('Current vendor check:', {
-        currentVendorId,
-        found: !!currentVendor,
-        vendor: currentVendor
-      });
+      const currentVendor = availableVendors.find((v) => v._id === currentVendorId);
       return {
         isAvailable: !!currentVendor,
         vendors: currentVendor ? [currentVendor] : undefined,
       };
     }
 
-    // Return all available vendors if no currentVendorId is provided
-    return { 
-      isAvailable: availableVendors.length > 0, 
-      vendors: availableVendors.length > 0 ? availableVendors : undefined 
+    return {
+      isAvailable: availableVendors.length > 0,
+      vendors: availableVendors.length > 0 ? availableVendors : undefined,
     };
-  } catch (error) {
-    console.error("Error checking favorite item availability:", error);
+  } catch {
     return { isAvailable: false, vendors: undefined };
   }
 };
@@ -176,38 +85,25 @@ export const addFavoriteToCart = async (
   categories: { retail: string[]; produce: string[] }
 ): Promise<boolean> => {
   try {
-    console.log('=== Adding Favorite Item to Cart ===');
-    console.log('Item:', {
-      id: item._id,
-      name: item.name,
-      vendorId: vendorId
-    });
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      return false;
+    }
 
     if (!vendorId) {
-      console.error('No vendor ID provided');
       toast.error("Please select a vendor first");
       return false;
     }
 
-    // Determine if the item is retail based on its kind
     const isRetail = item.kind.toLowerCase() === "retail" || categories.retail.includes(item.kind.toLowerCase());
-    const kind = isRetail ? "Retail" : "Produce";
-    
+
     const requestData = {
       itemId: item._id,
-      kind: kind,
+      kind: isRetail ? "Retail" : "Produce",
       quantity: 1,
-      vendorId: vendorId,
+      vendorId,
     };
-    
-    console.log('Cart request data:', requestData);
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error('No token found');
-      toast.error("Please login to add items to cart");
-      return false;
-    }
 
     const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
       method: "POST",
@@ -220,20 +116,16 @@ export const addFavoriteToCart = async (
     });
 
     const responseData = await response.json();
-    console.log('Cart add response:', responseData);
-
     if (!response.ok) {
       throw new Error(responseData.message || "Failed to add item to cart");
     }
 
-    console.log('✅ Item added to cart successfully');
     toast.success(`${item.name} added to cart!`);
     return true;
   } catch (error) {
-    console.error("Error adding favorite to cart:", error);
     toast.error(
       error instanceof Error ? error.message : "Failed to add item to cart"
     );
     return false;
   }
-}; 
+};
