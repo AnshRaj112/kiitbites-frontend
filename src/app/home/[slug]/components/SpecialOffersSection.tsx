@@ -142,7 +142,14 @@ const SpecialOffersSection = ({
           return;
         }
 
-        setAvailableVendors(available);
+        // Filter vendors to only show those matching the current cart vendor
+        const matchingVendors = available.filter((vendor: Vendor) => vendor._id === currentVendorId);
+        if (matchingVendors.length === 0) {
+          toast.error("This item is not available from your current cart's vendor");
+          return;
+        }
+
+        setAvailableVendors(matchingVendors);
         setSelectedItem(item);
         setShowVendorModal(true);
         return;
@@ -151,8 +158,6 @@ const SpecialOffersSection = ({
       // If vendorId matches cart vendorId, add directly
       if (item.vendorId === currentVendorId) {
         await handleAddToCart(item);
-        // Force a re-render by updating the loading state
-        setLoadingItems(prev => ({ ...prev, [item.id]: false }));
         return;
       }
 
@@ -190,9 +195,9 @@ const SpecialOffersSection = ({
       <div className={styles.carouselContainer}>
         <Slider {...sliderSettings} className={styles.slider}>
           {specialItems.map(item => {
-            const cartItem = cartItems.find(
+            const cartItem = Array.isArray(cartItems) ? cartItems.find(
               cItem => cItem.itemId === item.id && cItem.vendorId === item.vendorId
-            );
+            ) : null;
             const quantity = cartItem?.quantity || 0;
             const isLoading = loadingItems[item.id];
 
@@ -204,44 +209,41 @@ const SpecialOffersSection = ({
                   </div>
                   <h4 className={styles.foodTitle}>{item.title}</h4>
                   <p className={styles.foodPrice}>₹{item.price}</p>
-                  {userFullName && (
-                    <div className={styles.quantityControls}>
-                      {quantity > 0 ? (
-                        <>
-                          <button
-                            className={styles.quantityButton}
-                            onClick={() => handleDecreaseQuantity(item)}
-                            disabled={isLoading}
-                          >
-                            <Minus size={16} />
-                          </button>
-                          <span className={styles.quantity}>{quantity}</span>
-                          <button
-                            className={styles.quantityButton}
-                            onClick={() => handleIncreaseQuantity(item)}
-                            disabled={isLoading}
-                          >
-                            <Plus size={16} />
-                          </button>
-                        </>
-                      ) : (
+                  {userFullName &&
+                    (quantity > 0 ? (
+                      <div className={styles.quantityControls}>
                         <button
-                          className={`${styles.addToCartButton} ${isLoading ? styles.loading : ""}`}
-                          onClick={() => handleSpecialAddToCart(item)}
+                          className={styles.quantityButton}
+                          onClick={() => handleDecreaseQuantity(item)}
                           disabled={isLoading}
                         >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className={styles.spinner} size={16} />
-                              Adding...
-                            </>
-                          ) : (
-                            "Add to Cart"
-                          )}
+                          <Minus size={16} />
                         </button>
-                      )}
-                    </div>
-                  )}
+                        <span className={styles.quantity}>{quantity}</span>
+                        <button
+                          className={styles.quantityButton}
+                          onClick={() => handleIncreaseQuantity(item)}
+                          disabled={isLoading}
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className={`${styles.addToCartButton} ${isLoading ? styles.loading : ""}`}
+                        onClick={() => handleSpecialAddToCart(item)}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className={styles.spinner} size={16} />
+                            Adding...
+                          </>
+                        ) : (
+                          "Add to Cart"
+                        )}
+                      </button>
+                    ))}
                 </div>
               </div>
             );

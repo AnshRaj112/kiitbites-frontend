@@ -200,9 +200,9 @@ const FavoritesSection = ({
           className={styles.slider}
         >
           {favoriteItems.map((item) => {
-            const cartItem = cartItems.find(
+            const cartItem = Array.isArray(cartItems) ? cartItems.find(
               (cartItem) => cartItem.itemId === item._id
-            );
+            ) : null;
             const quantity = cartItem?.quantity || 0;
 
             return (
