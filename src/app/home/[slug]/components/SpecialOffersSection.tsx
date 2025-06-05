@@ -1,8 +1,8 @@
+import { Plus, Minus, Loader2 } from "lucide-react";
 import Slider, { Settings } from "react-slick";
-import { Plus, Minus } from "lucide-react";
-import { useState } from "react";
 import styles from "../styles/CollegePage.module.scss";
 import { FoodItem, CartItem, Vendor } from "../types";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import VendorModal from "./VendorModal";
 
@@ -14,38 +14,43 @@ interface SpecialOffersSectionProps {
   cartItems: CartItem[];
   userFullName: string;
   handleAddToCart: (item: FoodItem) => Promise<void>;
-  handleIncreaseQuantity: (item: FoodItem) => Promise<void>;
-  handleDecreaseQuantity: (item: FoodItem) => Promise<void>;
+  handleIncreaseQuantity: (item: FoodItem) => void;
+  handleDecreaseQuantity: (item: FoodItem) => void;
 }
 
-const SpecialOffersSection = ({ 
-  items, 
-  sliderSettings, 
+const SpecialOffersSection = ({
+  items,
+  sliderSettings,
   cartItems = [],
   userFullName,
   handleAddToCart,
   handleIncreaseQuantity,
-  handleDecreaseQuantity
+  handleDecreaseQuantity,
 }: SpecialOffersSectionProps) => {
+  const [loadingItems, setLoadingItems] = useState<{ [key: string]: boolean }>({});
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
 
+  // Flatten all special items from items object
   const specialItems = Object.values(items)
     .flat()
-    .filter((item) => item.isSpecial === "Y");
+    .filter(item => item.isSpecial === "Y");
 
   if (specialItems.length === 0) return null;
 
   const handleSpecialAddToCart = async (item: FoodItem) => {
     try {
+      setLoadingItems(prev => ({ ...prev, [item.id]: true }));
+
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("Please login to add items to cart");
         return;
       }
 
+      // Fetch user info
       const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
@@ -59,90 +64,143 @@ const SpecialOffersSection = ({
       const userData = await userResponse.json();
       const userId = userData._id;
 
+      // Fetch cart data
       const cartResponse = await fetch(`${BACKEND_URL}/cart/${userId}`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!cartResponse.ok) {
-        console.error('Failed to fetch cart items');
+        toast.error("Failed to fetch cart data");
         return;
       }
 
       const cartData = await cartResponse.json();
-      const currentVendorId = cartData.length > 0 ? cartData[0].vendorId : null;
 
-      if (cartData.length > 0 && currentVendorId) {
-        if (item.vendorId !== currentVendorId) {
-          toast.error("You can only add items from the same vendor");
+      // Cart empty or invalid? Show vendor modal after fetching vendors
+      if (!Array.isArray(cartData) || cartData.length === 0) {
+        const vendorsResponse = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!vendorsResponse.ok) {
+          toast.error("Failed to fetch available vendors");
           return;
         }
-        await handleAddToCart(item);
-        return;
-      }
 
-      // Fetch vendors for this special item
-      const vendorsResponse = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        const vendors = await vendorsResponse.json();
+        const available = vendors.filter((vendor: Vendor) => {
+          if (!vendor.inventoryValue) return false;
+          return (
+            vendor.inventoryValue.isAvailable === "Y" ||
+            (vendor.inventoryValue.quantity !== undefined && vendor.inventoryValue.quantity > 0)
+          );
+        });
 
-      if (!vendorsResponse.ok) {
-        toast.error("Failed to fetch available vendors");
-        return;
-      }
-
-      const vendors = await vendorsResponse.json();
-      const specialVendors = vendors.filter((vendor: Vendor) => {
-        if (!vendor.inventoryValue) {
-          return false;
+        if (available.length === 0) {
+          toast.error("No vendors have this item available");
+          return;
         }
-        return vendor.inventoryValue.isAvailable === "Y" || (vendor.inventoryValue.quantity !== undefined && vendor.inventoryValue.quantity > 0);
-      });
 
-      if (specialVendors.length === 0) {
-        toast.error("No vendors have this special item available");
+        setAvailableVendors(available);
+        setSelectedItem(item);
+        setShowVendorModal(true);
         return;
       }
 
-      setAvailableVendors(specialVendors);
-      setSelectedItem(item);
-      setShowVendorModal(true);
+      // Get vendorId from first cart item to check for vendor consistency
+      const currentVendorId = cartData[0].vendorId;
+      if (!currentVendorId) {
+        toast.error("Error processing your cart");
+        return;
+      }
+
+      // If the item has no vendorId, show vendor modal
+      if (!item.vendorId) {
+        const vendorsResponse = await fetch(`${BACKEND_URL}/items/vendors/${item.id}`, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!vendorsResponse.ok) {
+          toast.error("Failed to fetch available vendors");
+          return;
+        }
+
+        const vendors = await vendorsResponse.json();
+        const available = vendors.filter((vendor: Vendor) => {
+          if (!vendor.inventoryValue) return false;
+          return (
+            vendor.inventoryValue.isAvailable === "Y" ||
+            (vendor.inventoryValue.quantity !== undefined && vendor.inventoryValue.quantity > 0)
+          );
+        });
+
+        if (available.length === 0) {
+          toast.error("No vendors have this item available");
+          return;
+        }
+
+        setAvailableVendors(available);
+        setSelectedItem(item);
+        setShowVendorModal(true);
+        return;
+      }
+
+      // If vendorId matches cart vendorId, add directly
+      if (item.vendorId === currentVendorId) {
+        await handleAddToCart(item);
+        // Force a re-render by updating the loading state
+        setLoadingItems(prev => ({ ...prev, [item.id]: false }));
+        return;
+      }
+
+      // Vendor mismatch, show error
+      toast.error("You can only add items from the same vendor");
     } catch (error) {
-      console.error("Error adding special item to cart:", error);
+      console.error("Error adding item to cart:", error);
       toast.error("Failed to add item to cart");
+    } finally {
+      setLoadingItems(prev => ({ ...prev, [item.id]: false }));
     }
   };
 
   const handleVendorConfirm = async () => {
     if (!selectedItem || !selectedVendor) return;
-    await handleAddToCart(selectedItem);
-    setShowVendorModal(false);
-    setSelectedItem(null);
-    setSelectedVendor(null);
-    setAvailableVendors([]);
+    try {
+      setLoadingItems(prev => ({ ...prev, [selectedItem.id]: true }));
+      const itemWithVendor = { ...selectedItem, vendorId: selectedVendor._id };
+      await handleAddToCart(itemWithVendor);
+      setShowVendorModal(false);
+      setSelectedItem(null);
+      setSelectedVendor(null);
+      setAvailableVendors([]);
+    } catch (error) {
+      console.error("Error confirming vendor selection:", error);
+      toast.error("Failed to add item to cart");
+    } finally {
+      setLoadingItems(prev => ({ ...prev, [selectedItem!.id]: false }));
+    }
   };
 
   return (
-    <div className={styles.specialSection}>
+    <section className={styles.specialSection}>
       <h2 className={styles.specialTitle}>Special Offers</h2>
       <div className={styles.carouselContainer}>
         <Slider {...sliderSettings} className={styles.slider}>
-          {specialItems.map((item) => {
+          {specialItems.map(item => {
             const cartItem = cartItems.find(
-              (cartItem) => cartItem.itemId === item.id && cartItem.vendorId === item.vendorId
+              cItem => cItem.itemId === item.id && cItem.vendorId === item.vendorId
             );
             const quantity = cartItem?.quantity || 0;
+            const isLoading = loadingItems[item.id];
 
             return (
               <div key={item.id} className={styles.slideWrapper}>
                 <div className={styles.foodCard}>
                   <div className={styles.imageContainer}>
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className={styles.foodImage}
-                    />
+                    <img src={item.image} alt={item.title} className={styles.foodImage} />
                   </div>
                   <h4 className={styles.foodTitle}>{item.title}</h4>
                   <p className={styles.foodPrice}>₹{item.price}</p>
@@ -153,6 +211,7 @@ const SpecialOffersSection = ({
                           <button
                             className={styles.quantityButton}
                             onClick={() => handleDecreaseQuantity(item)}
+                            disabled={isLoading}
                           >
                             <Minus size={16} />
                           </button>
@@ -160,16 +219,25 @@ const SpecialOffersSection = ({
                           <button
                             className={styles.quantityButton}
                             onClick={() => handleIncreaseQuantity(item)}
+                            disabled={isLoading}
                           >
                             <Plus size={16} />
                           </button>
                         </>
                       ) : (
                         <button
-                          className={styles.addToCartButton}
+                          className={`${styles.addToCartButton} ${isLoading ? styles.loading : ""}`}
                           onClick={() => handleSpecialAddToCart(item)}
+                          disabled={isLoading}
                         >
-                          Add to Cart
+                          {isLoading ? (
+                            <>
+                              <Loader2 className={styles.spinner} size={16} />
+                              Adding...
+                            </>
+                          ) : (
+                            "Add to Cart"
+                          )}
                         </button>
                       )}
                     </div>
@@ -194,8 +262,8 @@ const SpecialOffersSection = ({
           setAvailableVendors([]);
         }}
       />
-    </div>
+    </section>
   );
 };
 
-export default SpecialOffersSection; 
+export default SpecialOffersSection;

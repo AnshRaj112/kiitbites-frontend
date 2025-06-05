@@ -7,7 +7,7 @@ export interface FoodItem {
   isSpecial: string;
   collegeId?: string;
   price: number;
-  vendorId?: string;
+  vendorId?: string | null;
 }
 
 export interface FavoriteItem {
@@ -62,4 +62,5 @@ export interface ApiItem {
   collegeId?: string;
   category?: string;
   price: number;
+  vendorId?: string;
 } 
