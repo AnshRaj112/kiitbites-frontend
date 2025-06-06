@@ -11,7 +11,6 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 interface University {
   _id: string;
   fullName: string;
-  // Add other fields if needed
 }
 
 interface FoodItem {
@@ -21,10 +20,15 @@ interface FoodItem {
   price: number;
   image: string;
   isSpecial: string;
+  source: string;
   vendorId?: {
     location?: string;
-    // Add other fields if needed
   };
+}
+
+interface Vendor {
+  _id: string;
+  name: string;
 }
 
 type SearchFoodItem = {
@@ -32,19 +36,20 @@ type SearchFoodItem = {
   name: string;
   price: number;
   image: string;
+  type: string;
+  source: string;
   vendorLocation?: string;
+  isTypeMatch?: boolean;
 };
-
 
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState<string>("");
-  // const [suggestions, setSuggestions] = useState<string[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");
   const [popularFoods, setPopularFoods] = useState<FoodItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchFoodItem[]>([]);
-  // const [userUniversity, setUserUniversity] = useState<string | null>(null);
-  // const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [vendorResults, setVendorResults] = useState<Vendor[]>([]);
+  const [activeTab, setActiveTab] = useState<'items' | 'vendors'>('items');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -52,8 +57,7 @@ const SearchBar: React.FC = () => {
     setQuery(searchParams.get("search") || "");
   }, [searchParams]);
 
-
-  // Load universities
+  // Load universities and user data
   useEffect(() => {
     const fetchUniversities = async () => {
       try {
@@ -65,20 +69,6 @@ const SearchBar: React.FC = () => {
       }
     };
 
-    // const fetchUser = async () => {
-    //   try {
-    //     const res = await fetch('${', {
-    //       credentials: "include",
-    //     });
-    //     const user = await res.json();
-    //     if (user?.uniID) {
-    //       setUserUniversity(user.uniID);
-    //       setSelectedUniversity(user.uniID);
-    //     }
-    //   } finally {
-    //     setIsUserLoaded(true);
-    //   }
-    // };
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
       try {
@@ -87,10 +77,7 @@ const SearchBar: React.FC = () => {
         });
     
         const user = await res.json();
-        console.log("Fetched user:", user); // ✅ DEBUG LOG
-    
         if (user?.uniID) {
-          // setUserUniversity(user.uniID);
           setSelectedUniversity(user.uniID);
         } else {
           console.warn("No uniID found in user object");
@@ -99,34 +86,12 @@ const SearchBar: React.FC = () => {
         console.error("Failed to fetch user:", error);
       }
     };
-    
 
     fetchUniversities();
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    console.log("Selected University:", selectedUniversity);
-  }, [selectedUniversity]);
-  
-
   // Load popular foods
-  // useEffect(() => {
-  //   if (!selectedUniversity) return;
-  //   const fetchPopularFoods = async () => {
-  //     try {
-  //       const res = await fetch(`${BACKEND_URL}/items/popular-foods?uniID=${selectedUniversity}`);
-  //       const data = await res.json();
-  //       setPopularFoods(data);
-  //     } catch (error) {
-  //       console.error("Error fetching popular foods:", error);
-  //     }
-  //   };
-
-  //   fetchPopularFoods();
-  // }, [selectedUniversity]);
-
-//popularfood
   useEffect(() => {
     if (!selectedUniversity) return;
   
@@ -142,10 +107,7 @@ const SearchBar: React.FC = () => {
           produceRes.json(),
         ]);
   
-        // You can optionally sort or filter here
         const combined = [...retailData.items, ...produceData.items];
-  
-        // Limit to top 10 or whatever
         setPopularFoods(combined.slice(0, 24));
       } catch (error) {
         console.error("Error fetching popular foods:", error);
@@ -154,17 +116,43 @@ const SearchBar: React.FC = () => {
   
     fetchPopularFoods();
   }, [selectedUniversity]);
-  
 
-  // Search foods
+  // Search foods and vendors
   const fetchSearchResults = async (searchText: string) => {
+    if (!selectedUniversity) return;
+
     try {
-      const res = await fetch(`${BACKEND_URL}/items/foods?query=${searchText}&uniID=${selectedUniversity}`);
-      const data = await res.json();
-      setSearchResults(data);
-      console.log(data)
+      // First, try to find items that match the search text
+      const [itemsRes, vendorsRes] = await Promise.all([
+        fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}`),
+        fetch(`${BACKEND_URL}/items/search/vendors?query=${searchText}&uniID=${selectedUniversity}`)
+      ]);
+
+      const [itemsData, vendorsData] = await Promise.all([
+        itemsRes.json(),
+        vendorsRes.json()
+      ]);
+
+      // If no exact matches found, try to find items by type
+      if (!Array.isArray(itemsData) || itemsData.length === 0) {
+        // Try to find items by type
+        const typeRes = await fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}&searchByType=true`);
+        const typeData = await typeRes.json();
+        
+        if (Array.isArray(typeData) && typeData.length > 0) {
+          setSearchResults(typeData);
+        } else {
+          setSearchResults([]);
+        }
+      } else {
+        setSearchResults(itemsData);
+      }
+
+      setVendorResults(Array.isArray(vendorsData) ? vendorsData : []);
     } catch (error) {
       console.error("Error fetching search results:", error);
+      setSearchResults([]);
+      setVendorResults([]);
     }
   };
 
@@ -172,14 +160,12 @@ const SearchBar: React.FC = () => {
     const value = e.target.value;
     setQuery(value);
     router.push(`?search=${value}`, undefined);
-    // setSuggestions([]);
     fetchSearchResults(value);
   };
 
   const handleSelectSuggestion = async (foodName: string) => {
     setQuery(foodName);
     router.push(`?search=${foodName}`, undefined);
-    // setSuggestions([]);
     fetchSearchResults(foodName);
 
     await fetch(`${BACKEND_URL}/api/increase-search`, {
@@ -196,83 +182,110 @@ const SearchBar: React.FC = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className={styles.container}>
-      <div className={styles.header}>
-        <div
-          className={`${styles.selectBar} ${
-            query !== "" ? styles.selectBarHidden : ""
-          }`}
-        >
-          {selectedUniversity ? (
-            <select
-              value={selectedUniversity}
-              onChange={handleUniversityChange}
-              className={styles.dropdown}
-            >
-              {/* <option value="">Select University</option> */}
-              {universities.map((uni) => (
-                <option key={uni._id} value={uni._id}>
-                  {uni.fullName}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <select disabled className={styles.dropdown}>
-              <option>Loading Universities...</option>
-            </select>
-          )}
-        </div>
+        <div className={styles.header}>
+          <div className={`${styles.selectBar} ${query !== "" ? styles.selectBarHidden : ""}`}>
+            {selectedUniversity ? (
+              <select
+                value={selectedUniversity}
+                onChange={handleUniversityChange}
+                className={styles.dropdown}
+              >
+                {universities.map((uni) => (
+                  <option key={uni._id} value={uni._id}>
+                    {uni.fullName}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select disabled className={styles.dropdown}>
+                <option>Loading Universities...</option>
+              </select>
+            )}
+          </div>
 
-        <div
-          className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}
-        >
-          <div className={styles.searchInputWrapper}>
-            <input
-              type="text"
-              value={query}
-              onChange={handleInputChange}
-              placeholder="Search for food..."
-              className={styles.searchInput}
-            />
-            <FaSearch className={styles.searchIcon} />
+          <div className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}>
+            <div className={styles.searchInputWrapper}>
+              <input
+                type="text"
+                value={query}
+                onChange={handleInputChange}
+                placeholder="Search for food or vendors..."
+                className={styles.searchInput}
+              />
+              <FaSearch className={styles.searchIcon} />
+            </div>
           </div>
         </div>
-      </div>
 
+        {query !== "" && (
+          <div className={styles.searchTabs}>
+            <button 
+              className={`${styles.tabButton} ${activeTab === 'items' ? styles.active : ''}`}
+              onClick={() => setActiveTab('items')}
+            >
+              Items
+            </button>
+            <button 
+              className={`${styles.tabButton} ${activeTab === 'vendors' ? styles.active : ''}`}
+              onClick={() => setActiveTab('vendors')}
+            >
+              Vendors
+            </button>
+          </div>
+        )}
 
-
-        {query === "" && (
+        {query === "" ? (
           <div className={styles.popularChoices}>
-            {/* <h1>Popular Choices</h1> */}
             <h2 className="text-xl font-bold mb-2">Popular Choices</h2>
             <div className={styles.popularGrid}>
-              {popularFoods.map((food) => (
+              {Array.isArray(popularFoods) && popularFoods.map((food) => (
                 <div key={food._id} className={styles.foodCard} onClick={() => handleSelectSuggestion(food.name)}>
-                  <h2 className="font-semibold">{food.name}</h2>
-                  <p className="text-sm text-gray-500">₹ {food.price}</p>
+                  <DishCard
+                    dishName={food.name}
+                    price={food.price}
+                    image={food.image}
+                    variant="search-result"
+                  />
                 </div>
               ))}
             </div>
           </div>
-        )}
-
-        {query !== "" && (
+        ) : (
           <div className={styles.searchResults}>
-            <h2 className="text-xl font-bold mb-2">Search Results</h2>
-            {Array.isArray(searchResults) && searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.map((food) => (
-                  <div key={food._id}>
+            {activeTab === 'items' ? (
+              <div className={styles.resultsGrid}>
+                {Array.isArray(searchResults) && searchResults.map((item) => (
+                  <div key={item._id} className={styles.resultCard}>
                     <DishCard
-                      dishName={food.name}
-                      price={food.price}
-                      image={food.image}
+                      dishName={item.name}
+                      price={item.price}
+                      image={item.image}
                       variant="search-result"
                     />
+                    <div className={styles.itemDetails}>
+                      <p className="text-sm text-gray-600">Type: {item.type}</p>
+                      <p className="text-xs text-gray-500">Source: {item.source}</p>
+                      {item.isTypeMatch && (
+                        <p className="text-xs text-blue-500 mt-1">Similar item type</p>
+                      )}
+                    </div>
                   </div>
                 ))}
+                {(!Array.isArray(searchResults) || searchResults.length === 0) && (
+                  <p className={styles.noResults}>No items found</p>
+                )}
               </div>
             ) : (
-              <p className="text-gray-500">No results found.</p>
+              <div className={styles.vendorResults}>
+                {Array.isArray(vendorResults) && vendorResults.map((vendor) => (
+                  <div key={vendor._id} className={styles.vendorCard}>
+                    <h3 className="font-semibold">{vendor.name}</h3>
+                  </div>
+                ))}
+                {(!Array.isArray(vendorResults) || vendorResults.length === 0) && (
+                  <p className={styles.noResults}>No vendors found</p>
+                )}
+              </div>
             )}
           </div>
         )}
