@@ -17,18 +17,23 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
   const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState(false);
-  const { cartItems, addItemToCart, increaseItemQuantity, decreaseItemQuantity, refreshCart } = useCart();
+  const { cartItems, addItemToCart, increaseItemQuantity, decreaseItemQuantity } = useCart();
 
   // Find the cart item for this product
   const cartItem = cartItems.find(
-    (cartItem) => cartItem.itemId === item.id && cartItem.vendorId === item.vendorId
+    (cartItem) => cartItem.itemId === item.id
   );
   const quantity = cartItem?.quantity || 0;
 
-  // Refresh cart when component mounts
+  // Debug log for cart state
   useEffect(() => {
-    refreshCart();
-  }, []);
+    console.log('Cart state updated:', {
+      itemId: item.id,
+      cartItems,
+      foundItem: cartItem,
+      quantity
+    });
+  }, [cartItems, item.id, cartItem, quantity]);
 
   const handleAddToCart = async () => {
     try {
@@ -63,11 +68,16 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
 
     try {
       setLoading(true);
-      await addItemToCart(item, selectedVendor);
-      await refreshCart(); // Ensure cart is refreshed after adding
+      // Create a new item object with the selected vendor ID
+      const itemWithVendor = {
+        ...item,
+        vendorId: selectedVendor._id
+      };
+      console.log('Adding item with vendor:', itemWithVendor);
+      await addItemToCart(itemWithVendor, selectedVendor);
       setShowVendorModal(false);
       setSelectedVendor(null);
-      setAvailableVendors([]); // Clear available vendors
+      setAvailableVendors([]);
     } catch (error) {
       console.error('Error adding item to cart:', error);
       toast.error('Failed to add item to cart');
@@ -79,30 +89,62 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
   const handleCancel = () => {
     setShowVendorModal(false);
     setSelectedVendor(null);
-    setAvailableVendors([]); // Clear available vendors
+    setAvailableVendors([]);
   };
 
   const handleIncreaseQuantity = async () => {
+    if (!cartItem) {
+      // If no item in cart, show vendor modal first
+      handleAddToCart();
+      return;
+    }
+    
     try {
       setLoading(true);
-      await increaseItemQuantity(item);
-      await refreshCart(); // Ensure cart is refreshed after increasing
+      // Create a new item object with the existing vendor ID
+      const itemWithVendor = {
+        ...item,
+        vendorId: cartItem.vendorId
+      };
+      console.log('Increasing quantity for item:', itemWithVendor);
+      await increaseItemQuantity(itemWithVendor);
     } catch (error) {
       console.error('Error increasing quantity:', error);
-      toast.error('Failed to increase quantity');
+      if (error instanceof Error) {
+        if (error.message.includes("max quantity")) {
+          toast.warning(`Maximum limit reached for ${item.title}`);
+        } else if (error.message.includes("Only")) {
+          toast.warning(`Only ${error.message.split("Only ")[1]} available for ${item.title}`);
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error('Failed to increase quantity');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleDecreaseQuantity = async () => {
+    if (!cartItem) return;
+    
     try {
       setLoading(true);
-      await decreaseItemQuantity(item);
-      await refreshCart(); // Ensure cart is refreshed after decreasing
+      // Create a new item object with the existing vendor ID
+      const itemWithVendor = {
+        ...item,
+        vendorId: cartItem.vendorId
+      };
+      console.log('Decreasing quantity for item:', itemWithVendor);
+      await decreaseItemQuantity(itemWithVendor);
     } catch (error) {
       console.error('Error decreasing quantity:', error);
-      toast.error('Failed to decrease quantity');
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to decrease quantity');
+      }
     } finally {
       setLoading(false);
     }
@@ -117,25 +159,24 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
           </div>
           <h4 className={styles.foodTitle}>{item.title}</h4>
           <p className={styles.foodPrice}>₹{item.price}</p>
-          {quantity > 0 ? (
-            <div className={styles.quantityControls}>
-              <button
-                className={styles.quantityButton}
-                onClick={handleDecreaseQuantity}
-                disabled={loading}
-              >
-                <Minus size={16} />
-              </button>
-              <span className={styles.quantity}>{quantity}</span>
-              <button
-                className={styles.quantityButton}
-                onClick={handleIncreaseQuantity}
-                disabled={loading}
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-          ) : (
+          <div className={styles.quantityControls}>
+            <button
+              className={`${styles.quantityButton} ${quantity === 0 ? styles.disabled : ''}`}
+              onClick={handleDecreaseQuantity}
+              disabled={loading || quantity === 0}
+            >
+              <Minus size={16} />
+            </button>
+            <span className={styles.quantity}>{quantity}</span>
+            <button
+              className={styles.quantityButton}
+              onClick={handleIncreaseQuantity}
+              disabled={loading}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+          {quantity === 0 && (
             <button
               className={`${styles.addToCartButton} ${loading ? styles.loading : ''}`}
               onClick={handleAddToCart}

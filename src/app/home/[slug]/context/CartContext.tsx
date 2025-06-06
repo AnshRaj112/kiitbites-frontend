@@ -1,115 +1,165 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, FoodItem, Vendor } from '../types';
-import { fetchCartItems, addToCart, increaseQuantity, decreaseQuantity } from '../utils/cartUtils';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { FoodItem, CartItem, Vendor } from '../types';
+import { addToCart, increaseQuantity, decreaseQuantity } from '../utils/cartUtils';
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 interface CartContextType {
   cartItems: CartItem[];
-  loading: boolean;
   addItemToCart: (item: FoodItem, vendor: Vendor) => Promise<void>;
   increaseItemQuantity: (item: FoodItem) => Promise<void>;
   decreaseItemQuantity: (item: FoodItem) => Promise<void>;
   refreshCart: () => Promise<void>;
 }
 
+interface CartResponseItem {
+  itemId: string;
+  name: string;
+  image: string;
+  unit: string;
+  price: number;
+  quantity: number;
+  kind: string;
+  totalPrice: number;
+}
+
+interface CartResponse {
+  cart: CartResponseItem[];
+  vendorId: string;
+  vendorName: string;
+}
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider = ({ children, userId }: { children: ReactNode; userId: string }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
 
-  const refreshCart = async () => {
-    if (!userId) return;
+interface CartProviderProps {
+  children: React.ReactNode;
+  userId: string;
+}
+
+export const CartProvider = ({ children, userId }: CartProviderProps) => {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshCart = useCallback(async () => {
+    if (!userId || isRefreshing) return;
     
     try {
-      setLoading(true);
-      const items = await fetchCartItems(userId);
-      setCartItems(items);
+      setIsRefreshing(true);
+      const response = await fetch(`${BACKEND_URL}/cart/${userId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Failed to fetch cart items:', error);
+        throw new Error(error.message);
+      }
+
+      const data = await response.json() as CartResponse;
+      console.log('Raw API response:', data);
+
+      // Transform the cart items to match our expected structure
+      const transformedItems = data.cart.map((item) => ({
+        _id: item.itemId,
+        itemId: item.itemId,
+        quantity: item.quantity,
+        kind: item.kind,
+        vendorId: data.vendorId,
+        vendorName: data.vendorName
+      }));
+
+      console.log('Transformed cart items:', transformedItems);
+      setCartItems(transformedItems);
     } catch (error) {
       console.error('Error refreshing cart:', error);
       toast.error('Failed to refresh cart');
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, [userId]);
 
+  // Initial cart load and refresh on mount
   useEffect(() => {
     if (userId) {
       refreshCart();
     }
-  }, [userId]);
+  }, [userId, refreshCart]);
 
   const addItemToCart = async (item: FoodItem, vendor: Vendor) => {
-    if (!userId) return;
+    if (!userId || !vendor._id) {
+      console.error('Missing userId or vendor._id:', { userId, vendorId: vendor._id });
+      return;
+    }
 
     try {
-      setLoading(true);
+      console.log('Adding item to cart:', { item, vendor });
       const success = await addToCart(userId, item, vendor._id);
       if (success) {
-        await refreshCart();
+        await refreshCart(); // Refresh cart after successful addition
       }
     } catch (error) {
       console.error('Error adding item to cart:', error);
-      toast.error('Failed to add item to cart');
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 
   const increaseItemQuantity = async (item: FoodItem) => {
-    if (!userId || !item.vendorId) return;
+    if (!userId || !item.vendorId) {
+      console.error('Missing userId or item.vendorId:', { userId, vendorId: item.vendorId });
+      return;
+    }
 
     try {
-      setLoading(true);
+      console.log('Increasing quantity for item:', item);
       const success = await increaseQuantity(userId, item);
       if (success) {
-        await refreshCart();
+        await refreshCart(); // Refresh cart after successful increase
       }
     } catch (error) {
       console.error('Error increasing quantity:', error);
-      toast.error('Failed to increase quantity');
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 
   const decreaseItemQuantity = async (item: FoodItem) => {
-    if (!userId || !item.vendorId) return;
+    if (!userId || !item.vendorId) {
+      console.error('Missing userId or item.vendorId:', { userId, vendorId: item.vendorId });
+      return;
+    }
 
     try {
-      setLoading(true);
+      console.log('Decreasing quantity for item:', item);
       const success = await decreaseQuantity(userId, item);
       if (success) {
-        await refreshCart();
+        await refreshCart(); // Refresh cart after successful decrease
       }
     } catch (error) {
       console.error('Error decreasing quantity:', error);
-      toast.error('Failed to decrease quantity');
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 
-  const value = {
-    cartItems,
-    loading,
-    addItemToCart,
-    increaseItemQuantity,
-    decreaseItemQuantity,
-    refreshCart,
-  };
-
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addItemToCart,
+        increaseItemQuantity,
+        decreaseItemQuantity,
+        refreshCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
 }; 

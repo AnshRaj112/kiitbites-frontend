@@ -104,6 +104,11 @@ export const addToCart = async (
   vendorId: string
 ): Promise<boolean> => {
   try {
+    console.log('=== Adding to Cart ===');
+    console.log('Item:', item);
+    console.log('Vendor ID:', vendorId);
+    console.log('User ID:', userId);
+
     const kind = item.type === "retail" ? "Retail" : "Produce";
     const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
       method: "POST",
@@ -122,8 +127,12 @@ export const addToCart = async (
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Failed to add to cart:', error);
       throw new Error(error.message);
     }
+
+    const result = await response.json();
+    console.log('Add to cart response:', result);
 
     toast.success(`${item.title} added to cart!`);
     return true;
@@ -141,6 +150,10 @@ export const increaseQuantity = async (
   item: FoodItem
 ): Promise<boolean> => {
   try {
+    console.log('=== Increasing Quantity ===');
+    console.log('Item:', item);
+    console.log('User ID:', userId);
+
     const kind = item.type === "retail" ? "Retail" : "Produce";
     const response = await fetch(`${BACKEND_URL}/cart/add-one/${userId}`, {
       method: "POST",
@@ -158,8 +171,12 @@ export const increaseQuantity = async (
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Failed to increase quantity:', error);
       throw new Error(error.message);
     }
+
+    const result = await response.json();
+    console.log('Increase quantity response:', result);
 
     toast.success(`Increased quantity of ${item.title}`);
     return true;
@@ -177,6 +194,10 @@ export const decreaseQuantity = async (
   item: FoodItem
 ): Promise<boolean> => {
   try {
+    console.log('=== Decreasing Quantity ===');
+    console.log('Item:', item);
+    console.log('User ID:', userId);
+
     const kind = item.type === "retail" ? "Retail" : "Produce";
     const response = await fetch(`${BACKEND_URL}/cart/remove-one/${userId}`, {
       method: "POST",
@@ -194,8 +215,12 @@ export const decreaseQuantity = async (
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Failed to decrease quantity:', error);
       throw new Error(error.message);
     }
+
+    const result = await response.json();
+    console.log('Decrease quantity response:', result);
 
     toast.info(`Decreased quantity of ${item.title}`);
     return true;
@@ -210,12 +235,28 @@ export const decreaseQuantity = async (
 
 export const fetchCartItems = async (userId: string): Promise<CartItem[]> => {
   try {
+    console.log('=== Fetching Cart Items ===');
+    console.log('User ID:', userId);
+
     const response = await fetch(`${BACKEND_URL}/cart/${userId}`, {
       credentials: "include",
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Failed to fetch cart items:', error);
+      throw new Error(error.message);
+    }
+
     const data = await response.json();
-    return data.cart || [];
+    console.log('Raw API response:', data);
+    console.log('Cart items from API:', data.cart);
+
+    const cartItems = data.cart || [];
+    console.log('Transformed cart items:', cartItems);
+
+    return cartItems;
   } catch (error) {
     console.error("Error fetching cart items:", error);
     return [];

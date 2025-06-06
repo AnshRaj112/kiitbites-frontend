@@ -1,33 +1,21 @@
 .container {
+  width: 100%;
   min-height: 100vh;
-  background-color: #f8fafc;
-  padding: 2rem 1rem;
-  margin-top: 4.75rem;
+  background-color: #f5f5f5;
+  padding: 2rem 0;
 }
 
 .content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .greeting {
-  font-size: 2.5rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 1rem;
-  background: linear-gradient(90deg, #4ea199, #6fc3bd);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
-
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 1.75rem;
-  }
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 2rem;
+  font-weight: 600;
 }
 
 .favoritesTitle {
@@ -91,63 +79,195 @@
 }
 
 .categorySection {
-  margin-bottom: 4rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  margin-bottom: 3rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .categoryHeader {
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 5.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .categoryTitle {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  color: #333;
   font-weight: 600;
-  color: #4ea199;
-  margin: 0;
+  text-transform: capitalize;
 }
 
 .carouselContainer {
   position: relative;
+  padding: 0 1rem;
+  margin: 0 -1rem;
 }
 
 .slider {
-  .slick-track {
-    display: flex;
-    align-items: stretch;
-  }
-
-  .slick-slide {
-    padding: 0 0.5rem;
-  }
+  margin: 0 -0.5rem;
 }
 
-.carouselButton {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+.slideWrapper {
+  padding: 0.5rem;
+}
+
+.foodCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  min-height: 320px;
+}
+
+.foodCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.imageContainer {
+  width: 100%;
+  height: 200px;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.foodImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foodTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+.foodPrice {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c5282;
+  margin-bottom: 1rem;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quantityButton {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border: 1px solid #e2e8f0;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #4ea199;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+  transition: all 0.2s ease;
+  color: #4a5568;
+
+  &:hover:not(:disabled) {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.quantity {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.addToCartButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background: #3182ce;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &.loading {
+    background: #63b3ed;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.carouselButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 
   &:hover {
-    background-color: #4ea199;
-    color: white;
-    transform: translateY(-50%) scale(1.05);
+    background: #f7fafc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   &.prevButton {
@@ -156,95 +276,6 @@
 
   &.nextButton {
     right: -20px;
-  }
-
-  @media (max-width: 768px) {
-    display: none !important;
-  }
-}
-
-.slideWrapper {
-  padding: 0.5rem;
-}
-
-.foodCard {
-  background: #e5e7eb;
-  border-radius: 16px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  height: 350px;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
-
-    .foodTitle {
-      color: black;
-    }
-  }
-}
-
-.imageContainer {
-  width: 100%;
-  height: 250px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-  background-color: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.foodImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-
-  .foodCard:hover & {
-    transform: scale(1.05);
-  }
-}
-
-.foodTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  text-align: center;
-  line-height: 1.4;
-  transition: color 0.3s ease;
-}
-
-.foodPrice {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #4ea199;
-  margin: 0 0 1rem 0;
-  text-align: center;
-}
-
-/* Override slick-carousel styles */
-@media (max-width: 768px) {
-  .slideWrapper {
-    padding: 0.25rem;
-  }
-
-  .foodCard {
-    padding: 0.75rem;
-  }
-
-  .imageContainer {
-    height: 120px;
-    margin-bottom: 0.5rem;
-  }
-
-  .foodTitle {
-    font-size: 0.875rem;
   }
 }
 
@@ -281,156 +312,60 @@
   }
 }
 
-.quantityControls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  width: 100%;
-}
-
-.quantityButton {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #4ea199;
-
-  &:hover {
-    background-color: #4ea199;
-    color: white;
-    border-color: #4ea199;
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.quantity {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2d3748;
-  min-width: 24px;
-  text-align: center;
-}
-
-.addToCartButton {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  &:hover:not(:disabled) {
-    background-color: #2563eb;
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  &.loading {
-    background-color: #94a3b8;
-  }
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  transform: none !important;
 }
 
 .modal {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
-  min-width: 300px;
-  max-width: 90%;
-  max-height: 90vh;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: none !important;
-
-  h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    font-size: 1.5rem;
-  }
 }
 
 .vendorList {
-  display: flex;
-  flex-direction: column;
+  margin: 1.5rem 0;
+  display: grid;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .vendorItem {
   padding: 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 
   &:hover {
-    background-color: #f8fafc;
+    background: #f7fafc;
   }
 
   &.selected {
-    border-color: #3b82f6;
-    background-color: #eff6ff;
+    border-color: #4299e1;
+    background: #ebf8ff;
   }
 
   h3 {
     margin: 0;
-    color: #1e293b;
     font-size: 1.1rem;
+    color: #2d3748;
   }
 
   p {
     margin: 0.5rem 0 0;
-    color: #64748b;
+    color: #4a5568;
   }
 }
 
@@ -439,37 +374,38 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+}
 
-  button {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
+.cancelButton,
+.confirmButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .cancelButton {
-  background-color: #f1f5f9;
-  color: #64748b;
+  background: #f7fafc;
   border: 1px solid #e2e8f0;
+  color: #4a5568;
 
-  &:hover:not(:disabled) {
-    background-color: #e2e8f0;
+  &:hover {
+    background: #edf2f7;
   }
 }
 
 .confirmButton {
-  background-color: #3b82f6;
-  color: white;
+  background: #4299e1;
   border: none;
+  color: white;
 
   &:hover:not(:disabled) {
-    background-color: #2563eb;
+    background: #3182ce;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 }
