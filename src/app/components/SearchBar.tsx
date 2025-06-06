@@ -248,8 +248,7 @@ const SearchBar: React.FC = () => {
               {popularFoods.map((food) => (
                 <div key={food._id} className={styles.foodCard} onClick={() => handleSelectSuggestion(food.name)}>
                   <h2 className="font-semibold">{food.name}</h2>
-                  <p className="text-sm text-gray-500">₹{food.price}</p>
-                  <p className="text-sm text-gray-500">From: {food.vendorId?.location||"Unknown Location"}</p>
+                  <p className="text-sm text-gray-500">₹ {food.price}</p>
                 </div>
               ))}
             </div>
@@ -269,9 +268,6 @@ const SearchBar: React.FC = () => {
                       image={food.image}
                       variant="search-result"
                     />
-                    <p className="text-sm text-gray-600 mt-1">
-                      From: {food.vendorLocation || "Unknown"}
-                    </p>
                   </div>
                 ))}
               </div>
