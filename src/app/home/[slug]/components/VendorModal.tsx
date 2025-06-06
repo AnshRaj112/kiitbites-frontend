@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import styles from "../styles/CollegePage.module.scss";
 import { Vendor } from "../types";
 
@@ -20,7 +21,7 @@ const VendorModal = ({
 }: VendorModalProps) => {
   if (!show) return null;
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>Select Vendor</h2>
@@ -51,7 +52,8 @@ const VendorModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

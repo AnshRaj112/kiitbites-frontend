@@ -2,35 +2,24 @@
 
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-// import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./styles/global.css";
 import styles from "./styles/CollegePage.module.scss";
 import { useEffect, useRef, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FavoritesSection from "./components/FavoritesSection";
 import SpecialOffersSection from "./components/SpecialOffersSection";
 import CategorySection from "./components/CategorySection";
-import VendorModal from "./components/VendorModal";
+import { CartProvider } from "./context/CartContext";
 import {
   FoodItem,
   FavoriteItem,
-  CartItem,
-  Vendor,
   College,
   ApiFavoritesResponse,
   ApiItem,
 } from "./types";
-import {
-  checkItemAvailability,
-  addToCart,
-  increaseQuantity,
-  decreaseQuantity,
-  fetchCartItems,
-} from "./utils/cartUtils";
-import { checkFavoriteItemAvailability } from "./utils/favoriteCartUtils";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -83,12 +72,6 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userFavorites, setUserFavorites] = useState<FavoriteItem[]>([]);
-  const [showVendorModal, setShowVendorModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
-  const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [currentVendorId, setCurrentVendorId] = useState<string | null>(null);
 
   const currentRequest = useRef<number>(0);
 
@@ -290,85 +273,6 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     fetchItems();
   }, [uniId]);
 
-  // Fetch cart items
-  useEffect(() => {
-    const loadCartItems = async () => {
-      if (!userId) {
-        setCartItems([]);
-        return;
-      }
-      try {
-        const cartData = await fetchCartItems(userId);
-        setCartItems(cartData || []);
-
-        // Set current vendor if cart is not empty
-        if (cartData && cartData.length > 0) {
-          const vendorId = cartData[0].vendorId;
-          setCurrentVendorId(vendorId);
-          // Store the vendor ID in localStorage for persistence
-          localStorage.setItem("currentVendorId", vendorId);
-        } else {
-          setCurrentVendorId(null);
-          localStorage.removeItem("currentVendorId");
-        }
-      } catch (error) {
-        console.error("Error loading cart items:", error);
-        setCartItems([]);
-      }
-    };
-
-    loadCartItems();
-  }, [userId]);
-
-  // Load current vendor ID from localStorage on initial load
-  useEffect(() => {
-    const savedVendorId = localStorage.getItem("currentVendorId");
-    if (savedVendorId) {
-      setCurrentVendorId(savedVendorId);
-    }
-  }, []);
-
-  const convertFavoriteToFoodItem = (item: FavoriteItem): FoodItem => {
-    console.log("Converting FavoriteItem to FoodItem:", item);
-
-    // Determine if the item is retail based on its category
-    const isRetail = categories.retail.includes(item.kind);
-    console.log("Item kind:", item.kind);
-    console.log("Is retail:", isRetail);
-
-    const foodItem: FoodItem = {
-      id: item._id,
-      title: item.name,
-      image: item.image,
-      category: item.kind,
-      type: isRetail ? "retail" : "produce",
-      isSpecial: item.isSpecial,
-      price: item.price,
-      vendorId: item.vendorId,
-    };
-
-    console.log("Converted FoodItem:", foodItem);
-    return foodItem;
-  };
-
-  const getFavoriteItems = () => {
-    if (!userFavorites || !Array.isArray(userFavorites)) return [];
-
-    // Create a Map to store unique items by their _id and vendorId combination
-    const uniqueItemsMap = new Map();
-
-    userFavorites.forEach((item) => {
-      const key = `${item._id}-${item.vendorId}`;
-      if (!uniqueItemsMap.has(key)) {
-        uniqueItemsMap.set(key, item);
-      }
-    });
-
-    return Array.from(uniqueItemsMap.values());
-  };
-
-  const favoriteItems = getFavoriteItems();
-
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -387,301 +291,18 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     ],
   };
 
-  const displayName = userFullName ? userFullName.split(" ")[0] : "User";
-  const collegeDisplayName = slug
-    ? slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-    : "College";
-
-  // Filter items based on current vendor and availability
-  const filterItemsByVendor = async (items: FoodItem[]) => {
-    if (!currentVendorId) return items;
-
-    try {
-      // Get all vendors for each item
-      const itemsWithVendors = await Promise.all(
-        items.map(async (item) => {
-          try {
-            console.log(
-              `Checking availability for item ${item.id} (type: ${item.type})`
-            );
-            const response = await fetch(
-              `${BACKEND_URL}/items/vendors/${item.id}`,
-              {
-                credentials: "include",
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            );
-
-            if (!response.ok) {
-              console.error(
-                `Failed to fetch vendors for item ${item.id}:`,
-                await response.text()
-              );
-              return null;
-            }
-
-            const vendors = await response.json();
-            console.log(`Vendors for item ${item.id}:`, vendors);
-
-            // Filter out vendors where the item is not available
-            const availableVendors = vendors.filter((vendor: Vendor) => {
-              if (!vendor.inventoryValue) {
-                console.log(`Vendor ${vendor._id} has no inventoryValue`);
-                return false;
-              }
-
-              if (item.type === "retail") {
-                // For retail items, check quantity from inventoryValue
-                const quantity = vendor.inventoryValue.quantity;
-                console.log(`Vendor ${vendor._id} quantity:`, quantity);
-                // Check if quantity exists and is greater than 0
-                return typeof quantity === "number" && quantity > 0;
-              } else {
-                // For produce items, check isAvailable from inventoryValue
-                return vendor.inventoryValue.isAvailable === "Y";
-              }
-            });
-
-            console.log(`Available vendors:`, availableVendors);
-
-            if (availableVendors.length === 0) {
-              console.log(`No vendors have this item available at the moment`);
-              return null;
-            }
-
-            // Only store the vendor information, don't show the modal
-            return item;
-          } catch (error) {
-            console.error("Error checking item availability:", error);
-            return null;
-          }
-        })
-      );
-
-      // Filter out null values and return only available items
-      const availableItems = itemsWithVendors.filter(
-        (item): item is FoodItem => item !== null
-      );
-      console.log(`Available items after filtering:`, availableItems);
-      return availableItems;
-    } catch (error) {
-      console.error("Error filtering items:", error);
-      return [];
-    }
-  };
-
-  // Add state for filtered items
-  const [filteredItems, setFilteredItems] = useState<{
-    [key: string]: FoodItem[];
-  }>({});
-
-  // Update filtered items when items or currentVendorId changes
-  useEffect(() => {
-    const updateFilteredItems = async () => {
-      const newFilteredItems: { [key: string]: FoodItem[] } = {};
-
-      for (const [key, categoryItems] of Object.entries(items)) {
-        if (currentVendorId) {
-          // If we have a current vendor, only show items from that vendor
-          newFilteredItems[key] = await filterItemsByVendor(categoryItems);
-        } else {
-          // If no vendor is selected, show all items
-          newFilteredItems[key] = categoryItems;
-        }
-      }
-
-      setFilteredItems(newFilteredItems);
+  const convertFavoriteToFoodItem = (item: FavoriteItem): FoodItem => {
+    const isRetail = categories.retail.includes(item.kind);
+    return {
+      id: item._id,
+      title: item.name,
+      image: item.image,
+      category: item.kind,
+      type: isRetail ? "retail" : "produce",
+      isSpecial: item.isSpecial,
+      price: item.price,
+      vendorId: item.vendorId,
     };
-
-    updateFilteredItems();
-  }, [items, currentVendorId]);
-
-  const handleAddToCart = async (item: FoodItem) => {
-    console.log("\n=== Starting Add to Cart ===");
-    console.log("Item:", {
-      id: item.id,
-      type: item.type,
-      category: item.category,
-      title: item.title,
-    });
-
-    // Get user details from API
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("❌ No token found");
-      toast.error("Please login to add items to cart");
-      return;
-    }
-
-    const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!userResponse.ok) {
-      console.log("❌ Failed to fetch user details");
-      toast.error("Please login to add items to cart");
-      return;
-    }
-
-    const userData = await userResponse.json();
-    const currentUserId = userData._id;
-
-    // If cart has items, check if item is from same vendor
-    if (cartItems.length > 0 && currentVendorId) {
-      console.log("Cart has items, checking vendor match");
-      
-      // If item doesn't have a vendorId, show vendor selection
-      if (!item.vendorId) {
-        console.log("Item has no vendorId, showing vendor selection");
-        const { vendors } = await checkItemAvailability(item, null, categories);
-        
-        if (!vendors || vendors.length === 0) {
-          console.log("❌ No vendors found");
-          toast.error("No vendors have this item available at the moment");
-          return;
-        }
-
-        setAvailableVendors(vendors);
-        setSelectedItem(item);
-        setShowVendorModal(true);
-        return;
-      }
-
-      if (item.vendorId !== currentVendorId) {
-        console.log("❌ Vendor mismatch:", {
-          itemVendorId: item.vendorId,
-          currentVendorId,
-        });
-        toast.error("You can only add items from the same vendor");
-        return;
-      }
-
-      // Check if this is a favorite item
-      const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
-      const { isAvailable } = isFavoriteItem
-        ? await checkFavoriteItemAvailability(
-            {
-              _id: item.id,
-              type: item.type,
-              kind: item.category,
-              name: item.title,
-              vendorId: item.vendorId,
-            } as FavoriteItem,
-            currentVendorId,
-            categories
-          )
-        : await checkItemAvailability(item, currentVendorId, categories);
-
-      if (!isAvailable) {
-        console.log("❌ Item not available at current vendor");
-        toast.error("Item is not available at the moment");
-        return;
-      }
-
-      const success = await addToCart(currentUserId, item, currentVendorId);
-      if (success) {
-        console.log("✅ Item added to cart successfully");
-        const cartData = await fetchCartItems(currentUserId);
-        setCartItems(cartData);
-        // Ensure vendor ID is persisted
-        localStorage.setItem("currentVendorId", currentVendorId);
-      }
-      return;
-    }
-
-    // If cart is empty, show vendor selection
-    console.log("Cart is empty, checking item availability");
-
-    // Check if this is a favorite item
-    const isFavoriteItem = userFavorites.some((fav) => fav._id === item.id);
-    const { isAvailable, vendors } = isFavoriteItem
-      ? await checkFavoriteItemAvailability(
-          {
-            _id: item.id,
-            type: item.type,
-            kind: item.category,
-            name: item.title,
-            vendorId: item.vendorId,
-          } as FavoriteItem,
-          null,
-          categories
-        )
-      : await checkItemAvailability(item, null, categories);
-
-    console.log("Availability check result:", {
-      isAvailable,
-      vendorsCount: vendors?.length,
-    });
-
-    if (!vendors || vendors.length === 0) {
-      console.log("❌ No vendors found");
-      toast.error("No vendors have this item available at the moment");
-      return;
-    }
-
-    // Show all available vendors
-    setAvailableVendors(vendors);
-    setSelectedItem(item);
-    setShowVendorModal(true);
-    console.log(
-      "✅ Vendor modal should be shown with",
-      vendors.length,
-      "vendors"
-    );
-  };
-
-  const handleVendorSelect = async (vendor: Vendor) => {
-    setSelectedVendor(vendor);
-  };
-
-  const handleVendorConfirm = async () => {
-    if (!selectedItem || !selectedVendor || !userId) return;
-
-    const success = await addToCart(userId, selectedItem, selectedVendor._id);
-    if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
-
-      if (cartData.length > 0) {
-        setCurrentVendorId(selectedVendor._id);
-        // Store the vendor ID in localStorage for persistence
-        localStorage.setItem("currentVendorId", selectedVendor._id);
-      }
-
-      // Close modal and reset state
-      setShowVendorModal(false);
-      setSelectedItem(null);
-      setSelectedVendor(null);
-      setAvailableVendors([]);
-    }
-  };
-
-  const handleIncreaseQuantity = async (item: FoodItem) => {
-    if (!userId) return;
-    const success = await increaseQuantity(userId, item);
-    if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
-    }
-  };
-
-  const handleDecreaseQuantity = async (item: FoodItem) => {
-    if (!userId) return;
-    const success = await decreaseQuantity(userId, item);
-    if (success) {
-      const cartData = await fetchCartItems(userId);
-      setCartItems(cartData);
-
-      if (cartData.length === 0) {
-        setCurrentVendorId(null);
-        localStorage.removeItem("currentVendorId");
-      }
-    }
   };
 
   if (loading) {
@@ -704,81 +325,65 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
     );
   }
 
-  return (
-    <div className={styles.container}>
-      <ToastContainer
-        position="bottom-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      <div className={styles.content}>
-        <h1 className={styles.greeting}>
-          Hi {displayName}, what are you craving for at {collegeDisplayName}?
-        </h1>
-
-        {Object.entries(categories).map(([category, types]) =>
-          types.map((type) => {
-            const key = `${category}-${type}`;
-            const categoryItems = filteredItems[key] || [];
-
-            return (
-              <CategorySection
-                key={key}
-                categoryItems={categoryItems}
-                cartItems={cartItems}
-                userFullName={userFullName}
-                categoryTitle={type}
-                sliderSettings={sliderSettings}
-                handleAddToCart={handleAddToCart}
-                handleIncreaseQuantity={handleIncreaseQuantity}
-                handleDecreaseQuantity={handleDecreaseQuantity}
-              />
-            );
-          })
-        )}
-
-        <FavoritesSection
-          favoriteItems={favoriteItems}
-          cartItems={cartItems}
-          userFullName={userFullName}
-          handleIncreaseQuantity={handleIncreaseQuantity}
-          handleDecreaseQuantity={handleDecreaseQuantity}
-          convertFavoriteToFoodItem={convertFavoriteToFoodItem}
-          setCartItems={setCartItems}
-        />
-
-        <SpecialOffersSection 
-          items={items} 
-          sliderSettings={sliderSettings}
-          cartItems={cartItems}
-          userFullName={userFullName}
-          handleAddToCart={handleAddToCart}
-          handleIncreaseQuantity={handleIncreaseQuantity}
-          handleDecreaseQuantity={handleDecreaseQuantity}
-        />
-
-        <VendorModal
-          show={showVendorModal}
-          availableVendors={availableVendors}
-          selectedVendor={selectedVendor}
-          onVendorSelect={handleVendorSelect}
-          onConfirm={handleVendorConfirm}
-          onCancel={() => {
-            setShowVendorModal(false);
-            setSelectedItem(null);
-            setSelectedVendor(null);
-            setAvailableVendors([]);
-          }}
-        />
+  if (!userId) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.greeting}>Please login to continue</h1>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <CartProvider userId={userId}>
+      <div className={styles.container}>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        <div className={styles.content}>
+          <h1 className={styles.greeting}>
+            Hi {userFullName.split(" ")[0]}, what are you craving for at{" "}
+            {slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}?
+          </h1>
+
+          {Object.entries(categories).map(([category, types]) =>
+            types.map((type) => {
+              const key = `${category}-${type}`;
+              const categoryItems = items[key] || [];
+
+              return (
+                <CategorySection
+                  key={key}
+                  categoryItems={categoryItems}
+                  categoryTitle={type}
+                  sliderSettings={sliderSettings}
+                />
+              );
+            })
+          )}
+
+          <FavoritesSection
+            favoriteItems={userFavorites}
+            convertFavoriteToFoodItem={convertFavoriteToFoodItem}
+          />
+
+          <SpecialOffersSection 
+            items={items} 
+            sliderSettings={sliderSettings}
+          />
+        </div>
+      </div>
+    </CartProvider>
   );
 };
 
