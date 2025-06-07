@@ -182,10 +182,16 @@ export const SearchCartProvider = ({ children }: SearchCartProviderProps) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to increase quantity');
+        const errorData = await response.json();
+        if (errorData.message?.includes('maximum quantity')) {
+          toast.info('Maximum quantity reached for this item');
+          return;
+        }
+        throw new Error(errorData.message || 'Failed to increase quantity');
       }
 
       await refreshSearchCart();
+      toast.success('Quantity increased');
     } catch (error) {
       console.error('Error increasing quantity:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to increase quantity');
@@ -216,10 +222,16 @@ export const SearchCartProvider = ({ children }: SearchCartProviderProps) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to decrease quantity');
+        const errorData = await response.json();
+        if (errorData.message?.includes('minimum quantity')) {
+          toast.info('Minimum quantity reached');
+          return;
+        }
+        throw new Error(errorData.message || 'Failed to decrease quantity');
       }
 
       await refreshSearchCart();
+      toast.info('Quantity decreased');
     } catch (error) {
       console.error('Error decreasing quantity:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to decrease quantity');
