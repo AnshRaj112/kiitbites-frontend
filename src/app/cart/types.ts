@@ -24,4 +24,14 @@ export interface CartItem extends FoodItem {
   image: string;
   vendorName: string;
   vendorId: string;
+  category: "Retail" | "Produce";
+}
+
+export type OrderType = "takeaway" | "delivery" | "dinein";
+
+export interface OrderData {
+  orderType: OrderType;
+  collectorName: string;
+  collectorPhone: string;
+  address?: string;
 }
