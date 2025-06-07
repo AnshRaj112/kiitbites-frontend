@@ -6,9 +6,9 @@ import BillBox from "../components/BillBox";
 import styles from "./styles/Cart.module.scss";
 import { FoodItem, CartItem } from "../cart/types";
 import { useRouter } from "next/navigation";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Script from "next/script";
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
 
 interface ExtraItem {
@@ -63,16 +63,22 @@ export default function Cart() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [extras, setExtras] = useState<FoodItem[]>([]);
   const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
-  const [userData, setUserData] = useState<{ _id: string; foodcourtId: string } | null>(null);
+  const [userData, setUserData] = useState<{
+    _id: string;
+    foodcourtId: string;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     console.log("[Cart.tsx] BACKEND_URL =", BACKEND_URL);
     const fetchExtras = async () => {
       if (!userData?._id) return;
-      
+
       try {
-        console.log("[Cart.tsx] ▶︎ Calling GET", `${BACKEND_URL}/cart/extras/${userData._id}`);
+        console.log(
+          "[Cart.tsx] ▶︎ Calling GET",
+          `${BACKEND_URL}/cart/extras/${userData._id}`
+        );
         const response = await axios.get<ExtrasResponse>(
           `${BACKEND_URL}/cart/extras/${userData._id}`,
           getAuthHeaders()
@@ -80,13 +86,15 @@ export default function Cart() {
         console.log("[Cart.tsx] ← /cart/extras responded with:", response.data);
 
         if (response.data.extras) {
-          const formatted: FoodItem[] = response.data.extras.map((e: ExtraItem) => ({
-            _id: e.itemId,
-            name: e.name,
-            image: e.image,
-            price: e.price,
-            kind: e.kind,
-          }));
+          const formatted: FoodItem[] = response.data.extras.map(
+            (e: ExtraItem) => ({
+              _id: e.itemId,
+              name: e.name,
+              image: e.image,
+              price: e.price,
+              kind: e.kind,
+            })
+          );
           console.log("[Cart.tsx] → setExtras(...) to:", formatted);
           setExtras(formatted);
         } else {
@@ -152,7 +160,10 @@ export default function Cart() {
         setUserData(userData);
 
         /** ─── GET /cart ─── **/
-        console.log("[Cart.tsx] ▶︎ Calling GET", `${BACKEND_URL}/cart/${userData._id}`);
+        console.log(
+          "[Cart.tsx] ▶︎ Calling GET",
+          `${BACKEND_URL}/cart/${userData._id}`
+        );
         const cartRes = await axios.get<CartResponse>(
           `${BACKEND_URL}/cart/${userData._id}`,
           getAuthHeaders()
@@ -169,7 +180,7 @@ export default function Cart() {
             name: c.name,
             price: c.price,
             image: c.image,
-            kind: c.kind
+            kind: c.kind,
           },
           quantity: c.quantity,
           kind: c.kind,
@@ -177,7 +188,7 @@ export default function Cart() {
           price: c.price,
           image: c.image,
           vendorName: cartRes.data.vendorName,
-          vendorId: cartRes.data.vendorId
+          vendorId: cartRes.data.vendorId,
         }));
         console.log("[Cart.tsx] → setCart(...) to:", detailedCart);
         setCart(detailedCart);
@@ -199,20 +210,25 @@ export default function Cart() {
     if (userData?._id && cart.length > 0) {
       const fetchExtras = async () => {
         try {
-          console.log("[Cart.tsx] ▶︎ Refetching extras for user:", userData._id);
+          console.log(
+            "[Cart.tsx] ▶︎ Refetching extras for user:",
+            userData._id
+          );
           const response = await axios.get<ExtrasResponse>(
             `${BACKEND_URL}/cart/extras/${userData._id}`,
             getAuthHeaders()
           );
-          
+
           if (response.data.extras) {
-            const formatted: FoodItem[] = response.data.extras.map((e: ExtraItem) => ({
-              _id: e.itemId,
-              name: e.name,
-              image: e.image,
-              price: e.price,
-              kind: e.kind,
-            }));
+            const formatted: FoodItem[] = response.data.extras.map(
+              (e: ExtraItem) => ({
+                _id: e.itemId,
+                name: e.name,
+                image: e.image,
+                price: e.price,
+                kind: e.kind,
+              })
+            );
             setExtras(formatted);
           } else {
             setExtras([]);
@@ -232,7 +248,10 @@ export default function Cart() {
   const reFetchCart = async () => {
     try {
       if (!userData) return;
-      console.log("[Cart.tsx] ▶︎ reFetchCart → GET", `${BACKEND_URL}/cart/${userData._id}`);
+      console.log(
+        "[Cart.tsx] ▶︎ reFetchCart → GET",
+        `${BACKEND_URL}/cart/${userData._id}`
+      );
       const cartRes = await axios.get<CartResponse>(
         `${BACKEND_URL}/cart/${userData._id}`,
         getAuthHeaders()
@@ -248,7 +267,7 @@ export default function Cart() {
           name: c.name,
           price: c.price,
           image: c.image,
-          kind: c.kind
+          kind: c.kind,
         },
         quantity: c.quantity,
         kind: c.kind,
@@ -256,7 +275,7 @@ export default function Cart() {
         price: c.price,
         image: c.image,
         vendorName: cartRes.data.vendorName,
-        vendorId: cartRes.data.vendorId
+        vendorId: cartRes.data.vendorId,
       }));
       setCart(updated);
     } catch (err: unknown) {
@@ -294,7 +313,11 @@ export default function Cart() {
           if (errorMsg.includes("max quantity")) {
             toast.warning(`Maximum limit reached for ${thisItem.name}`);
           } else if (errorMsg.includes("Only")) {
-            toast.warning(`Only ${errorMsg.split("Only ")[1]} available for ${thisItem.name}`);
+            toast.warning(
+              `Only ${errorMsg.split("Only ")[1]} available for ${
+                thisItem.name
+              }`
+            );
           } else {
             toast.error("Failed to increase quantity");
           }
@@ -343,7 +366,9 @@ export default function Cart() {
         })
         .catch((err) => {
           console.error(`[Cart.tsx] ❌ /cart/remove-one error:`, err);
-          toast.error(err.response?.data?.message || "Failed to decrease quantity");
+          toast.error(
+            err.response?.data?.message || "Failed to decrease quantity"
+          );
         });
     } else {
       const updatedCart = cart.map((item) =>
@@ -412,7 +437,7 @@ export default function Cart() {
             itemId: item._id,
             kind: item.kind,
             quantity: 1,
-            vendorId: vendorId
+            vendorId: vendorId,
           },
           getAuthHeaders()
         )
@@ -427,7 +452,9 @@ export default function Cart() {
           if (errorMsg.includes("max quantity")) {
             toast.warning(`Maximum limit reached for ${item.name}`);
           } else if (errorMsg.includes("Only")) {
-            toast.warning(`Only ${errorMsg.split("Only ")[1]} available for ${item.name}`);
+            toast.warning(
+              `Only ${errorMsg.split("Only ")[1]} available for ${item.name}`
+            );
           } else {
             toast.error("Failed to add item to cart");
           }
@@ -438,25 +465,28 @@ export default function Cart() {
         ? cart.map((i) =>
             i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
           )
-        : [...cart, {
-            _id: item._id,
-            userId: 'guest',
-            foodcourtId: 'guest',
-            itemId: {
+        : [
+            ...cart,
+            {
               _id: item._id,
+              userId: "guest",
+              foodcourtId: "guest",
+              itemId: {
+                _id: item._id,
+                name: item.name,
+                price: item.price,
+                image: item.image,
+                kind: item.kind || "Retail",
+              },
+              quantity: 1,
+              kind: item.kind || "Retail",
               name: item.name,
               price: item.price,
               image: item.image,
-              kind: item.kind || 'Retail'
+              vendorName: "guest",
+              vendorId: "guest",
             },
-            quantity: 1,
-            kind: item.kind || 'Retail',
-            name: item.name,
-            price: item.price,
-            image: item.image,
-            vendorName: 'guest',
-            vendorId: 'guest'
-          }];
+          ];
       console.log("[Cart.tsx] (guest) addToCart → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));
@@ -465,96 +495,116 @@ export default function Cart() {
   };
 
   // Filter out items that are already in cart
-  const filteredExtras = extras.filter(extra => 
-    !cart.some(cartItem => cartItem._id === extra._id)
+  const filteredExtras = extras.filter(
+    (extra) => !cart.some((cartItem) => cartItem._id === extra._id)
   );
 
   return (
-    <div className={styles.cartPage}>
-      <ToastContainer
-        position="bottom-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
+    <>
+      {/* 1. Load Razorpay after the page is interactive */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
       />
-      <div className={styles.cartLeft}>
-        <section className={styles.cartSection}>
-          {cart.length === 0 ? (
-            <div className={styles.emptyCartMessage}>
-              <h2>Oops! Your cart is empty</h2>
-              <p>Looks like you haven&apos;t added any items to your cart yet.</p>
-              <button 
-                className={styles.homeButton}
-                onClick={() => router.push('/home')}
-              >
-                Go to Home
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className={styles.vendorInfo}>
-                <h3>Vendor: {getVendorName(cart[0]?.vendorName)}</h3>
+      <div className={styles.cartPage}>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        <div className={styles.cartLeft}>
+          <section className={styles.cartSection}>
+            {cart.length === 0 ? (
+              <div className={styles.emptyCartMessage}>
+                <h2>Oops! Your cart is empty</h2>
+                <p>
+                  Looks like you haven&apos;t added any items to your cart yet.
+                </p>
+                <button
+                  className={styles.homeButton}
+                  onClick={() => router.push("/home")}
+                >
+                  Go to Home
+                </button>
               </div>
-              <div className={styles.cartItems}>
-                {cart.map((item, index) => (
-                  <CartItemCard
-                    key={item._id ?? index}
-                    item={item}
-                    onIncrease={() => increaseQty(item._id)}
-                    onDecrease={() => decreaseQty(item._id)}
-                    onRemove={() => removeItem(item._id)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </section>
-
-        {cart.length > 0 && (
-          <section className={styles.extrasSection}>
-            <h3>More from {getVendorName(cart[0]?.vendorName)}</h3>
-            <div
-              className={`${styles.extrasList} ${
-                filteredExtras.length === 1 ? styles.singleCard : ""
-              }`}
-            >
-              {filteredExtras.length > 0 ? (
-                filteredExtras.map((item) => {
-                  const cartItem = cart.find(cartItem => cartItem._id === item._id);
-                  const quantity = cartItem?.quantity || 0;
-                  
-                  return (
-                    <ExtrasCard
-                      key={item._id}
+            ) : (
+              <>
+                <div className={styles.vendorInfo}>
+                  <h3>Vendor: {getVendorName(cart[0]?.vendorName)}</h3>
+                </div>
+                <div className={styles.cartItems}>
+                  {cart.map((item, index) => (
+                    <CartItemCard
+                      key={item._id ?? index}
                       item={item}
-                      onAdd={addToCart}
-                      onIncrease={increaseQty}
-                      onDecrease={decreaseQty}
-                      quantity={quantity}
+                      onIncrease={() => increaseQty(item._id)}
+                      onDecrease={() => decreaseQty(item._id)}
+                      onRemove={() => removeItem(item._id)}
                     />
-                  );
-                })
-              ) : (
-                <p className={styles.emptyExtras}>No extras available.</p>
-              )}
-            </div>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
-        )}
-      </div>
 
-      {cart.length > 0 && (
-        <aside className={styles.cartRight}>
-          <div className={styles.billBox}>
-            <BillBox items={cart} onProceed={() => {}} />
-          </div>
-        </aside>
-      )}
-    </div>
+          {cart.length > 0 && (
+            <section className={styles.extrasSection}>
+              <h3>More from {getVendorName(cart[0]?.vendorName)}</h3>
+              <div
+                className={`${styles.extrasList} ${
+                  filteredExtras.length === 1 ? styles.singleCard : ""
+                }`}
+              >
+                {filteredExtras.length > 0 ? (
+                  filteredExtras.map((item) => {
+                    const cartItem = cart.find(
+                      (cartItem) => cartItem._id === item._id
+                    );
+                    const quantity = cartItem?.quantity || 0;
+
+                    return (
+                      <ExtrasCard
+                        key={item._id}
+                        item={item}
+                        onAdd={addToCart}
+                        onIncrease={increaseQty}
+                        onDecrease={decreaseQty}
+                        quantity={quantity}
+                      />
+                    );
+                  })
+                ) : (
+                  <p className={styles.emptyExtras}>No extras available.</p>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <div className={styles.cartPage}>
+          {/* … left‐side items & extras … */}
+
+          {cart.length > 0 && userData && (
+            <aside className={styles.cartRight}>
+              <BillBox
+                userId={userData._id}
+                items={cart}
+                onOrder={(orderId) => {
+                  alert("Payment successful! Order ID: " + orderId);
+                  // clear cart, redirect, etc.
+                }}
+              />
+            </aside>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
