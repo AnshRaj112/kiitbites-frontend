@@ -3,11 +3,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
-import { Plus, Minus, Loader2 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import DishCard from "./DishCard";
 import styles from "./styles/Search.module.scss";
-import { useCart } from "@/app/home/[slug]/context/CartContext";
+import { useSearchCart } from './context/SearchCartContext';
+import SearchQuantityControls from './SearchQuantityControls';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -103,10 +104,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { cartItems, addItemToCart, increaseItemQuantity, decreaseItemQuantity } = useCart();
+  const { searchCartItems, addToSearchCart } = useSearchCart();
   const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
 
   useEffect(() => {
@@ -371,7 +371,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setSelectedItem(item);
     console.log('Selected item:', item);
 
-    const itemId = item.id;
+    const itemId = item._id;
     if (!itemId) {
       console.error('Item missing ID:', item);
       toast.error('Invalid item ID');
@@ -380,18 +380,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
     console.log('Using item ID:', itemId);
     try {
+      // First show the modal
+      setShowVendorModal(true);
+      setSelectedVendor(null);
+      
+      // Then fetch vendors
       const response = await fetch(`${BACKEND_URL}/items/vendors/${itemId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      console.log('Received vendors:', data);
-      setAvailableVendors(data.data || []);
-      setSelectedVendor(null);
-      setShowVendorModal(true);
+      const vendors = await response.json();
+      console.log('Received vendors:', vendors);
+      
+      if (!Array.isArray(vendors) || vendors.length === 0) {
+        console.log('No vendors available');
+        toast.error('No vendors available for this item');
+        setShowVendorModal(false);
+        return;
+      }
+      
+      console.log('Setting available vendors:', vendors);
+      setAvailableVendors(vendors);
     } catch (error) {
       console.error('Error fetching vendors:', error);
       toast.error('Failed to fetch vendors');
+      setShowVendorModal(false);
     }
   };
 
@@ -405,33 +418,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
       return;
     }
 
-    const itemId = selectedItem.id;
-    const vendorId = selectedVendor._id;
-    if (!itemId || !vendorId) {
-      console.error('Missing IDs:', { itemId, vendorId });
-      toast.error('Invalid item or vendor ID');
-      return;
-    }
-
-    const cartItem = {
-      id: itemId,
-      vendorId: vendorId,
-      name: selectedItem.name,
-      title: selectedItem.name,
-      price: selectedItem.price,
-      image: selectedItem.image,
-      type: selectedItem.type,
-      category: selectedItem.category,
-      isSpecial: selectedItem.isSpecial,
-      isVendor: selectedItem.isVendor,
-      kind: selectedItem.kind,
-      quantity: selectedItem.quantity
-    };
-
-    console.log('Adding to cart:', cartItem);
     try {
-      await addItemToCart(cartItem, selectedVendor);
-      toast.success('Item added to cart');
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error('Please login to add items to cart');
+        return;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        toast.error('Failed to get user info');
+        return;
+      }
+      const user = await response.json();
+      
+      // Add to cart with all required parameters
+      await addToSearchCart(
+        user._id,
+        {
+          ...selectedItem,
+          kind: selectedItem.type === 'retail' ? 'Retail' : 'Produce'
+        },
+        selectedVendor._id
+      );
       setShowVendorModal(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -445,60 +456,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setAvailableVendors([]);
   };
 
-  const handleIncreaseQuantity = async (item: SearchResult) => {
-    try {
-      setLoading(true);
-      if (!item.id || !item.vendorId) {
-        throw new Error('Missing item ID or vendor ID');
-      }
-      await increaseItemQuantity({
-        ...item,
-        id: item.id,
-        vendorId: item.vendorId
-      });
-    } catch (error) {
-      console.error('Error increasing quantity:', error);
-      if (error instanceof Error) {
-        if (error.message.includes("max quantity")) {
-          toast.warning(`Maximum limit reached for ${item.name}`);
-        } else if (error.message.includes("Only")) {
-          toast.warning(`Only ${error.message.split("Only ")[1]} available for ${item.name}`);
-        } else {
-          toast.error(error.message);
-        }
-      } else {
-        toast.error('Failed to increase quantity');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDecreaseQuantity = async (item: SearchResult) => {
-    try {
-      setLoading(true);
-      if (!item.id || !item.vendorId) {
-        throw new Error('Missing item ID or vendor ID');
-      }
-      await decreaseItemQuantity({
-        ...item,
-        id: item.id,
-        vendorId: item.vendorId
-      });
-    } catch (error) {
-      console.error('Error decreasing quantity:', error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to decrease quantity');
-      }
-    } finally {
-      setLoading(false);
-    }
+  // Find cart item and its quantity
+  const getCartItemQuantity = (itemId: string) => {
+    const cartItem = searchCartItems.find(item => item.id === itemId);
+    return cartItem?.quantity || 0;
   };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className={styles.container}>
         <div className={styles.header}>
           {!hideUniversityDropdown && (
@@ -558,10 +535,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             {searchResults.length > 0 && (
               <div className={styles.resultsGrid}>
                 {searchResults.map((item) => {
-                  const cartItem = cartItems.find(
-                    (cartItem) => cartItem.itemId === item.id
+                  const quantity = getCartItemQuantity(item._id || item.id);
+                  const cartItem = searchCartItems.find(
+                    (cartItem) => cartItem.id === (item._id || item.id)
                   );
-                  const quantity = cartItem?.quantity || 0;
 
                   return (
                     <div 
@@ -581,51 +558,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
                             image={item.image || '/images/coffee.jpeg'}
                             variant="search-result"
                           />
-                          <div className={styles.quantityControls}>
-                            {quantity > 0 ? (
-                              <>
-                                <button
-                                  className={`${styles.quantityButton} ${quantity === 0 ? styles.disabled : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDecreaseQuantity(item);
-                                  }}
-                                  disabled={loading || quantity === 0}
-                                >
-                                  <Minus size={16} />
-                                </button>
-                                <span className={styles.quantity}>{quantity}</span>
-                                <button
-                                  className={styles.quantityButton}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleIncreaseQuantity(item);
-                                  }}
-                                  disabled={loading}
-                                >
-                                  <Plus size={16} />
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                className={`${styles.addToCartButton} ${loading ? styles.loading : ''}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddToCart(item);
-                                }}
-                                disabled={loading}
-                              >
-                                {loading ? (
-                                  <>
-                                    <Loader2 className={styles.spinner} size={16} />
-                                    Adding...
-                                  </>
-                                ) : (
-                                  'Add to Cart'
-                                )}
-                              </button>
-                            )}
-                          </div>
+                          <SearchQuantityControls
+                            item={{
+                              id: item._id || item.id,
+                              name: item.name,
+                              type: item.type,
+                              vendorId: cartItem?.vendorId
+                            }}
+                            quantity={quantity}
+                            onAddToCart={() => handleAddToCart(item)}
+                          />
                         </div>
                       )}
                     </div>
@@ -668,27 +610,36 @@ const SearchBar: React.FC<SearchBarProps> = ({
       {showVendorModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
-            <h2>Select Vendor</h2>
-            <div className={styles.vendorList}>
-              {availableVendors.map((vendor) => (
-                <div
-                  key={vendor._id}
-                  className={`${styles.vendorItem} ${
-                    selectedVendor?._id === vendor._id ? styles.selected : ""
-                  }`}
-                  onClick={() => handleVendorSelect(vendor)}
-                >
-                  <h3>{vendor.name}</h3>
-                  <p>₹{vendor.price}</p>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-xl font-bold mb-4">Select Vendor</h2>
+            {availableVendors.length === 0 ? (
+              <div className="text-center py-4">Loading vendors...</div>
+            ) : (
+              <div className={styles.vendorList}>
+                {availableVendors.map((vendor) => (
+                  <div
+                    key={vendor._id}
+                    className={`${styles.vendorItem} ${
+                      selectedVendor?._id === vendor._id ? styles.selected : ""
+                    }`}
+                    onClick={() => handleVendorSelect(vendor)}
+                  >
+                    <h3 className="font-semibold">{vendor.name}</h3>
+                    <p className="text-gray-600">₹{vendor.price}</p>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className={styles.modalButtons}>
-              <button className={styles.cancelButton} onClick={handleCancel}>
+              <button 
+                className={`${styles.cancelButton} px-4 py-2 border rounded-md mr-2`} 
+                onClick={handleCancel}
+              >
                 Cancel
               </button>
               <button
-                className={styles.confirmButton}
+                className={`${styles.confirmButton} px-4 py-2 bg-blue-500 text-white rounded-md ${
+                  !selectedVendor ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 onClick={handleVendorConfirm}
                 disabled={!selectedVendor}
               >
