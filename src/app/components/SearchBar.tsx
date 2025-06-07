@@ -20,36 +20,34 @@ interface FoodItem {
   price: number;
   image: string;
   isSpecial: string;
-  source: string;
   vendorId?: {
     location?: string;
   };
 }
 
-interface Vendor {
+interface SearchResult {
   _id: string;
   name: string;
+  price?: number;
+  image?: string;
+  type?: string;
+  source?: string;
+  isTypeMatch?: boolean;
+  isVendor?: boolean;
 }
 
-type SearchFoodItem = {
-  _id: string;
-  name: string;
-  price: number;
-  image: string;
-  type: string;
-  source: string;
-  vendorLocation?: string;
-  isTypeMatch?: boolean;
-};
+interface SearchResponse {
+  message?: string;
+  youMayAlsoLike?: SearchResult[];
+}
 
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState<string>("");
   const [universities, setUniversities] = useState<University[]>([]);
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");
   const [popularFoods, setPopularFoods] = useState<FoodItem[]>([]);
-  const [searchResults, setSearchResults] = useState<SearchFoodItem[]>([]);
-  const [vendorResults, setVendorResults] = useState<Vendor[]>([]);
-  const [activeTab, setActiveTab] = useState<'items' | 'vendors'>('items');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [suggestedItems, setSuggestedItems] = useState<SearchResult[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -124,7 +122,7 @@ const SearchBar: React.FC = () => {
     try {
       // First, try to find items that match the search text
       const [itemsRes, vendorsRes] = await Promise.all([
-        fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}`),
+        fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}&searchByType=true`),
         fetch(`${BACKEND_URL}/items/search/vendors?query=${searchText}&uniID=${selectedUniversity}`)
       ]);
 
@@ -133,26 +131,33 @@ const SearchBar: React.FC = () => {
         vendorsRes.json()
       ]);
 
-      // If no exact matches found, try to find items by type
-      if (!Array.isArray(itemsData) || itemsData.length === 0) {
-        // Try to find items by type
-        const typeRes = await fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}&searchByType=true`);
-        const typeData = await typeRes.json();
-        
-        if (Array.isArray(typeData) && typeData.length > 0) {
-          setSearchResults(typeData);
-        } else {
-          setSearchResults([]);
-        }
-      } else {
-        setSearchResults(itemsData);
+      // Handle the new response format
+      let items: SearchResult[] = [];
+      let suggestions: SearchResult[] = [];
+
+      if ('message' in itemsData && itemsData.youMayAlsoLike) {
+        // If we got the "You may also like" response
+        suggestions = (itemsData as SearchResponse).youMayAlsoLike || [];
+      } else if (Array.isArray(itemsData)) {
+        // Split items into exact matches and type matches
+        items = itemsData.filter(item => !item.isTypeMatch);
+        suggestions = itemsData.filter(item => item.isTypeMatch);
       }
 
-      setVendorResults(Array.isArray(vendorsData) ? vendorsData : []);
+      // Format vendors data
+      const vendors = Array.isArray(vendorsData) ? vendorsData.map(vendor => ({
+        ...vendor,
+        isVendor: true
+      })) : [];
+
+      // Combine and sort results
+      const combinedResults = [...items, ...vendors];
+      setSearchResults(combinedResults);
+      setSuggestedItems(suggestions);
     } catch (error) {
       console.error("Error fetching search results:", error);
       setSearchResults([]);
-      setVendorResults([]);
+      setSuggestedItems([]);
     }
   };
 
@@ -217,23 +222,6 @@ const SearchBar: React.FC = () => {
           </div>
         </div>
 
-        {query !== "" && (
-          <div className={styles.searchTabs}>
-            <button 
-              className={`${styles.tabButton} ${activeTab === 'items' ? styles.active : ''}`}
-              onClick={() => setActiveTab('items')}
-            >
-              Items
-            </button>
-            <button 
-              className={`${styles.tabButton} ${activeTab === 'vendors' ? styles.active : ''}`}
-              onClick={() => setActiveTab('vendors')}
-            >
-              Vendors
-            </button>
-          </div>
-        )}
-
         {query === "" ? (
           <div className={styles.popularChoices}>
             <h2 className="text-xl font-bold mb-2">Popular Choices</h2>
@@ -252,39 +240,48 @@ const SearchBar: React.FC = () => {
           </div>
         ) : (
           <div className={styles.searchResults}>
-            {activeTab === 'items' ? (
+            {searchResults.length > 0 && (
               <div className={styles.resultsGrid}>
-                {Array.isArray(searchResults) && searchResults.map((item) => (
+                {searchResults.map((item) => (
                   <div key={item._id} className={styles.resultCard}>
-                    <DishCard
-                      dishName={item.name}
-                      price={item.price}
-                      image={item.image}
-                      variant="search-result"
-                    />
-                    <div className={styles.itemDetails}>
-                      <p className="text-sm text-gray-600">Type: {item.type}</p>
-                      <p className="text-xs text-gray-500">Source: {item.source}</p>
-                      {item.isTypeMatch && (
-                        <p className="text-xs text-blue-500 mt-1">Similar item type</p>
-                      )}
-                    </div>
+                    {item.isVendor ? (
+                      <div className={styles.vendorCard}>
+                        <h3 className="font-semibold">{item.name}</h3>
+                      </div>
+                    ) : (
+                      <DishCard
+                        dishName={item.name}
+                        price={item.price || 0}
+                        image={item.image || ''}
+                        variant="search-result"
+                      />
+                    )}
                   </div>
                 ))}
-                {(!Array.isArray(searchResults) || searchResults.length === 0) && (
-                  <p className={styles.noResults}>No items found</p>
-                )}
               </div>
-            ) : (
-              <div className={styles.vendorResults}>
-                {Array.isArray(vendorResults) && vendorResults.map((vendor) => (
-                  <div key={vendor._id} className={styles.vendorCard}>
-                    <h3 className="font-semibold">{vendor.name}</h3>
-                  </div>
-                ))}
-                {(!Array.isArray(vendorResults) || vendorResults.length === 0) && (
-                  <p className={styles.noResults}>No vendors found</p>
-                )}
+            )}
+
+            {suggestedItems.length > 0 && (
+              <div className={styles.suggestedItems}>
+                <h2 className="text-xl font-bold mb-4">You may also like</h2>
+                <div className={styles.resultsGrid}>
+                  {suggestedItems.map((item) => (
+                    <div key={item._id} className={styles.resultCard}>
+                      <DishCard
+                        dishName={item.name}
+                        price={item.price || 0}
+                        image={item.image || ''}
+                        variant="search-result"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {searchResults.length === 0 && suggestedItems.length === 0 && (
+              <div className={styles.noResults}>
+                <p>No results found</p>
               </div>
             )}
           </div>
