@@ -3,8 +3,11 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
+import { Plus, Minus, Loader2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import DishCard from "./DishCard";
 import styles from "./styles/Search.module.scss";
+import { useCart } from "@/app/home/[slug]/context/CartContext";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -46,15 +49,20 @@ interface VendorData {
   };
 }
 
-interface SearchResult {
-  _id: string;
+export interface SearchResult {
+  _id?: string;
+  id: string;
   name: string;
-  price?: number;
-  image?: string;
-  type?: string;
-  source?: string;
-  isTypeMatch?: boolean;
+  title: string;
+  price: number;
+  image: string;
+  type: string;
+  category: string;
+  isSpecial: boolean;
+  vendorId?: string;
   isVendor?: boolean;
+  kind: string;
+  quantity: number;
 }
 
 interface SearchResponse {
@@ -69,6 +77,17 @@ interface SearchBarProps {
   universityId?: string;
 }
 
+interface Vendor {
+  _id: string;
+  name: string;
+  price: number;
+  inventoryValue?: {
+    price: number;
+    quantity?: number;
+    isAvailable?: string;
+  };
+}
+
 const SearchBar: React.FC<SearchBarProps> = ({ 
   hideUniversityDropdown = false,
   placeholder = "Search for food or vendors...",
@@ -81,8 +100,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [popularFoods, setPopularFoods] = useState<FoodItem[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [suggestedItems, setSuggestedItems] = useState<SearchResult[]>([]);
+  const [showVendorModal, setShowVendorModal] = useState(false);
+  const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { cartItems, addItemToCart, increaseItemQuantity, decreaseItemQuantity } = useCart();
+  const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
 
   useEffect(() => {
     if (universityId) {
@@ -206,13 +231,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         // If search text is empty, show all items
         if (!searchText.trim()) {
-          setSearchResults(allVendorItems.map(item => ({
-            _id: item.itemId || item._id || `temp-${Math.random()}`,
-            name: item.name,
-            price: item.price,
-            image: item.image || '/images/coffee.jpeg',
-            type: item.type
-          })));
+          const results = allVendorItems
+            .filter(item => item.itemId)
+            .map(item => ({
+              id: item.itemId!,
+              name: item.name,
+              title: item.name,
+              price: item.price || 0,
+              image: item.image || '/images/coffee.jpeg',
+              type: item.type || 'retail',
+              category: item.type || 'retail',
+              isSpecial: false,
+              isVendor: false,
+              kind: item.type === 'retail' ? 'Retail' : 'Produce',
+              quantity: 1,
+              vendorId: vendorId
+            }));
+          setSearchResults(results);
           setSuggestedItems([]);
           return;
         }
@@ -229,21 +264,41 @@ const SearchBar: React.FC<SearchBarProps> = ({
           matchedTypes.has(item.type) && !exactMatches.some(match => match.itemId === item.itemId)
         );
 
-        setSearchResults(exactMatches.map(item => ({
-          _id: item.itemId || item._id || `temp-${Math.random()}`,
-          name: item.name,
-          price: item.price,
-          image: item.image || '/images/coffee.jpeg',
-          type: item.type
-        })));
+        const results = exactMatches
+          .filter(item => item.itemId)
+          .map(item => ({
+            id: item.itemId!,
+            name: item.name,
+            title: item.name,
+            price: item.price || 0,
+            image: item.image || '/images/coffee.jpeg',
+            type: item.type || 'retail',
+            category: item.type || 'retail',
+            isSpecial: false,
+            isVendor: false,
+            kind: item.type === 'retail' ? 'Retail' : 'Produce',
+            quantity: 1,
+            vendorId: vendorId
+          }));
+        setSearchResults(results);
 
-        setSuggestedItems(suggestions.map(item => ({
-          _id: item.itemId || item._id || `temp-${Math.random()}`,
-          name: item.name,
-          price: item.price,
-          image: item.image || '/images/coffee.jpeg',
-          type: item.type
-        })));
+        const suggestedResults = suggestions
+          .filter(item => item.itemId)
+          .map(item => ({
+            id: item.itemId!,
+            name: item.name,
+            title: item.name,
+            price: item.price || 0,
+            image: item.image || '/images/coffee.jpeg',
+            type: item.type || 'retail',
+            category: item.type || 'retail',
+            isSpecial: false,
+            isVendor: false,
+            kind: item.type === 'retail' ? 'Retail' : 'Produce',
+            quantity: 1,
+            vendorId: vendorId
+          }));
+        setSuggestedItems(suggestedResults);
       } else {
         // Normal search (both items and vendors)
         const [itemsRes, vendorsRes] = await Promise.all([
@@ -312,6 +367,136 @@ const SearchBar: React.FC<SearchBarProps> = ({
     router.push(`/vendor/${vendorId}`);
   };
 
+  const handleAddToCart = async (item: SearchResult) => {
+    setSelectedItem(item);
+    console.log('Selected item:', item);
+
+    const itemId = item.id;
+    if (!itemId) {
+      console.error('Item missing ID:', item);
+      toast.error('Invalid item ID');
+      return;
+    }
+
+    console.log('Using item ID:', itemId);
+    try {
+      const response = await fetch(`${BACKEND_URL}/items/vendors/${itemId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Received vendors:', data);
+      setAvailableVendors(data.data || []);
+      setSelectedVendor(null);
+      setShowVendorModal(true);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+      toast.error('Failed to fetch vendors');
+    }
+  };
+
+  const handleVendorSelect = (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+  };
+
+  const handleVendorConfirm = async () => {
+    if (!selectedVendor || !selectedItem) {
+      toast.error('Please select a vendor and item');
+      return;
+    }
+
+    const itemId = selectedItem.id;
+    const vendorId = selectedVendor._id;
+    if (!itemId || !vendorId) {
+      console.error('Missing IDs:', { itemId, vendorId });
+      toast.error('Invalid item or vendor ID');
+      return;
+    }
+
+    const cartItem = {
+      id: itemId,
+      vendorId: vendorId,
+      name: selectedItem.name,
+      title: selectedItem.name,
+      price: selectedItem.price,
+      image: selectedItem.image,
+      type: selectedItem.type,
+      category: selectedItem.category,
+      isSpecial: selectedItem.isSpecial,
+      isVendor: selectedItem.isVendor,
+      kind: selectedItem.kind,
+      quantity: selectedItem.quantity
+    };
+
+    console.log('Adding to cart:', cartItem);
+    try {
+      await addItemToCart(cartItem, selectedVendor);
+      toast.success('Item added to cart');
+      setShowVendorModal(false);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart');
+    }
+  };
+
+  const handleCancel = () => {
+    setShowVendorModal(false);
+    setSelectedVendor(null);
+    setAvailableVendors([]);
+  };
+
+  const handleIncreaseQuantity = async (item: SearchResult) => {
+    try {
+      setLoading(true);
+      if (!item.id || !item.vendorId) {
+        throw new Error('Missing item ID or vendor ID');
+      }
+      await increaseItemQuantity({
+        ...item,
+        id: item.id,
+        vendorId: item.vendorId
+      });
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
+      if (error instanceof Error) {
+        if (error.message.includes("max quantity")) {
+          toast.warning(`Maximum limit reached for ${item.name}`);
+        } else if (error.message.includes("Only")) {
+          toast.warning(`Only ${error.message.split("Only ")[1]} available for ${item.name}`);
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error('Failed to increase quantity');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDecreaseQuantity = async (item: SearchResult) => {
+    try {
+      setLoading(true);
+      if (!item.id || !item.vendorId) {
+        throw new Error('Missing item ID or vendor ID');
+      }
+      await decreaseItemQuantity({
+        ...item,
+        id: item.id,
+        vendorId: item.vendorId
+      });
+    } catch (error) {
+      console.error('Error decreasing quantity:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to decrease quantity');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className={styles.container}>
@@ -372,26 +557,80 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <div className={styles.searchResults}>
             {searchResults.length > 0 && (
               <div className={styles.resultsGrid}>
-                {searchResults.map((item) => (
-                  <div 
-                    key={item._id} 
-                    className={styles.resultCard}
-                    onClick={() => item.isVendor ? handleVendorClick(item._id) : handleSelectSuggestion(item.name)}
-                  >
-                    {item.isVendor ? (
-                      <div className={styles.vendorCard}>
-                        <h3 className="font-semibold">{item.name}</h3>
-                      </div>
-                    ) : (
-                      <DishCard
-                        dishName={item.name}
-                        price={item.price || 0}
-                        image={item.image || '/images/coffee.jpeg'}
-                        variant="search-result"
-                      />
-                    )}
-                  </div>
-                ))}
+                {searchResults.map((item) => {
+                  const cartItem = cartItems.find(
+                    (cartItem) => cartItem.itemId === item.id
+                  );
+                  const quantity = cartItem?.quantity || 0;
+
+                  return (
+                    <div 
+                      key={item._id} 
+                      className={styles.resultCard}
+                      onClick={() => item.isVendor && item._id ? handleVendorClick(item._id) : null}
+                    >
+                      {item.isVendor ? (
+                        <div className={styles.vendorCard}>
+                          <h3 className="font-semibold">{item.name}</h3>
+                        </div>
+                      ) : (
+                        <div className={styles.foodCard}>
+                          <DishCard
+                            dishName={item.name}
+                            price={item.price || 0}
+                            image={item.image || '/images/coffee.jpeg'}
+                            variant="search-result"
+                          />
+                          <div className={styles.quantityControls}>
+                            {quantity > 0 ? (
+                              <>
+                                <button
+                                  className={`${styles.quantityButton} ${quantity === 0 ? styles.disabled : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDecreaseQuantity(item);
+                                  }}
+                                  disabled={loading || quantity === 0}
+                                >
+                                  <Minus size={16} />
+                                </button>
+                                <span className={styles.quantity}>{quantity}</span>
+                                <button
+                                  className={styles.quantityButton}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleIncreaseQuantity(item);
+                                  }}
+                                  disabled={loading}
+                                >
+                                  <Plus size={16} />
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className={`${styles.addToCartButton} ${loading ? styles.loading : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCart(item);
+                                }}
+                                disabled={loading}
+                              >
+                                {loading ? (
+                                  <>
+                                    <Loader2 className={styles.spinner} size={16} />
+                                    Adding...
+                                  </>
+                                ) : (
+                                  'Add to Cart'
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -425,6 +664,40 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </div>
         )}
       </div>
+
+      {showVendorModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2>Select Vendor</h2>
+            <div className={styles.vendorList}>
+              {availableVendors.map((vendor) => (
+                <div
+                  key={vendor._id}
+                  className={`${styles.vendorItem} ${
+                    selectedVendor?._id === vendor._id ? styles.selected : ""
+                  }`}
+                  onClick={() => handleVendorSelect(vendor)}
+                >
+                  <h3>{vendor.name}</h3>
+                  <p>₹{vendor.price}</p>
+                </div>
+              ))}
+            </div>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={handleCancel}>
+                Cancel
+              </button>
+              <button
+                className={styles.confirmButton}
+                onClick={handleVendorConfirm}
+                disabled={!selectedVendor}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Suspense>
   );
 };

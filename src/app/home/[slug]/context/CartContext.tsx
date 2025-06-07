@@ -2,14 +2,15 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { toast } from 'react-toastify';
 import { FoodItem, CartItem, Vendor } from '../types';
 import { addToCart, increaseQuantity, decreaseQuantity } from '../utils/cartUtils';
+import { SearchResult } from '@/app/components/SearchBar';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 interface CartContextType {
   cartItems: CartItem[];
-  addItemToCart: (item: FoodItem, vendor: Vendor) => Promise<void>;
-  increaseItemQuantity: (item: FoodItem) => Promise<void>;
-  decreaseItemQuantity: (item: FoodItem) => Promise<void>;
+  addItemToCart: (item: FoodItem | SearchResult, vendor: Vendor) => Promise<void>;
+  increaseItemQuantity: (item: FoodItem | SearchResult) => Promise<void>;
+  decreaseItemQuantity: (item: FoodItem | SearchResult) => Promise<void>;
   refreshCart: () => Promise<void>;
 }
 
@@ -95,7 +96,7 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
     }
   }, [userId, refreshCart]);
 
-  const addItemToCart = async (item: FoodItem, vendor: Vendor) => {
+  const addItemToCart = async (item: FoodItem | SearchResult, vendor: Vendor) => {
     if (!userId || !vendor._id) {
       console.error('Missing userId or vendor._id:', { userId, vendorId: vendor._id });
       return;
@@ -113,7 +114,7 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
     }
   };
 
-  const increaseItemQuantity = async (item: FoodItem) => {
+  const increaseItemQuantity = async (item: FoodItem | SearchResult) => {
     if (!userId || !item.vendorId) {
       console.error('Missing userId or item.vendorId:', { userId, vendorId: item.vendorId });
       return;
@@ -131,7 +132,7 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
     }
   };
 
-  const decreaseItemQuantity = async (item: FoodItem) => {
+  const decreaseItemQuantity = async (item: FoodItem | SearchResult) => {
     if (!userId || !item.vendorId) {
       console.error('Missing userId or item.vendorId:', { userId, vendorId: item.vendorId });
       return;
