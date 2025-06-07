@@ -1,0 +1,42 @@
+.container {
+  max-width: 600px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.heading {
+  font-size: 2.5rem;
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+.message {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.orderId {
+  font-size: 1rem;
+  margin-top: 1rem;
+  color: #444;
+}
+
+.button {
+  margin-top: 2rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: #01796f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+
+  &:hover {
+    background-color: #016359;
+  }
+}
