@@ -53,6 +53,7 @@ interface VendorData {
 export interface SearchResult {
   _id?: string;
   id: string;
+  itemId?: string;
   name: string;
   title: string;
   price: number;
@@ -434,19 +435,32 @@ const SearchBar: React.FC<SearchBarProps> = ({
       }
       const user = await response.json();
       
+      if (!user._id) {
+        toast.error('Invalid user data');
+        return;
+      }
+
+      if (!selectedItem._id && !selectedItem.id) {
+        toast.error('Invalid item data');
+        return;
+      }
+
+      console.log('Adding to cart:', {
+        user: user._id,
+        item: selectedItem,
+        vendor: selectedVendor._id
+      });
+
       // Add to cart with all required parameters
       await addToSearchCart(
         user._id,
-        {
-          ...selectedItem,
-          kind: selectedItem.type === 'retail' ? 'Retail' : 'Produce'
-        },
+        selectedItem,
         selectedVendor._id
       );
       setShowVendorModal(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error('Failed to add item to cart');
+      toast.error(error instanceof Error ? error.message : 'Failed to add item to cart');
     }
   };
 

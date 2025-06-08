@@ -128,7 +128,44 @@ export const SearchCartProvider = ({ children }: SearchCartProviderProps) => {
         return;
       }
 
-      console.log('Adding to cart:', { userId, item, vendorId });
+      // Validate required fields
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      if (!vendorId) {
+        throw new Error('Vendor ID is required');
+      }
+
+      // Log the full item for debugging
+      console.log('Full item data:', item);
+
+      // Try to get the item ID in order of preference
+      const itemId = item._id || item.id || item.itemId;
+      if (!itemId) {
+        console.error('Item missing all possible ID fields:', item);
+        throw new Error('Item ID is missing');
+      }
+
+      // Determine the kind based on the item's type
+      let kind;
+      if (item.type === 'retail' || item.type === 'produce') {
+        kind = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+      } else {
+        // For other types like 'biscuits', treat them as retail items
+        kind = 'Retail';
+      }
+
+      const requestData = {
+        itemId: itemId,
+        kind: kind,
+        vendorId: vendorId,
+        quantity: 1
+      };
+
+      console.log('Sending cart request:', {
+        url: `${BACKEND_URL}/cart/add/${userId}`,
+        data: requestData
+      });
 
       const response = await fetch(`${BACKEND_URL}/cart/add/${userId}`, {
         method: 'POST',
@@ -136,16 +173,16 @@ export const SearchCartProvider = ({ children }: SearchCartProviderProps) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          itemId: item._id,
-          kind: item.type === 'retail' ? 'Retail' : 'Produce',
-          vendorId: vendorId,
-          quantity: 1
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Cart addition failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
         throw new Error(errorData.message || 'Failed to add item to cart');
       }
 
