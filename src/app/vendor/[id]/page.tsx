@@ -47,6 +47,8 @@ const VendorPage = () => {
   const [universityId, setUniversityId] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchResults, setSearchResults] = useState<VendorItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,7 +108,7 @@ const VendorPage = () => {
     ...(vendorData?.data.produceItems || [])
   ];
 
-  const filteredItems = allItems.filter(item => {
+  const filteredItems = searchResults.length > 0 ? searchResults : allItems.filter(item => {
     const matchesType = !selectedType || item.type === selectedType;
     return matchesType;
   });
@@ -191,6 +193,16 @@ const VendorPage = () => {
     }
   };
 
+  const handleSearch = (results: VendorItem[]) => {
+    setIsSearching(true);
+    setSearchResults(results);
+  };
+
+  const handleClearSearch = () => {
+    setIsSearching(false);
+    setSearchResults([]);
+  };
+
   if (isLoading) {
     return <div className={styles.loading}>Loading...</div>;
   }
@@ -205,11 +217,20 @@ const VendorPage = () => {
             placeholder="Search food items..." 
             vendorId={id as string}
             universityId={universityId}
+            onSearchResults={handleSearch}
           />
+          {isSearching && (
+            <button 
+              className={styles.clearSearchButton}
+              onClick={handleClearSearch}
+            >
+              Clear Search
+            </button>
+          )}
         </div>
       </div>
 
-      {uniqueTypes.length > 0 && (
+      {uniqueTypes.length > 0 && !isSearching && (
         <div className={styles.typeFilters}>
           <button
             className={`${styles.typeButton} ${!selectedType ? styles.active : ''}`}
@@ -230,58 +251,64 @@ const VendorPage = () => {
       )}
 
       <div className={styles.itemsGrid}>
-        {filteredItems.map(item => {
-          const quantity = getItemQuantity(item.itemId, item.type);
-          return (
-            <div 
-              key={item.itemId} 
-              className={styles.itemCard}
-            >
-              <div onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
-                <DishCard
-                  dishName={item.name}
-                  price={item.price}
-                  image={item.image || '/images/coffee.jpeg'}
-                  variant="search-result"
-                />
-                {item.quantity !== undefined && (
-                  <p className={styles.quantity}>Available: {item.quantity}</p>
-                )}
-                {item.isAvailable && (
-                  <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
-                    {item.isAvailable === "Y" ? "Available" : "Not Available"}
-                  </p>
-                )}
-              </div>
-              <div className={styles.cartControls}>
-                {quantity > 0 ? (
-                  <>
+        {filteredItems.length === 0 ? (
+          <div className={styles.noResults}>
+            {isSearching ? "No items found matching your search" : "No items available"}
+          </div>
+        ) : (
+          filteredItems.map(item => {
+            const quantity = getItemQuantity(item.itemId, item.type);
+            return (
+              <div 
+                key={item.itemId} 
+                className={styles.itemCard}
+              >
+                <div onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
+                  <DishCard
+                    dishName={item.name}
+                    price={item.price}
+                    image={item.image || '/images/coffee.jpeg'}
+                    variant="search-result"
+                  />
+                  {item.quantity !== undefined && (
+                    <p className={styles.quantity}>Available: {item.quantity}</p>
+                  )}
+                  {item.isAvailable && (
+                    <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
+                      {item.isAvailable === "Y" ? "Available" : "Not Available"}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.cartControls}>
+                  {quantity > 0 ? (
+                    <>
+                      <button 
+                        className={styles.quantityButton}
+                        onClick={() => handleDecreaseQuantity(item)}
+                      >
+                        -
+                      </button>
+                      <span className={styles.quantity}>{quantity}</span>
+                      <button 
+                        className={styles.quantityButton}
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        +
+                      </button>
+                    </>
+                  ) : (
                     <button 
-                      className={styles.quantityButton}
-                      onClick={() => handleDecreaseQuantity(item)}
-                    >
-                      -
-                    </button>
-                    <span className={styles.quantity}>{quantity}</span>
-                    <button 
-                      className={styles.quantityButton}
+                      className={styles.addToCartButton}
                       onClick={() => handleAddToCart(item)}
                     >
-                      +
+                      Add to Cart
                     </button>
-                  </>
-                ) : (
-                  <button 
-                    className={styles.addToCartButton}
-                    onClick={() => handleAddToCart(item)}
-                  >
-                    Add to Cart
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

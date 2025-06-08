@@ -77,6 +77,7 @@ interface SearchBarProps {
   placeholder?: string;
   vendorId?: string;
   universityId?: string;
+  onSearchResults?: (results: VendorItem[]) => void;
 }
 
 interface Vendor {
@@ -94,7 +95,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   hideUniversityDropdown = false,
   placeholder = "Search for food or vendors...",
   vendorId,
-  universityId
+  universityId,
+  onSearchResults
 }) => {
   const [query, setQuery] = useState<string>("");
   const [universities, setUniversities] = useState<University[]>([]);
@@ -196,6 +198,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Vendor search failed:", response.status);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
 
@@ -207,6 +210,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Failed to parse vendor data:", e);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
         
@@ -214,6 +218,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Vendor data fetch failed:", data.message);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
 
@@ -221,21 +226,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
           ...(data.data.retailItems || []).map((item: VendorItem) => ({
             ...item,
             type: 'retail',
-            itemId: item.itemId || item._id
+            itemId: item.itemId || item._id || ''
           })),
           ...(data.data.produceItems || []).map((item: VendorItem) => ({
             ...item,
             type: 'produce',
-            itemId: item.itemId || item._id
+            itemId: item.itemId || item._id || ''
           }))
-        ];
+        ].filter(item => item.itemId); // Filter out items without an ID
 
         // If search text is empty, show all items
         if (!searchText.trim()) {
           const results = allVendorItems
-            .filter(item => item.itemId)
             .map(item => ({
-              id: item.itemId!,
+              id: item.itemId,
               name: item.name,
               title: item.name,
               price: item.price || 0,
@@ -250,6 +254,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             }));
           setSearchResults(results);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults(allVendorItems);
           return;
         }
 
@@ -266,9 +271,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         );
 
         const results = exactMatches
-          .filter(item => item.itemId)
           .map(item => ({
-            id: item.itemId!,
+            id: item.itemId,
             name: item.name,
             title: item.name,
             price: item.price || 0,
@@ -284,9 +288,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         setSearchResults(results);
 
         const suggestedResults = suggestions
-          .filter(item => item.itemId)
           .map(item => ({
-            id: item.itemId!,
+            id: item.itemId,
             name: item.name,
             title: item.name,
             price: item.price || 0,
@@ -300,6 +303,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
             vendorId: vendorId
           }));
         setSuggestedItems(suggestedResults);
+        
+        // Call the callback with the filtered vendor items
+        if (onSearchResults) onSearchResults(exactMatches);
       } else {
         // Normal search (both items and vendors)
         const [itemsRes, vendorsRes] = await Promise.all([
@@ -338,6 +344,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error("Error fetching search results:", error);
       setSearchResults([]);
       setSuggestedItems([]);
+      if (onSearchResults) onSearchResults([]);
     }
   };
 
