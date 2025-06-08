@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import { FoodItem, CartItem, Vendor } from "../types";
+import { SearchResult } from '@/app/components/SearchBar';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -100,7 +101,7 @@ export const checkItemAvailability = async (
 
 export const addToCart = async (
   userId: string,
-  item: FoodItem,
+  item: FoodItem | SearchResult,
   vendorId: string
 ): Promise<boolean> => {
   try {
@@ -147,7 +148,7 @@ export const addToCart = async (
 
 export const increaseQuantity = async (
   userId: string,
-  item: FoodItem
+  item: FoodItem | SearchResult
 ): Promise<boolean> => {
   try {
     console.log('=== Increasing Quantity ===');
@@ -191,7 +192,7 @@ export const increaseQuantity = async (
 
 export const decreaseQuantity = async (
   userId: string,
-  item: FoodItem
+  item: FoodItem | SearchResult
 ): Promise<boolean> => {
   try {
     console.log('=== Decreasing Quantity ===');

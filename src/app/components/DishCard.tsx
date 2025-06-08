@@ -20,8 +20,7 @@ const DishCard: React.FC<Props> = ({ dishName, price, image, variant = "list" })
       />
       <div className="flex-1">
         <h3 className="text-lg font-bold mt-2">{dishName}</h3>
-        <p className="text-gray-800 font-semibold">₹{price}</p>
-        <button className="mt-2 bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600">ADD</button>
+        <p className="text-gray-800 font-semibold">₹ {price}</p>
       </div>
     </div>
   );

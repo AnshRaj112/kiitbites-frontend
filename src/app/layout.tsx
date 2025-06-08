@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import { Metadata } from "next";
+import { SearchCartProvider } from './components/context/SearchCartContext';
 
 export const metadata: Metadata = {
   title: {
@@ -83,9 +84,11 @@ export default function RootLayout({
       <body>
         <GoogleOAuthProvider clientId={googleClientId}>
           <AuthProvider>
-            <Header />
-            <main>{children}</main>
-            <Footer />
+            <SearchCartProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </SearchCartProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
         <SpeedInsights />
