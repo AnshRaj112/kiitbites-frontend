@@ -39,6 +39,10 @@ interface ExtrasResponse {
   extras: ExtraItem[];
 }
 
+interface GuestCartItem extends Omit<CartItem, 'category'> {
+  kind: string;
+}
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -118,7 +122,12 @@ export default function Cart() {
         setUserLoggedIn(false);
         const rawGuest = localStorage.getItem("guest_cart") || "[]";
         try {
-          setCart(JSON.parse(rawGuest));
+          const guestCart = JSON.parse(rawGuest) as GuestCartItem[];
+          const guestCartWithCategory: CartItem[] = guestCart.map((item) => ({
+            ...item,
+            category: item.kind === "Retail" ? "Retail" as const : "Produce" as const
+          }));
+          setCart(guestCartWithCategory);
         } catch {
           setCart([]);
         }
@@ -171,25 +180,31 @@ export default function Cart() {
         console.log("[Cart.tsx] ← /cart responded with:", cartRes.data);
 
         const rawCart = cartRes.data.cart || [];
-        const detailedCart: CartItem[] = rawCart.map((c) => ({
-          _id: c.itemId,
-          userId: userData._id,
-          foodcourtId: userData.foodcourtId,
-          itemId: {
+        const detailedCart: CartItem[] = rawCart.map((c) => {
+          const category = c.kind === "Retail" ? "Retail" : "Produce";
+          const cartItem: CartItem = {
             _id: c.itemId,
+            userId: userData._id,
+            foodcourtId: userData.foodcourtId,
+            itemId: {
+              _id: c.itemId,
+              name: c.name,
+              price: c.price,
+              image: c.image,
+              kind: c.kind
+            },
+            quantity: c.quantity,
+            kind: c.kind,
             name: c.name,
             price: c.price,
             image: c.image,
-            kind: c.kind,
-          },
-          quantity: c.quantity,
-          kind: c.kind,
-          name: c.name,
-          price: c.price,
-          image: c.image,
-          vendorName: cartRes.data.vendorName,
-          vendorId: cartRes.data.vendorId,
-        }));
+            vendorName: cartRes.data.vendorName,
+            vendorId: cartRes.data.vendorId,
+            category
+          };
+          return cartItem;
+        });
+
         console.log("[Cart.tsx] → setCart(...) to:", detailedCart);
         setCart(detailedCart);
 
@@ -258,25 +273,29 @@ export default function Cart() {
       );
       console.log("[Cart.tsx] ← reFetchCart →", cartRes.data);
       const raw = cartRes.data.cart || [];
-      const updated: CartItem[] = raw.map((c) => ({
-        _id: c.itemId,
-        userId: userData._id,
-        foodcourtId: userData.foodcourtId,
-        itemId: {
+      const updated: CartItem[] = raw.map((c) => {
+        const category = c.kind === "Retail" ? "Retail" : "Produce";
+        return {
           _id: c.itemId,
+          userId: userData._id,
+          foodcourtId: userData.foodcourtId,
+          itemId: {
+            _id: c.itemId,
+            name: c.name,
+            price: c.price,
+            image: c.image,
+            kind: c.kind
+          },
+          quantity: c.quantity,
+          kind: c.kind,
           name: c.name,
           price: c.price,
           image: c.image,
-          kind: c.kind,
-        },
-        quantity: c.quantity,
-        kind: c.kind,
-        name: c.name,
-        price: c.price,
-        image: c.image,
-        vendorName: cartRes.data.vendorName,
-        vendorId: cartRes.data.vendorId,
-      }));
+          vendorName: cartRes.data.vendorName,
+          vendorId: cartRes.data.vendorId,
+          category
+        };
+      });
       setCart(updated);
     } catch (err: unknown) {
       console.error("[Cart.tsx] ❌ reFetchCart error:", err);
@@ -325,7 +344,7 @@ export default function Cart() {
     } else {
       const updatedCart = cart.map((item) =>
         item._id === id ? { ...item, quantity: item.quantity + 1 } : item
-      );
+      ) as CartItem[];
       console.log("[Cart.tsx] (guest) increaseQty → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));
@@ -373,7 +392,7 @@ export default function Cart() {
     } else {
       const updatedCart = cart.map((item) =>
         item._id === id ? { ...item, quantity: item.quantity - 1 } : item
-      );
+      ) as CartItem[];
       console.log("[Cart.tsx] (guest) decreaseQty → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));
@@ -410,7 +429,7 @@ export default function Cart() {
           toast.error(err.response?.data?.message || "Failed to remove item");
         });
     } else {
-      const updatedCart = cart.filter((item) => item._id !== id);
+      const updatedCart = cart.filter((item) => item._id !== id) as CartItem[];
       console.log("[Cart.tsx] (guest) removeItem → new cart:", updatedCart);
       setCart(updatedCart);
       localStorage.setItem("guest_cart", JSON.stringify(updatedCart));
@@ -485,6 +504,7 @@ export default function Cart() {
               image: item.image,
               vendorName: "guest",
               vendorId: "guest",
+              category: item.kind === "Retail" ? "Retail" as const : "Produce" as const
             },
           ];
       console.log("[Cart.tsx] (guest) addToCart → new cart:", updatedCart);
