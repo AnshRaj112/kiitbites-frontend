@@ -4,6 +4,53 @@ import { toast } from "react-toastify";
 import { CartItem, OrderType, OrderData } from "../../app/cart/types";
 import styles from "./styles/BillBox.module.scss";
 
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  order_id: string;
+  description: string;
+  prefill: {
+    name: string;
+    contact: string;
+  };
+  theme: {
+    color: string;
+  };
+  handler: (response: RazorpayResponse) => void;
+  modal: {
+    ondismiss: () => void;
+  };
+}
+
+interface OrderResponse {
+  orderId: string;
+  razorpayOptions: {
+    key: string;
+    amount: number;
+    currency: string;
+    order_id: string;
+  };
+}
+
+interface RazorpayConstructor {
+  new (options: RazorpayOptions): {
+    open: () => void;
+  };
+}
+
+declare global {
+  interface Window {
+    Razorpay: RazorpayConstructor;
+  }
+}
+
 interface Props {
   userId: string;
   items: CartItem[];
@@ -50,33 +97,34 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
 
     let orderResp;
     try {
-      orderResp = await axios.post<{
-        orderId: string;
-        razorpayOptions: {
-          key: string;
-          amount: number; // in paise
-          currency: string;
-          order_id: string;
-        };
-      }>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${userId}`, payload, {
-        withCredentials: true,
-      });
+      orderResp = await axios.post<OrderResponse>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/order/${userId}`,
+        payload,
+        {
+          withCredentials: true,
+        }
+      );
 
       console.log("🧾 Order response:", orderResp.data);
-    } catch (err: any) {
-      console.error("❌ Order request failed:", err.response?.data);
-      toast.error(err.response?.data?.message || "Failed to place order.");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Order request failed:", error.response?.data);
+        toast.error(error.response?.data?.message || "Failed to place order.");
+      } else {
+        console.error("❌ Order request failed:", error);
+        toast.error("Failed to place order.");
+      }
       return;
     }
 
     const { orderId, razorpayOptions } = orderResp.data;
 
-    const options = {
+    const options: RazorpayOptions = {
       ...razorpayOptions,
       description: "Complete your payment",
       prefill: { name, contact: phone },
       theme: { color: "#01796f" },
-      handler: async (rzRes: any) => {
+      handler: async (rzRes: RazorpayResponse) => {
         console.log("💳 Razorpay payment success:", rzRes);
 
         try {
@@ -97,15 +145,19 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
 
           console.log("✅ Payment verified successfully");
           toast.success("Payment successful!");
+          onOrder(orderId);
 
           // 🔁 Redirect to payment confirmation page
           window.location.href = `/payment?orderId=${orderId}`;
-        } catch (err: any) {
-          console.error("❌ Payment verification failed:", err.response?.data);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error("❌ Payment verification failed:", error.response?.data);
+          } else {
+            console.error("❌ Payment verification failed:", error);
+          }
           toast.error("Payment verification failed.");
         }
       },
-
       modal: {
         ondismiss: () => {
           console.warn("⚠️ Razorpay payment cancelled by user.");
@@ -116,9 +168,10 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
 
     try {
       console.log("🚀 Launching Razorpay with options:", options);
-      new (window as any).Razorpay(options).open();
-    } catch (err) {
-      console.error("❌ Could not open Razorpay:", err);
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error("❌ Could not open Razorpay:", error);
       toast.error("Could not open payment gateway.");
     }
   };
