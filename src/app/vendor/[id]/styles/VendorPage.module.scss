@@ -19,10 +19,15 @@
 
 .searchContainer {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   align-items: center;
   width: 100%;
   max-width: 600px;
+  position: relative;
+
+  :global(.search-bar) {
+    flex: 1;
+  }
 }
 
 .clearSearchButton {
@@ -34,6 +39,10 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  height: 100%;
+  display: flex;
+  align-items: center;
 
   &:hover {
     background-color: #e5e7eb;

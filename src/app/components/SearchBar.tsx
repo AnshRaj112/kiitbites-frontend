@@ -483,6 +483,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
     return cartItem?.quantity || 0;
   };
 
+  const handleClearSearch = () => {
+    setQuery("");
+    setSearchResults([]);
+    setSuggestedItems([]);
+    router.push("?", undefined);
+    if (onSearchResults) onSearchResults([]);
+  };
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <ToastContainer
@@ -522,7 +530,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
 
           <div className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}>
-            <div className={styles.searchInputWrapper}>
+            <div className={styles.searchInputContainer}>
+              <FaSearch className={styles.searchIcon} />
               <input
                 type="text"
                 value={query}
@@ -530,7 +539,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 placeholder={placeholder}
                 className={styles.searchInput}
               />
-              <FaSearch className={styles.searchIcon} />
+              {query && (
+                <button 
+                  className={styles.clearButton}
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
         </div>

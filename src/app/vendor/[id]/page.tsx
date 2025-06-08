@@ -212,13 +212,15 @@ const VendorPage = () => {
       <div className={styles.header}>
         <h1 className={styles.vendorName}>{vendorData?.foodCourtName}</h1>
         <div className={styles.searchContainer}>
-          <SearchBar 
-            hideUniversityDropdown={true} 
-            placeholder="Search food items..." 
-            vendorId={id as string}
-            universityId={universityId}
-            onSearchResults={handleSearch}
-          />
+          <div className="search-bar">
+            <SearchBar 
+              hideUniversityDropdown={true} 
+              placeholder="Search food items..." 
+              vendorId={id as string}
+              universityId={universityId}
+              onSearchResults={handleSearch}
+            />
+          </div>
           {isSearching && (
             <button 
               className={styles.clearSearchButton}
