@@ -1,24 +1,24 @@
 .container {
+  padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
 .vendorName {
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 1rem;
-  color: #2d3748;
+  color: #333;
 }
 
 .searchContainer {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  width: 300px;
 }
 
 .typeFilters {
@@ -30,65 +30,115 @@
 
 .typeButton {
   padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 20px;
   background: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  color: #4a5568;
+  transition: all 0.2s;
 
   &:hover {
-    background: #f7fafc;
-    border-color: #cbd5e0;
+    background: #f5f5f5;
   }
 
   &.active {
-    background: #4299e1;
+    background: #007bff;
     color: white;
-    border-color: #4299e1;
+    border-color: #007bff;
   }
 }
 
 .itemsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  gap: 2rem;
 }
 
 .itemCard {
   background: white;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 }
 
 .quantity {
   padding: 0.5rem;
-  font-size: 0.875rem;
-  color: #4a5568;
-  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .availability {
   padding: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   text-align: center;
-  font-weight: 500;
 
   &.available {
-    color: #48bb78;
+    color: #28a745;
   }
 
   &.unavailable {
-    color: #e53e3e;
+    color: #dc3545;
   }
+}
+
+.cartControls {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.quantityButton {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  background: white;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  &:active {
+    background: #e0e0e0;
+  }
+}
+
+.addToCartButton {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #0056b3;
+  }
+
+  &:active {
+    background: #004085;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 1.2rem;
+  color: #666;
 } 

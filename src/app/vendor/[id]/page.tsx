@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import DishCard from "@/app/components/DishCard";
 import SearchBar from "@/app/components/SearchBar";
 import styles from "./styles/VendorPage.module.scss";
+import { addToCart, increaseQuantity, decreaseQuantity } from "./utils/cartUtils";
+import { toast } from "react-toastify";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -28,31 +30,75 @@ interface VendorData {
   uniID?: string;
 }
 
+interface UserData {
+  _id: string;
+  cart: Array<{
+    itemId: string;
+    kind: string;
+    quantity: number;
+  }>;
+}
+
 const VendorPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [universityId, setUniversityId] = useState<string>("");
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchVendorData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/items/getvendors/${id}`);
-        const data = await response.json();
-        if (data.success) {
-          setVendorData(data);
-          // The university ID should be available in the vendor data
-          if (data.uniID) {
-            setUniversityId(data.uniID);
+        // Fetch vendor data
+        const vendorResponse = await fetch(`${BACKEND_URL}/items/getvendors/${id}`);
+        const vendorData = await vendorResponse.json();
+        if (vendorData.success) {
+          // Add type information to items
+          const retailItems = vendorData.data.retailItems.map((item: VendorItem) => ({
+            ...item,
+            type: "retail"
+          }));
+          const produceItems = vendorData.data.produceItems.map((item: VendorItem) => ({
+            ...item,
+            type: "produce"
+          }));
+          
+          setVendorData({
+            ...vendorData,
+            data: {
+              retailItems,
+              produceItems
+            }
+          });
+          
+          if (vendorData.uniID) {
+            setUniversityId(vendorData.uniID);
+          }
+        }
+
+        // Fetch user data
+        const token = localStorage.getItem("token");
+        if (token) {
+          const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUserData(userData);
           }
         }
       } catch (error) {
-        console.error("Error fetching vendor data:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchVendorData();
+    fetchData();
   }, [id]);
 
   const allItems = [
@@ -65,7 +111,6 @@ const VendorPage = () => {
     return matchesType;
   });
 
-  // Get unique types, filtering out undefined and empty strings
   const uniqueTypes = Array.from(
     new Set(
       allItems
@@ -73,6 +118,62 @@ const VendorPage = () => {
         .filter((type): type is string => Boolean(type))
     )
   );
+
+  const getItemQuantity = (itemId: string, type?: string) => {
+    if (!userData?.cart) return 0;
+    const kind = type === "retail" ? "Retail" : "Produce";
+    const cartItem = userData.cart.find(
+      item => item.itemId === itemId && item.kind === kind
+    );
+    return cartItem?.quantity || 0;
+  };
+
+  const handleAddToCart = async (item: VendorItem) => {
+    if (!userData) {
+      toast.error("Please login to add items to cart");
+      return;
+    }
+
+    const quantity = getItemQuantity(item.itemId, item.type);
+    if (quantity === 0) {
+      await addToCart(userData._id, item, id as string);
+    } else {
+      await increaseQuantity(userData._id, item, id as string);
+    }
+
+    // Refresh user data to update cart
+    const token = localStorage.getItem("token");
+    if (token) {
+      const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (userResponse.ok) {
+        const updatedUserData = await userResponse.json();
+        setUserData(updatedUserData);
+      }
+    }
+  };
+
+  const handleDecreaseQuantity = async (item: VendorItem) => {
+    if (!userData) return;
+    await decreaseQuantity(userData._id, item, id as string);
+
+    // Refresh user data to update cart
+    const token = localStorage.getItem("token");
+    if (token) {
+      const userResponse = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (userResponse.ok) {
+        const updatedUserData = await userResponse.json();
+        setUserData(updatedUserData);
+      }
+    }
+  };
 
   const handleItemClick = async (item: VendorItem) => {
     try {
@@ -89,6 +190,10 @@ const VendorPage = () => {
       console.error("Error handling item click:", error);
     }
   };
+
+  if (isLoading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -125,29 +230,58 @@ const VendorPage = () => {
       )}
 
       <div className={styles.itemsGrid}>
-        {filteredItems.map(item => (
-          <div 
-            key={item.itemId} 
-            className={styles.itemCard}
-            onClick={() => handleItemClick(item)}
-            style={{ cursor: 'pointer' }}
-          >
-            <DishCard
-              dishName={item.name}
-              price={item.price}
-              image={item.image || '/images/coffee.jpeg'}
-              variant="search-result"
-            />
-            {item.quantity !== undefined && (
-              <p className={styles.quantity}>Available: {item.quantity}</p>
-            )}
-            {item.isAvailable && (
-              <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
-                {item.isAvailable === "Y" ? "Available" : "Not Available"}
-              </p>
-            )}
-          </div>
-        ))}
+        {filteredItems.map(item => {
+          const quantity = getItemQuantity(item.itemId, item.type);
+          return (
+            <div 
+              key={item.itemId} 
+              className={styles.itemCard}
+            >
+              <div onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
+                <DishCard
+                  dishName={item.name}
+                  price={item.price}
+                  image={item.image || '/images/coffee.jpeg'}
+                  variant="search-result"
+                />
+                {item.quantity !== undefined && (
+                  <p className={styles.quantity}>Available: {item.quantity}</p>
+                )}
+                {item.isAvailable && (
+                  <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
+                    {item.isAvailable === "Y" ? "Available" : "Not Available"}
+                  </p>
+                )}
+              </div>
+              <div className={styles.cartControls}>
+                {quantity > 0 ? (
+                  <>
+                    <button 
+                      className={styles.quantityButton}
+                      onClick={() => handleDecreaseQuantity(item)}
+                    >
+                      -
+                    </button>
+                    <span className={styles.quantity}>{quantity}</span>
+                    <button 
+                      className={styles.quantityButton}
+                      onClick={() => handleAddToCart(item)}
+                    >
+                      +
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    className={styles.addToCartButton}
+                    onClick={() => handleAddToCart(item)}
+                  >
+                    Add to Cart
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
