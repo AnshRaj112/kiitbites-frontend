@@ -53,6 +53,7 @@ interface VendorData {
 export interface SearchResult {
   _id?: string;
   id: string;
+  itemId?: string;
   name: string;
   title: string;
   price: number;
@@ -76,6 +77,7 @@ interface SearchBarProps {
   placeholder?: string;
   vendorId?: string;
   universityId?: string;
+  onSearchResults?: (results: VendorItem[]) => void;
 }
 
 interface Vendor {
@@ -93,7 +95,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   hideUniversityDropdown = false,
   placeholder = "Search for food or vendors...",
   vendorId,
-  universityId
+  universityId,
+  onSearchResults
 }) => {
   const [query, setQuery] = useState<string>("");
   const [universities, setUniversities] = useState<University[]>([]);
@@ -195,6 +198,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Vendor search failed:", response.status);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
 
@@ -206,6 +210,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Failed to parse vendor data:", e);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
         
@@ -213,6 +218,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           console.error("Vendor data fetch failed:", data.message);
           setSearchResults([]);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults([]);
           return;
         }
 
@@ -220,21 +226,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
           ...(data.data.retailItems || []).map((item: VendorItem) => ({
             ...item,
             type: 'retail',
-            itemId: item.itemId || item._id
+            itemId: item.itemId || item._id || ''
           })),
           ...(data.data.produceItems || []).map((item: VendorItem) => ({
             ...item,
             type: 'produce',
-            itemId: item.itemId || item._id
+            itemId: item.itemId || item._id || ''
           }))
-        ];
+        ].filter(item => item.itemId); // Filter out items without an ID
 
         // If search text is empty, show all items
         if (!searchText.trim()) {
           const results = allVendorItems
-            .filter(item => item.itemId)
             .map(item => ({
-              id: item.itemId!,
+              id: item.itemId,
               name: item.name,
               title: item.name,
               price: item.price || 0,
@@ -249,6 +254,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             }));
           setSearchResults(results);
           setSuggestedItems([]);
+          if (onSearchResults) onSearchResults(allVendorItems);
           return;
         }
 
@@ -265,9 +271,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         );
 
         const results = exactMatches
-          .filter(item => item.itemId)
           .map(item => ({
-            id: item.itemId!,
+            id: item.itemId,
             name: item.name,
             title: item.name,
             price: item.price || 0,
@@ -283,9 +288,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         setSearchResults(results);
 
         const suggestedResults = suggestions
-          .filter(item => item.itemId)
           .map(item => ({
-            id: item.itemId!,
+            id: item.itemId,
             name: item.name,
             title: item.name,
             price: item.price || 0,
@@ -299,6 +303,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
             vendorId: vendorId
           }));
         setSuggestedItems(suggestedResults);
+        
+        // Call the callback with the filtered vendor items
+        if (onSearchResults) onSearchResults(exactMatches);
       } else {
         // Normal search (both items and vendors)
         const [itemsRes, vendorsRes] = await Promise.all([
@@ -337,6 +344,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error("Error fetching search results:", error);
       setSearchResults([]);
       setSuggestedItems([]);
+      if (onSearchResults) onSearchResults([]);
     }
   };
 
@@ -434,19 +442,32 @@ const SearchBar: React.FC<SearchBarProps> = ({
       }
       const user = await response.json();
       
+      if (!user._id) {
+        toast.error('Invalid user data');
+        return;
+      }
+
+      if (!selectedItem._id && !selectedItem.id) {
+        toast.error('Invalid item data');
+        return;
+      }
+
+      console.log('Adding to cart:', {
+        user: user._id,
+        item: selectedItem,
+        vendor: selectedVendor._id
+      });
+
       // Add to cart with all required parameters
       await addToSearchCart(
         user._id,
-        {
-          ...selectedItem,
-          kind: selectedItem.type === 'retail' ? 'Retail' : 'Produce'
-        },
+        selectedItem,
         selectedVendor._id
       );
       setShowVendorModal(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error('Failed to add item to cart');
+      toast.error(error instanceof Error ? error.message : 'Failed to add item to cart');
     }
   };
 
@@ -460,6 +481,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const getCartItemQuantity = (itemId: string) => {
     const cartItem = searchCartItems.find(item => item.id === itemId);
     return cartItem?.quantity || 0;
+  };
+
+  const handleClearSearch = () => {
+    setQuery("");
+    setSearchResults([]);
+    setSuggestedItems([]);
+    router.push("?", undefined);
+    if (onSearchResults) onSearchResults([]);
   };
 
   return (
@@ -501,7 +530,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
 
           <div className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}>
-            <div className={styles.searchInputWrapper}>
+            <div className={styles.searchInputContainer}>
+              <FaSearch className={styles.searchIcon} />
               <input
                 type="text"
                 value={query}
@@ -509,7 +539,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 placeholder={placeholder}
                 className={styles.searchInput}
               />
-              <FaSearch className={styles.searchIcon} />
+              {query && (
+                <button 
+                  className={styles.clearButton}
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
         </div>
