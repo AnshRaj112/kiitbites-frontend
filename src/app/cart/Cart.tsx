@@ -597,7 +597,7 @@ export default function Cart() {
                 userId={userData._id}
                 items={cart}
                 onOrder={(orderId) => {
-                  alert("Payment successful! Order ID: " + orderId);
+                  console.log("Payment successful! Order ID: " + orderId);
                   // clear cart, redirect, etc.
                 }}
               />
