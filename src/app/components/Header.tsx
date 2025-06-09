@@ -279,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({
               {showGetApp && (
                 <div
                   className={styles.navItem}
-                  onClick={() => handleNavigation("/login")}
+                  onClick={() => handleNavigation("/home")}
                 >
                   <LuArrowUpRight size={24} />
                   <span>GET THE APP</span>
@@ -307,7 +307,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className={styles.rightOptions}>
           <div
             className={styles.navItem}
-            onClick={() => handleNavigation("/login")}
+            onClick={() => handleNavigation("/home")}
           >
             <LuArrowUpRight size={18} />
             <span>GET THE APP</span>

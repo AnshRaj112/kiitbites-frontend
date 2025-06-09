@@ -1,4 +1,4 @@
-//@import url("https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap");
+// @import url("https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap");
 
 .container {
   font-family: "Shadows Into Light", cursive;
@@ -46,7 +46,8 @@
 }
 
 .textarea {
-  resize: vertical;
+  resize: none;
+  height: 5rem;
   min-height: 3rem;
 }
 
@@ -55,8 +56,18 @@
   padding: 0.6rem;
   border-radius: 0.6rem;
   display: flex;
+  overflow-y: scroll;
+  scrollbar-width: none;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.billDelivery {
+  height: 12.5rem; // Adjust this as needed
+}
+
+.billRegular {
+  height: 18rem; // Same height for takeaway and dinein
 }
 
 .line,

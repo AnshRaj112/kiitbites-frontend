@@ -1,4 +1,4 @@
-import Slider from "react-slick";
+import Slider, { Settings } from "react-slick";
 import styles from "../styles/CollegePage.module.scss";
 import { FavoriteItem, FoodItem } from "../types";
 import ProductCard from "./ProductCard";
@@ -11,11 +11,13 @@ const categories = {
 interface FavoritesSectionProps {
   favoriteItems: FavoriteItem[];
   convertFavoriteToFoodItem: (item: FavoriteItem) => FoodItem;
+  sliderSettings: Settings;
 }
 
 const FavoritesSection = ({
   favoriteItems,
   convertFavoriteToFoodItem,
+  sliderSettings,
 }: FavoritesSectionProps) => {
   if (favoriteItems.length === 0) return null;
 
@@ -26,6 +28,7 @@ const FavoritesSection = ({
       </div>
       <div className={styles.carouselContainer}>
         <Slider
+           {...sliderSettings}
           dots={false}
           infinite={true}
           speed={500}

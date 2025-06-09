@@ -181,6 +181,16 @@
   margin-bottom: 1rem;
 }
 
+.clgFav{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favButton{
+  font-size: 1.5rem;
+}
+
 .collegeTag {
   background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: white;

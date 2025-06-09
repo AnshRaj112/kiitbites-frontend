@@ -6,6 +6,8 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
@@ -80,6 +82,8 @@ const FavouriteFoodPageContent: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentVendorId, setCurrentVendorId] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
 
   // Get auth token
   const getAuthToken = () => {
@@ -156,6 +160,8 @@ const FavouriteFoodPageContent: React.FC = () => {
 
         const response = await axios.get(url, getAuthConfig());
         setFavorites(response.data.favourites);
+        setFavoriteIds(response.data.favourites.map((f: FoodItem) => f._id));
+
       } catch (error) {
         console.error("Error fetching favorites:", error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -168,6 +174,52 @@ const FavouriteFoodPageContent: React.FC = () => {
 
     fetchFavorites();
   }, [user?._id, selectedCollege, router]);
+
+  const handleToggleFavorite = async (food: FoodItem) => {
+    const userId = user?._id;
+    if (!userId) return;
+  
+    const kind = food.kind;
+    const itemId = food._id;
+    const vendorId = food.vendorId;
+  
+    const isAlreadyFav = favoriteIds.includes(itemId);
+  
+    try {
+      // Optimistically update the UI
+      setFavoriteIds((prev) =>
+        isAlreadyFav ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+      );
+  
+      // Make PATCH request
+      const res = await fetch(
+        `${BACKEND_URL}/fav/${userId}/${itemId}/${kind}/${vendorId}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+        }
+      );
+  
+      if (!res.ok) {
+        throw new Error("Failed to update favorite");
+      }
+  
+      toast.success(
+        isAlreadyFav ? "Removed from favorites" : "Added to favorites"
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+  
+      // Revert UI if error
+      setFavoriteIds((prev) =>
+        isAlreadyFav ? [...prev, itemId] : prev.filter((id) => id !== itemId)
+      );
+    }
+  };
+  
 
   // Fetch vendors list
   useEffect(() => {
@@ -692,6 +744,7 @@ const FavouriteFoodPageContent: React.FC = () => {
         ) : (
           <div className={styles.foodGrid}>
             {favorites.map((food) => {
+              const isFavorited = favoriteIds.includes(food._id);
               // Find the cart item with matching itemId and vendorId
               console.log("Current cart items:", cartItems); // Debug log
               console.log("Current food item:", food); // Debug log
@@ -733,11 +786,20 @@ const FavouriteFoodPageContent: React.FC = () => {
                     alt={food.name}
                     className={styles.foodImage}
                   />
-                  {!selectedCollege && (
-                    <div className={styles.collegeTag}>
-                      {colleges.find((c) => c._id === food.uniId)?.fullName}
-                    </div>
-                  )}
+                  <div className={styles.clgFav}>
+                    {!selectedCollege && (
+                      <div className={styles.collegeTag}>
+                        {colleges.find((c) => c._id === food.uniId)?.fullName}
+                      </div>
+                    )}
+                    <button onClick={() => handleToggleFavorite(food)} className={styles.favButton}>
+                      {isFavorited ? (
+                        <FaHeart color="#4ea199"/>
+                      ) : (
+                        <FaRegHeart color="#4ea199"/>
+                      )}
+                    </button> 
+                  </div>
                   <h3 className={styles.foodName}>{food.name}</h3>
                   <p className={styles.vendorName}>
                     {food.vendorName || getVendorName(food.vendorId)}

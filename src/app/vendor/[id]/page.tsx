@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import DishCard from "@/app/components/DishCard";
 import SearchBar from "@/app/components/SearchBar";
 import styles from "./styles/VendorPage.module.scss";
+import { FaRegHeart } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
 import { addToCart, increaseQuantity, decreaseQuantity } from "./utils/cartUtils";
 import { toast } from "react-toastify";
 
@@ -49,6 +51,8 @@ const VendorPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchResults, setSearchResults] = useState<VendorItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [favouriteItems, setFavouriteItems] = useState<string[]>([]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,6 +106,57 @@ const VendorPage = () => {
 
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      if (userData && universityId) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/fav/${userData._id}/${universityId}`);
+          const data = await res.json();
+          if (data.favourites) {
+            const favIds = data.favourites.map((fav: any) => fav._id || fav.itemId); // use fav._id or fav.itemId depending on backend
+            setFavouriteItems(favIds);
+          }
+        } catch (err) {
+          console.error("Failed to fetch favourites:", err);
+        }
+      }
+    };
+  
+    fetchFavourites();
+  }, [userData, universityId]);
+
+  const toggleFavourite = async (item: VendorItem) => {
+    if (!userData) {
+      toast.error("Please login to favourite items");
+      return;
+    }
+  
+    const kind = item.type === "retail" ? "Retail" : "Produce";
+  
+    try {
+      const res = await fetch(`${BACKEND_URL}/fav/${userData._id}/${item.itemId}/${kind}/${id}`, {
+        method: "PATCH",
+      });
+      const data = await res.json();
+  
+      if (res.ok) {
+        const isFav = favouriteItems.includes(item.itemId);
+        const updatedFavs = isFav
+          ? favouriteItems.filter(favId => favId !== item.itemId)
+          : [...favouriteItems, item.itemId];
+  
+        setFavouriteItems(updatedFavs);
+        toast.success(data.message || "Favourites updated.");
+      } else {
+        toast.error(data.error || "Failed to update favourites");
+      }
+    } catch (err) {
+      console.error("Favourite toggle error:", err);
+      toast.error("Error updating favourites");
+    }
+  };
+  
 
   const allItems = [
     ...(vendorData?.data.retailItems || []),
@@ -212,7 +267,7 @@ const VendorPage = () => {
       <div className={styles.header}>
         <h1 className={styles.vendorName}>{vendorData?.foodCourtName}</h1>
         <div className={styles.searchContainer}>
-          <div className="search-bar">
+          <div className={styles.searchBar}>
             <SearchBar 
               hideUniversityDropdown={true} 
               placeholder="Search food items..." 
@@ -272,14 +327,29 @@ const VendorPage = () => {
                     image={item.image || '/images/coffee.jpeg'}
                     variant="search-result"
                   />
-                  {item.quantity !== undefined && (
-                    <p className={styles.quantity}>Available: {item.quantity}</p>
-                  )}
-                  {item.isAvailable && (
-                    <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
-                      {item.isAvailable === "Y" ? "Available" : "Not Available"}
-                    </p>
-                  )}
+                  <div className={styles.belowdish}>
+                    <div>
+                      {item.quantity !== undefined && (
+                        <p className={styles.quantity}>Available: {item.quantity}</p>
+                      )}
+                      {item.isAvailable && (
+                        <p className={`${styles.availability} ${item.isAvailable === "Y" ? styles.available : styles.unavailable}`}>
+                          {item.isAvailable === "Y" ? "Available" : "Not Available"}
+                        </p>
+                      )}
+                    </div>
+                    <button 
+                      className={styles.heart} 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevents navigating to item detail
+                        toggleFavourite(item);
+                      }}
+                    >
+                      {favouriteItems.includes(item.itemId) ? <FaHeart color="#4ea199" /> : <FaRegHeart color="#4ea199" />}
+                    </button>
+
+                    {/* <button className={styles.heart}><FaHeart /></button> */}
+                  </div>
                 </div>
                 <div className={styles.cartControls}>
                   {quantity > 0 ? (
