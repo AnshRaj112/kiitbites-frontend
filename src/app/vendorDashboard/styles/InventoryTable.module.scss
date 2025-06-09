@@ -1,0 +1,73 @@
+.tableWrap {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  h3 {
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    color: #222;
+  }
+
+  .sub {
+    color: #777;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Adjust this calculation based on the actual height of your page header + stats bar */
+  max-height: calc(
+    100vh - 64px /* global header height */ - 160px
+      /* approximate height of header + stats + controls */
+  );
+}
+
+.tableContainer {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    background-color: #f4f4f4;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+  }
+
+  td {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+  }
+
+  .received {
+    color: #28a745;
+    font-weight: 500;
+  }
+
+  .sold {
+    color: #dc3545;
+    font-weight: 500;
+  }
+}

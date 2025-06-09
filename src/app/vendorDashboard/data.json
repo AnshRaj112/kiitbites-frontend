@@ -1,0 +1,34 @@
+{
+  "stats": {
+    "totalTracked": 125,
+    "soldToday": 76,
+    "receivedToday": 45
+  },
+  "reportDate": "2024-12-06",
+  "items": [
+    {
+      "name": "Coca Cola 500ml",
+      "opening": 50,
+      "received": 20,
+      "sold": 25,
+      "closing": 45,
+      "itemType": "Retail"
+    },
+    {
+      "name": "Lay's Chips",
+      "opening": 30,
+      "received": 15,
+      "sold": 22,
+      "closing": 23,
+      "itemType": "Retail"
+    },
+    {
+      "name": "Broccoli",
+      "opening": 40,
+      "received": 10,
+      "sold": 30,
+      "closing": 20,
+      "itemType": "Produce"
+    }
+  ]
+}
