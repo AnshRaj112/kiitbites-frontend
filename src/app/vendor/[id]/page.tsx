@@ -41,6 +41,11 @@ interface UserData {
   }>;
 }
 
+interface FavoriteItem {
+  _id?: string;
+  itemId?: string;
+}
+
 const VendorPage = () => {
   const { id } = useParams();
   const router = useRouter();
@@ -114,7 +119,7 @@ const VendorPage = () => {
           const res = await fetch(`${BACKEND_URL}/fav/${userData._id}/${universityId}`);
           const data = await res.json();
           if (data.favourites) {
-            const favIds = data.favourites.map((fav: any) => fav._id || fav.itemId); // use fav._id or fav.itemId depending on backend
+            const favIds = data.favourites.map((fav: FavoriteItem) => fav._id || fav.itemId);
             setFavouriteItems(favIds);
           }
         } catch (err) {
