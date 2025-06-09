@@ -1,0 +1,51 @@
+/* styles/sidebar.module.scss */
+
+.sidebar {
+  position: sticky;
+  top: 64px; // your header height
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: #fff;
+  width: 240px;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid #eee;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.menu li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  transition: background 0.15s;
+}
+.menu li:hover {
+  background: #f5f5ff;
+}
+.active {
+  background: #6c63ff;
+  color: #fff;
+}
+.icon {
+  font-size: 1.2rem;
+}
+.footer {
+  text-align: left;
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 2rem;
+}
+.vendorName {
+  font-weight: 600;
+  color: #222;
+}
+.vendorId {
+  color: #888;
+}

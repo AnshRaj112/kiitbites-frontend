@@ -1,0 +1,37 @@
+.card {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  min-width: 150px;
+  text-align: left;
+
+  .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .label {
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+}
+
+.default {
+  border-left: 4px solid #cccccc;
+}
+
+.positive {
+  border-left: 4px solid #28a745;
+  .value {
+    color: #28a745;
+  }
+}
+
+.warning {
+  border-left: 4px solid #ff6600;
+  .value {
+    color: #ff6600;
+  }
+}

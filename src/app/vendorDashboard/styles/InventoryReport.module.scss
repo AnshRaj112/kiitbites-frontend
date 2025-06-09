@@ -1,0 +1,49 @@
+/* styles/InventoryReport.module.scss */
+.container {
+  display: flex;
+}
+
+.main {
+  margin-left: 0; /* sidebar width */
+  flex: 1;
+  padding: 2rem;
+  padding-top: 80px;
+  background: #f9f9fc;
+  min-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+.header p {
+  color: #555;
+  margin-top: 0;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.error {
+  color: #d32f2f;
+  background-color: #fff3f3;
+  padding: 10px 15px;
+  border: 1px solid #f8d7da;
+  border-radius: 6px;
+  margin: 15px 0;
+}
