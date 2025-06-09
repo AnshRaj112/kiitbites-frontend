@@ -505,187 +505,189 @@ const SearchBar: React.FC<SearchBarProps> = ({
         pauseOnHover
         theme="light"
       />
-      <div className={styles.container}>
-        <div className={styles.header}>
-          {!hideUniversityDropdown && (
-            <div className={`${styles.selectBar} ${query !== "" ? styles.selectBarHidden : ""}`}>
-              {selectedUniversity ? (
-                <select
-                  value={selectedUniversity}
-                  onChange={handleUniversityChange}
-                  className={styles.dropdown}
-                >
-                  {universities.map((uni) => (
-                    <option key={uni._id} value={uni._id}>
-                      {uni.fullName}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <select disabled className={styles.dropdown}>
-                  <option>Loading Universities...</option>
-                </select>
-              )}
-            </div>
-          )}
-
-          <div className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}>
-            <div className={styles.searchInputContainer}>
-              <FaSearch className={styles.searchIcon} />
-              <input
-                type="text"
-                value={query}
-                onChange={handleInputChange}
-                placeholder={placeholder}
-                className={styles.searchInput}
-              />
-              {query && (
-                <button 
-                  className={styles.clearButton}
-                  onClick={handleClearSearch}
-                  aria-label="Clear search"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {query === "" && !hideUniversityDropdown ? (
-          <div className={styles.popularChoices}>
-            <h2 className="text-xl font-bold mb-2">Popular Choices</h2>
-            <div className={styles.popularGrid}>
-              {Array.isArray(popularFoods) && popularFoods.map((food) => (
-                <div key={food._id} className={styles.foodCard} onClick={() => handleSelectSuggestion(food.name)}>
-                  <DishCard
-                    dishName={food.name}
-                    price={food.price}
-                    image={food.image}
-                    variant="search-result"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className={styles.searchResults}>
-            {searchResults.length > 0 && (
-              <div className={styles.resultsGrid}>
-                {searchResults.map((item) => {
-                  const quantity = getCartItemQuantity(item._id || item.id);
-                  const cartItem = searchCartItems.find(
-                    (cartItem) => cartItem.id === (item._id || item.id)
-                  );
-
-                  return (
-                    <div 
-                      key={item._id} 
-                      className={styles.resultCard}
-                      onClick={() => item.isVendor && item._id ? handleVendorClick(item._id) : null}
-                    >
-                      {item.isVendor ? (
-                        <div className={styles.vendorCard}>
-                          <h3 className="font-semibold">{item.name}</h3>
-                        </div>
-                      ) : (
-                        <div className={styles.foodCard}>
-                          <DishCard
-                            dishName={item.name}
-                            price={item.price || 0}
-                            image={item.image || '/images/coffee.jpeg'}
-                            variant="search-result"
-                          />
-                          <SearchQuantityControls
-                            item={{
-                              id: item._id || item.id,
-                              name: item.name,
-                              type: item.type,
-                              vendorId: cartItem?.vendorId
-                            }}
-                            quantity={quantity}
-                            onAddToCart={() => handleAddToCart(item)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {suggestedItems.length > 0 && (
-              <div className={styles.suggestedItems}>
-                <h2 className="text-xl font-bold mb-4">You may also like</h2>
-                <div className={styles.resultsGrid}>
-                  {suggestedItems.map((item) => (
-                    <div 
-                      key={item._id} 
-                      className={styles.resultCard}
-                      onClick={() => handleSelectSuggestion(item.name)}
-                    >
-                      <DishCard
-                        dishName={item.name}
-                        price={item.price || 0}
-                        image={item.image || '/images/coffee.jpeg'}
-                        variant="search-result"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {query !== "" && searchResults.length === 0 && suggestedItems.length === 0 && (
-              <div className={styles.noResults}>
-                <p>No results found</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {showVendorModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h2 className="text-xl font-bold mb-4">Select Vendor</h2>
-            {availableVendors.length === 0 ? (
-              <div className="text-center py-4">Loading vendors...</div>
-            ) : (
-              <div className={styles.vendorList}>
-                {availableVendors.map((vendor) => (
-                  <div
-                    key={vendor._id}
-                    className={`${styles.vendorItem} ${
-                      selectedVendor?._id === vendor._id ? styles.selected : ""
-                    }`}
-                    onClick={() => handleVendorSelect(vendor)}
+      <div className={styles.mainContainer}>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            {!hideUniversityDropdown && (
+              <div className={`${styles.selectBar} ${query !== "" ? styles.selectBarHidden : ""}`}>
+                {selectedUniversity ? (
+                  <select
+                    value={selectedUniversity}
+                    onChange={handleUniversityChange}
+                    className={styles.dropdown}
                   >
-                    <h3 className="font-semibold">{vendor.name}</h3>
-                    <p className="text-gray-600">₹{vendor.price}</p>
+                    {universities.map((uni) => (
+                      <option key={uni._id} value={uni._id}>
+                        {uni.fullName}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select disabled className={styles.dropdown}>
+                    <option>Loading Universities...</option>
+                  </select>
+                )}
+              </div>
+            )}
+
+            <div className={`${styles.searchBar} ${query !== "" ? styles.searchBarFull : ""}`}>
+              <div className={styles.searchInputContainer}>
+                <FaSearch className={styles.searchIcon} />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={handleInputChange}
+                  placeholder={placeholder}
+                  className={styles.searchInput}
+                />
+                {query && (
+                  <button 
+                    className={styles.clearButton}
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {query === "" && !hideUniversityDropdown ? (
+            <div className={styles.popularChoices}>
+              <h2 className="text-xl font-bold mb-2">Popular Choices</h2>
+              <div className={styles.popularGrid}>
+                {Array.isArray(popularFoods) && popularFoods.map((food) => (
+                  <div key={food._id} className={styles.foodCard} onClick={() => handleSelectSuggestion(food.name)}>
+                    <DishCard
+                      dishName={food.name}
+                      price={food.price}
+                      image={food.image}
+                      variant="search-result"
+                    />
                   </div>
                 ))}
               </div>
-            )}
-            <div className={styles.modalButtons}>
-              <button 
-                className={`${styles.cancelButton} px-4 py-2 border rounded-md mr-2`} 
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button
-                className={`${styles.confirmButton} px-4 py-2 bg-blue-500 text-white rounded-md ${
-                  !selectedVendor ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                onClick={handleVendorConfirm}
-                disabled={!selectedVendor}
-              >
-                Confirm
-              </button>
+            </div>
+          ) : (
+            <div className={styles.searchResults}>
+              {searchResults.length > 0 && (
+                <div className={styles.resultsGrid}>
+                  {searchResults.map((item) => {
+                    const quantity = getCartItemQuantity(item._id || item.id);
+                    const cartItem = searchCartItems.find(
+                      (cartItem) => cartItem.id === (item._id || item.id)
+                    );
+
+                    return (
+                      <div 
+                        key={item._id} 
+                        className={styles.resultCard}
+                        onClick={() => item.isVendor && item._id ? handleVendorClick(item._id) : null}
+                      >
+                        {item.isVendor ? (
+                          <div className={styles.vendorCard}>
+                            <h3 className="font-semibold">{item.name}</h3>
+                          </div>
+                        ) : (
+                          <div className={styles.foodCard}>
+                            <DishCard
+                              dishName={item.name}
+                              price={item.price || 0}
+                              image={item.image || '/images/coffee.jpeg'}
+                              variant="search-result"
+                            />
+                            <SearchQuantityControls
+                              item={{
+                                id: item._id || item.id,
+                                name: item.name,
+                                type: item.type,
+                                vendorId: cartItem?.vendorId
+                              }}
+                              quantity={quantity}
+                              onAddToCart={() => handleAddToCart(item)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {suggestedItems.length > 0 && (
+                <div className={styles.suggestedItems}>
+                  <h2 className="text-xl font-bold mb-4">You may also like</h2>
+                  <div className={styles.resultsGrid}>
+                    {suggestedItems.map((item) => (
+                      <div 
+                        key={item._id} 
+                        className={styles.resultCard}
+                        onClick={() => handleSelectSuggestion(item.name)}
+                      >
+                        <DishCard
+                          dishName={item.name}
+                          price={item.price || 0}
+                          image={item.image || '/images/coffee.jpeg'}
+                          variant="search-result"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {query !== "" && searchResults.length === 0 && suggestedItems.length === 0 && (
+                <div className={styles.noResults}>
+                  <p>No results found</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+        {showVendorModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h2 className="text-xl font-bold mb-4">Select Vendor</h2>
+              {availableVendors.length === 0 ? (
+                <div className="text-center py-4">Loading vendors...</div>
+              ) : (
+                <div className={styles.vendorList}>
+                  {availableVendors.map((vendor) => (
+                    <div
+                      key={vendor._id}
+                      className={`${styles.vendorItem} ${
+                        selectedVendor?._id === vendor._id ? styles.selected : ""
+                      }`}
+                      onClick={() => handleVendorSelect(vendor)}
+                    >
+                      <h3 className="font-semibold">{vendor.name}</h3>
+                      <p className="text-gray-600">₹{vendor.price}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className={styles.modalButtons}>
+                <button 
+                  className={`${styles.cancelButton} px-4 py-2 border rounded-md mr-2`} 
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`${styles.confirmButton} px-4 py-2 bg-blue-500 text-white rounded-md ${
+                    !selectedVendor ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  onClick={handleVendorConfirm}
+                  disabled={!selectedVendor}
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
-        </div>
       )}
     </Suspense>
   );

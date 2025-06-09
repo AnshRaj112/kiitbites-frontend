@@ -33,6 +33,7 @@
   flex-direction: column;
   gap: 2rem;
   max-height: calc(100vh - 120px);
+  // max-height: 100vh;
   overflow-y: auto;
 
   scrollbar-width: none;
@@ -53,11 +54,11 @@
   width: 100%;
   max-width: 320px;
   position: sticky;
-  top: 100px;
+  margin-top: -5rem;
   align-self: flex-start;
   display: flex;
   flex-direction: column;
-  align-items: center; // NEW: center billBox inside
+  // align-items: center; // NEW: center billBox inside
 
   @media (max-width: 768px) {
     position: static;
@@ -150,8 +151,8 @@
   padding: 1.5rem 2rem;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  max-height: 310px;
-  min-height: 310px;
+  // max-height: 510px;
+  min-height: 340px;
 
   h3 {
     margin-bottom: 1rem;

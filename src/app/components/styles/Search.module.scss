@@ -1,9 +1,15 @@
+.mainContainer{
+  display: flex;
+  justify-content: center;
+}
+
 .container {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-  padding-top: 10rem;
+  max-width: 1300px;
+  // padding: 1rem;
+  padding-bottom: 4rem;
+  padding-top: 8rem;
+  overflow: hidden;
 }
 
 .header {
@@ -104,15 +110,19 @@
 }
 
 .popularGrid {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
+  // grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  // width: 100%;
+  grid-template-columns: 24% 24% 24% 24%;
+  gap: 1rem;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .foodCard {
   padding: 0.5rem;
-  border: 1px solid #e2e8f0;
+  // border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background-color: white;
   cursor: pointer;
@@ -130,9 +140,11 @@
 
 .resultsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
+  // grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: 24% 24% 24% 24%;
+  gap: 1rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
 }
 
 .resultCard {
@@ -270,7 +282,8 @@
   padding: 0.5rem;
   border: none;
   border-radius: 0.25rem;
-  background: #4299e1;
+  // background: #4299e1;
+  background: #4ea199;
   color: white;
   font-size: 0.875rem;
   font-weight: 500;
@@ -282,7 +295,7 @@
   gap: 0.5rem;
 
   &:hover:not(:disabled) {
-    background: #3182ce;
+    background: #367e77;
   }
 
   &:disabled {
@@ -291,7 +304,7 @@
   }
 
   &.loading {
-    background: #63b3ed;
+    background: #6fc3bd;
   }
 }
 

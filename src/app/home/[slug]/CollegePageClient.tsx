@@ -352,7 +352,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         />
         <div className={styles.content}>
           <h1 className={styles.greeting}>
-            Hi {userFullName.split(" ")[0]}, what are you craving for at{" "}
+            Hi {userFullName.split(" ")[0]}, what are you craving for{""}
             {slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}?
           </h1>
 
@@ -375,6 +375,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
           <FavoritesSection
             favoriteItems={userFavorites}
             convertFavoriteToFoodItem={convertFavoriteToFoodItem}
+            sliderSettings={sliderSettings}
           />
 
           <SpecialOffersSection 

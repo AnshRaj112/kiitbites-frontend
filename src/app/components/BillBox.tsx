@@ -221,7 +221,11 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
         />
       )}
 
-      <div className={styles.bill}>
+      <div
+        className={`${styles.bill} ${
+          orderType === "delivery" ? styles.billDelivery : styles.billRegular
+        }`}
+      >
         {items.map((i) => (
           <div key={i._id} className={styles.line}>
             <span>
