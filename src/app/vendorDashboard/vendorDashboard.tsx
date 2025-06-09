@@ -8,7 +8,7 @@ import DownloadButton from "./components/DownloadButton";
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
 
 import styles from "./styles/InventoryReport.module.scss";
-import { ApiReport, InventoryReport, transformApiReport } from "./types";
+import { InventoryReport, transformApiReport } from "./types";
 
 export default function VendorDashboardPage() {
   const VENDOR_ID = "6834622710d75a5ba7b77403";
@@ -45,9 +45,9 @@ export default function VendorDashboardPage() {
 
       const transformed = transformApiReport(json.data);
       setReport(transformed);
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error(err);
-      setError(err.message || "Unknown error");
+      setError(err instanceof Error ? err.message : "Unknown error");
       setReport(null);
     } finally {
       setLoading(false);
