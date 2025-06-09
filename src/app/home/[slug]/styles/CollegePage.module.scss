@@ -98,7 +98,10 @@
 
 .categoryTitle {
   font-size: 1.5rem;
-  color: #333;
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-weight: 600;
   text-transform: capitalize;
 }
@@ -160,7 +163,7 @@
 .foodPrice {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #2c5282;
+  color: #1f2937;
   margin-bottom: 1rem;
 }
 
@@ -177,22 +180,24 @@
   height: 32px;
   border-radius: 50%;
   border: 1px solid #e2e8f0;
-  background: white;
+  background: #4ea199;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #4a5568;
+  color: white;
 
   &:hover:not(:disabled) {
-    background: #f7fafc;
+    background: #3d8a82;
     border-color: #cbd5e0;
+    transform: scale(1.05);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background: #ccc;
   }
 
   &.disabled {
@@ -204,7 +209,7 @@
 .quantity {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #000;
   min-width: 2rem;
   text-align: center;
 }
@@ -214,7 +219,7 @@
   padding: 0.75rem;
   // background: #4299e1;
   // background: linear-gradient(90deg, #4ea199, #6fc3bd);
-  background: #4ea199;
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: white;
   border: none;
   border-radius: 8px;
@@ -227,7 +232,7 @@
   gap: 0.5rem;
 
   &:hover:not(:disabled) {
-    background: #367e77;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
   }
 
   &:disabled {
@@ -358,7 +363,7 @@
   }
 
   &.selected {
-    border-color: #4299e1;
+    border-color: #4ea199;
     background: #ebf8ff;
   }
 
@@ -370,7 +375,7 @@
 
   p {
     margin: 0.5rem 0 0;
-    color: #4a5568;
+    color: #1f2937;
   }
 }
 
@@ -397,16 +402,18 @@
 
   &:hover {
     background: #edf2f7;
+    border-color: #cbd5e0;
   }
 }
 
 .confirmButton {
-  background: #4299e1;
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   border: none;
   color: white;
 
   &:hover:not(:disabled) {
-    background: #3182ce;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    transform: scale(1.05);
   }
 
   &:disabled {

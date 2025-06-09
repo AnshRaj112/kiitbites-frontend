@@ -352,7 +352,11 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
         />
         <div className={styles.content}>
           <h1 className={styles.greeting}>
-            Hi {userFullName.split(" ")[0]}, what are you craving for{""}
+            Hi{" "}
+            <span style={{ color: "#4ea199" }}>
+              {userFullName.split(" ")[0]}
+            </span>
+            , what are you craving for{" "}
             {slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}?
           </h1>
 
@@ -378,10 +382,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             sliderSettings={sliderSettings}
           />
 
-          <SpecialOffersSection 
-            items={items} 
-            sliderSettings={sliderSettings}
-          />
+          <SpecialOffersSection items={items} sliderSettings={sliderSettings} />
         </div>
       </div>
     </CartProvider>
