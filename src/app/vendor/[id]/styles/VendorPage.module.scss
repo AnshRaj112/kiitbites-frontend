@@ -84,7 +84,7 @@
 
   &.active {
     // background-color: #2563eb;
-    background: #4ea199;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
     color: white;
     // border-color: #2563eb;
     border-color: #4ea199;
@@ -157,27 +157,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background: #4ea199;
+  color: white;
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
-  color: #4b5563;
   font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover {
-    background-color: #e5e7eb;
+  &:hover:not(:disabled) {
+    background: #3d8a82;
+    border-color: #cbd5e0;
+    transform: scale(1.05);
   }
 
-  &:active {
-    background-color: #d1d5db;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #ccc;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
 .addToCartButton {
   padding: 0.5rem 1rem;
   // background-color: #2563eb;
-  background: #4ea199;
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -186,11 +195,12 @@
   transition: all 0.2s;
 
   &:hover {
-    background: #367e77;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
   }
 
   &:active {
-    background: #6fc3bd;
+    background: linear-gradient(90deg, #4ea199, #6fc3bd);
+    transform: scale(1.05);
   }
 }
 
