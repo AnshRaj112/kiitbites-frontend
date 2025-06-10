@@ -14,18 +14,20 @@
   .label {
     margin-top: 0.3rem;
     font-size: 0.9rem;
-    color: #666;
   }
 }
 
 .default {
-  border-left: 4px solid #cccccc;
+  border-left: 4px solid #4ea199;
+  .value {
+    color: #6fc3bd;
+  }
 }
 
 .positive {
-  border-left: 4px solid #28a745;
+  border-left: 4px solid #4ea199;
   .value {
-    color: #28a745;
+    color: #6fc3bd;
   }
 }
 

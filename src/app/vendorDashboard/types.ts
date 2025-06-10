@@ -10,8 +10,9 @@ export interface ApiEntry {
 export interface ApiReport {
   vendor: { _id: string; fullName: string };
   date: string;
-  retailEntries: ApiEntry[];
-  produceEntries: ApiEntry[];
+  // entries may be missing when no report exists
+  retailEntries?: ApiEntry[];
+  produceEntries?: ApiEntry[];
   // ...you can add rawEntries etc later
 }
 
@@ -31,7 +32,11 @@ export interface InventoryStats {
 }
 
 export function transformApiReport(r: ApiReport) {
-  const retailItems: InventoryItem[] = r.retailEntries.map((e) => ({
+  // guard against missing arrays
+  const retailEntries = r.retailEntries ?? [];
+  const produceEntries = r.produceEntries ?? [];
+
+  const retailItems: InventoryItem[] = retailEntries.map((e) => ({
     name: e.item.name,
     opening: e.openingQty,
     sold: e.soldQty,
@@ -40,7 +45,8 @@ export function transformApiReport(r: ApiReport) {
     received: e.closingQty - e.openingQty + e.soldQty,
     itemType: "Retail",
   }));
-  const produceItems: InventoryItem[] = r.produceEntries.map((e) => ({
+
+  const produceItems: InventoryItem[] = produceEntries.map((e) => ({
     name: e.item.name,
     opening: 0,
     sold: e.soldQty,
@@ -48,6 +54,7 @@ export function transformApiReport(r: ApiReport) {
     received: 0,
     itemType: "Produce",
   }));
+
   const items = [...retailItems, ...produceItems];
 
   const stats: InventoryStats = {

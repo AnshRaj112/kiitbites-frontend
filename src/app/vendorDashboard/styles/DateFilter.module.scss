@@ -1,41 +1,92 @@
-/* styles/datefilter.module.scss */
+/* styles/DateFilter.module.scss */
+
 .dateFilter {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.25rem 0.5rem;
   gap: 0.5rem;
-  input {
+
+  /* make it look like a pill-shaped card */
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* subtle transition on hover */
+  transition: box-shadow 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  input[type="date"] {
+    /* remove browser default look */
+    appearance: none;
     border: none;
     outline: none;
     font-size: 0.95rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+
+    /* light gray background + inset shadow */
+    background: #f4f4f8;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    /* space for the calendar icon */
+    padding-left: 2rem;
+    position: relative;
+  }
+
+  .calendarIcon {
+    position: relative;
+    left: 0.25rem;
+    color: #666;
+    pointer-events: none;
   }
 }
-.calendarIcon {
-  color: #666;
-}
+
 .filterBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: #6c63ff;
+
+  /* gradient to match Download button */
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: #fff;
   border: none;
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 }
+
+/* styles/DateFilter.module.scss (or wherever you keep it) */
 .download {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #a64ce3;
+
+  /* same gradient so both buttons match */
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: #fff;
   border: none;
   border-radius: 6px;
   padding: 0.6rem 1rem;
   font-size: 0.95rem;
+  font-weight: bold;
   cursor: pointer;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 }

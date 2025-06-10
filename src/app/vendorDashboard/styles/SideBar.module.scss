@@ -1,14 +1,20 @@
 /* styles/sidebar.module.scss */
 
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 64px; // your header height
-  height: calc(100vh - 64px);
+  left: 0;
+  bottom: 425px;
   overflow-y: auto;
   background: #fff;
   width: 240px;
   padding: 1rem 0.5rem;
   border-right: 1px solid #eee;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .menu {
@@ -30,7 +36,7 @@
   background: #f5f5ff;
 }
 .active {
-  background: #6c63ff;
+  background: linear-gradient(90deg, #4ea199, #6fc3bd);
   color: #fff;
 }
 .icon {
@@ -43,9 +49,11 @@
   margin-top: 2rem;
 }
 .vendorName {
+  //font-weight: 600;
+  color: #4ea199;
   font-weight: 600;
-  color: #222;
+  font-size: large;
 }
 .vendorId {
-  color: #888;
+  color: #6fc3bd;
 }
