@@ -1,18 +1,26 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import StatCard from "./components/StatCard";
 import InventoryTable from "./components/InventoryTable";
 import DateFilter from "./components/DateFilter";
 import DownloadButton from "./components/DownloadButton";
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
 
 import styles from "./styles/InventoryReport.module.scss";
 import { InventoryReport, transformApiReport } from "./types";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
+
 export default function VendorDashboardPage() {
-  const VENDOR_ID = "6834622710d75a5ba7b77403";
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const VENDOR_ID = "683461e610d75a5ba7b773eb";
+
+  // two pieces of state
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [appliedDate, setAppliedDate] = useState(selectedDate);
+
   const [report, setReport] = useState<InventoryReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,12 +36,14 @@ export default function VendorDashboardPage() {
     "reorder-requests": "Reorder Requests",
     settings: "Settings",
   };
-  const fetchReport = async (d: string) => {
+
+  // fetch helper
+  const fetchReport = async (date: string) => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(
-        `${BACKEND_URL}/inventoryreport/vendor/${VENDOR_ID}?date=${d}`
+        `${BACKEND_URL}/inventoryreport/vendor/${VENDOR_ID}?date=${date}`
       );
       const json = await res.json();
 
@@ -43,9 +53,8 @@ export default function VendorDashboardPage() {
         return;
       }
 
-      const transformed = transformApiReport(json.data);
-      setReport(transformed);
-    } catch (err: Error | unknown) {
+      setReport(transformApiReport(json.data));
+    } catch (err: any) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error");
       setReport(null);
@@ -54,10 +63,16 @@ export default function VendorDashboardPage() {
     }
   };
 
-  // fetch on mount & whenever date changes
+  // on mount, fetch for today's date
   useEffect(() => {
-    fetchReport(date);
-  }, [date]);
+    fetchReport(appliedDate);
+  }, [appliedDate]);
+
+  // when the user clicks Filter, we update appliedDate
+  const applyFilter = () => {
+    setAppliedDate(selectedDate);
+  };
+
   return (
     <div className={styles.container}>
       <Sidebar
@@ -99,8 +114,19 @@ export default function VendorDashboardPage() {
               </div>
 
               <div className={styles.controls}>
-                <DateFilter date={date} onChange={setDate} />
-                <DownloadButton />
+                <DateFilter
+                  date={selectedDate}
+                  onChange={setSelectedDate}
+                  onFilter={applyFilter}
+                />
+                {report && (
+                  <DownloadButton
+                    vendorName={report.vendorName}
+                    reportDate={report.reportDate}
+                    stats={report.stats}
+                    items={report.items}
+                  />
+                )}
               </div>
             </div>
 
@@ -109,9 +135,12 @@ export default function VendorDashboardPage() {
             ) : error ? (
               <p className={styles.error}>{error}</p>
             ) : report ? (
-              <InventoryTable items={report.items} date={report.reportDate} />
+              <InventoryTable
+                items={report.items ?? []}
+                date={report.reportDate}
+              />
             ) : (
-              <p>No report data available.</p> // fallback in case of unexpected null
+              <p>No report data available.</p>
             )}
           </>
         ) : (
