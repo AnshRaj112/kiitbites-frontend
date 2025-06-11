@@ -112,8 +112,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({
 
         {/* ITEMS */}
         <ul className={styles.items}>
-          {order.items.map((it) => (
-            <li key={it.itemId}>
+          {order.items.map((it, idx) => (
+            <li key={`${it.itemId}-${idx}`}>
               <span className={styles.itemQty}>{it.quantity}×</span>
               <span className={styles.itemName}>{it.name}</span>
               <span className={styles.itemPrice}>
