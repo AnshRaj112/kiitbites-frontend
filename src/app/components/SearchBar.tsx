@@ -77,6 +77,7 @@ interface SearchBarProps {
   placeholder?: string;
   vendorId?: string;
   universityId?: string;
+  clearSearch?: () => void;
   onSearchResults?: (results: VendorItem[]) => void;
 }
 
@@ -96,6 +97,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search for food or vendors...",
   vendorId,
   universityId,
+  clearSearch,
   onSearchResults
 }) => {
   const [query, setQuery] = useState<string>("");
@@ -483,13 +485,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
     return cartItem?.quantity || 0;
   };
 
+  // const handleClearSearch = () => {
+  //   setQuery("");
+  //   setSearchResults([]);
+  //   setSuggestedItems([]);
+  //   router.push("?", undefined);
+  //   if (onSearchResults) onSearchResults([]);
+  // };
+
   const handleClearSearch = () => {
     setQuery("");
     setSearchResults([]);
     setSuggestedItems([]);
     router.push("?", undefined);
     if (onSearchResults) onSearchResults([]);
+  
+    if (clearSearch) {
+      clearSearch(); // ✅ Call custom clear handler from parent (like VendorPage)
+    }
   };
+  
 
   return (
     <Suspense fallback={<div>Loading...</div>}>

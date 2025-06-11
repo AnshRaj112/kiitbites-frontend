@@ -226,6 +226,7 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
           orderType === "delivery" ? styles.billDelivery : styles.billRegular
         }`}
       >
+        <div className={styles.items}>
         {items.map((i) => (
           <div key={i._id} className={styles.line}>
             <span>
@@ -234,7 +235,8 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
             <span>₹{i.price * i.quantity}</span>
           </div>
         ))}
-
+        </div>
+      <div className={styles.totalPack}>
         {packaging > 0 && (
           <div className={styles.extra}>
             <span>Packaging</span>
@@ -254,6 +256,7 @@ const BillBox: React.FC<Props> = ({ userId, items, onOrder }) => {
           <strong>Total</strong>
           <strong>₹{grandTotal}</strong>
         </div>
+      </div>
       </div>
 
       <button type="submit" className={styles.button}>
