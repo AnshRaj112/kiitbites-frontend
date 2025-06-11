@@ -1,0 +1,41 @@
+/* src/components/OrderList.module.scss */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.empty {
+  text-align: center;
+  color: #718096; /* slate-600 */
+  font-size: 1rem;
+  padding: 2rem 0;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.pageButton {
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: #4ea199;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+.pageIndicator {
+  font-weight: 600;
+}

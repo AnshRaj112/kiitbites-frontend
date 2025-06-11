@@ -79,3 +79,31 @@ export interface InventoryReport {
   vendorName: string;
   vendorId: string;
 }
+export type OrderType = "delivery" | "takeaway" | "dinein";
+
+export type Status =
+  | "pendingPayment"
+  | "inProgress"
+  | "onTheWay"
+  | "delivered"
+  | "failed";
+
+export interface Item {
+  itemId: string;
+  kind: "Retail" | "Produce";
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  orderId: string;
+  createdAt: string;
+  collectorName: string;
+  collectorPhone: string;
+  orderType: OrderType;
+  address?: string;
+  status: Status;
+  items: Item[];
+  total: number;
+}

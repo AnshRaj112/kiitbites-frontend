@@ -1,34 +1,143 @@
-{
-  "stats": {
-    "totalTracked": 125,
-    "soldToday": 76,
-    "receivedToday": 45
+[
+  {
+    "orderId": "ORD-001",
+    "createdAt": "2025-06-12T14:15:00Z",
+    "collectorName": "John Smith",
+    "collectorPhone": "+1 (555) 123-4567",
+    "orderType": "delivery",
+    "address": "123 Main St, Cityville, State 12345",
+    "status": "inProgress",
+    "items": [
+      {
+        "itemId": "r1",
+        "kind": "Retail",
+        "name": "Coca Cola Classic",
+        "quantity": 2,
+        "price": 1.99
+      },
+      {
+        "itemId": "r2",
+        "kind": "Retail",
+        "name": "Protein Bar Chocolate",
+        "quantity": 1,
+        "price": 2.49
+      },
+      {
+        "itemId": "p1",
+        "kind": "Produce",
+        "name": "Fresh Apples",
+        "quantity": 3,
+        "price": 0.99
+      }
+    ],
+    "total": 10.44
   },
-  "reportDate": "2024-12-06",
-  "items": [
-    {
-      "name": "Coca Cola 500ml",
-      "opening": 50,
-      "received": 20,
-      "sold": 25,
-      "closing": 45,
-      "itemType": "Retail"
-    },
-    {
-      "name": "Lay's Chips",
-      "opening": 30,
-      "received": 15,
-      "sold": 22,
-      "closing": 23,
-      "itemType": "Retail"
-    },
-    {
-      "name": "Broccoli",
-      "opening": 40,
-      "received": 10,
-      "sold": 30,
-      "closing": 20,
-      "itemType": "Produce"
-    }
-  ]
-}
+  {
+    "orderId": "ORD-002",
+    "createdAt": "2025-06-12T13:30:00Z",
+    "collectorName": "Sarah Johnson",
+    "collectorPhone": "+1 (555) 987-6543",
+    "orderType": "takeaway",
+    "status": "ready",
+    "items": [
+      {
+        "itemId": "r3",
+        "kind": "Retail",
+        "name": "Energy Drink Red Bull",
+        "quantity": 3,
+        "price": 2.99
+      },
+      {
+        "itemId": "r4",
+        "kind": "Retail",
+        "name": "Granola Mix",
+        "quantity": 1,
+        "price": 3.49
+      },
+      {
+        "itemId": "p2",
+        "kind": "Produce",
+        "name": "Organic Bananas",
+        "quantity": 2,
+        "price": 0.59
+      }
+    ],
+    "total": 14.04
+  },
+  {
+    "orderId": "ORD-003",
+    "createdAt": "2025-06-12T12:45:00Z",
+    "collectorName": "Mike Wilson",
+    "collectorPhone": "+1 (555) 456-7890",
+    "orderType": "delivery",
+    "address": "789 Pine St, Townsville, State 67890",
+    "status": "onTheWay",
+    "items": [
+      {
+        "itemId": "r5",
+        "kind": "Retail",
+        "name": "Lay's Chips Original",
+        "quantity": 2,
+        "price": 1.49
+      },
+      {
+        "itemId": "p3",
+        "kind": "Produce",
+        "name": "Cherry Tomatoes",
+        "quantity": 5,
+        "price": 0.79
+      }
+    ],
+    "total": 5.45
+  },
+  {
+    "orderId": "ORD-004",
+    "createdAt": "2025-06-12T11:10:00Z",
+    "collectorName": "Emily Davis",
+    "collectorPhone": "+1 (555) 222-3344",
+    "orderType": "dinein",
+    "status": "inProgress",
+    "items": [
+      {
+        "itemId": "p4",
+        "kind": "Produce",
+        "name": "Caesar Salad Kit",
+        "quantity": 1,
+        "price": 4.99
+      },
+      {
+        "itemId": "r6",
+        "kind": "Retail",
+        "name": "Bottled Water",
+        "quantity": 2,
+        "price": 0.99
+      }
+    ],
+    "total": 6.97
+  },
+  {
+    "orderId": "ORD-005",
+    "createdAt": "2025-06-12T10:05:00Z",
+    "collectorName": "David Lee",
+    "collectorPhone": "+1 (555) 888-1122",
+    "orderType": "takeaway",
+    "status": "onTheWay",
+    "items": [
+      {
+        "itemId": "r7",
+        "kind": "Retail",
+        "name": "Chocolate Donut Box",
+        "quantity": 6,
+        "price": 0.89
+      },
+      {
+        "itemId": "p5",
+        "kind": "Produce",
+        "name": "Fruit Smoothie",
+        "quantity": 1,
+        "price": 3.99
+      }
+    ],
+    "total": 9.33
+  }
+]
