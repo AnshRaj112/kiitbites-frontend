@@ -278,17 +278,18 @@ const VendorPage = () => {
               placeholder="Search food items..." 
               vendorId={id as string}
               universityId={universityId}
+              clearSearch={handleClearSearch}
               onSearchResults={handleSearch}
             />
           </div>
-          {isSearching && (
+          {/* {isSearching && (
             <button 
               className={styles.clearSearchButton}
               onClick={handleClearSearch}
             >
               Clear Search
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
