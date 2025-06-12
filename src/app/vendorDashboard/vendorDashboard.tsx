@@ -67,7 +67,7 @@ export default function VendorDashboardPage() {
       }
 
       setReport(transformApiReport(json.data));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unknown error");
       setReport(null);
