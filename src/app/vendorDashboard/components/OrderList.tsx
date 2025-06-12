@@ -62,8 +62,8 @@ export const OrderList: React.FC<OrderListProps> = ({ onLoaded }) => {
       }));
 
       setList(combined);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'An unknown error occurred');
     }
   }, [onLoaded]);
 

@@ -94,13 +94,21 @@ export default function LoginForm() {
   // Auto-refresh token on visit
   const checkSession = useCallback(async () => {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`${BACKEND_URL}/api/user/auth/refresh`, {
         method: "GET",
         credentials: "include",
+        headers: token ? {
+          'Authorization': `Bearer ${token}`
+        } : {}
       });
   
       if (res.ok) {
         console.log("✅ Session refreshed successfully");
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
       } else if (res.status === 401 || res.status === 403) {
         console.log("🔴 Session expired, redirecting to login...");
         localStorage.removeItem("token"); // Clear stored token (if any)

@@ -6,11 +6,10 @@ import * as XLSX from "xlsx";
 import styles from "../styles/DateFilter.module.scss";
 import { InventoryReport } from "../types";
 
-interface Props
-  extends Pick<
-    InventoryReport,
-    "vendorName" | "reportDate" | "stats" | "items"
-  > {}
+type Props = Pick<
+  InventoryReport,
+  "vendorName" | "reportDate" | "stats" | "items"
+>;
 
 export default function DownloadButton({
   vendorName,
@@ -33,7 +32,7 @@ export default function DownloadButton({
       ["Items Received", stats.receivedToday],
     ];
 
-    const spacer: any[][] = [[]]; // single blank row
+    const spacer: (string | number)[][] = [[]]; // single blank row
 
     const header = [
       "Item Name",
