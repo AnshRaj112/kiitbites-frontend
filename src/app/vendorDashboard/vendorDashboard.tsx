@@ -1,21 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import StatCard from "./components/StatCard";
 import InventoryTable from "./components/InventoryTable";
 import DateFilter from "./components/DateFilter";
 import DownloadButton from "./components/DownloadButton";
+import { OrderList } from "./components/OrderList"; // <-- import OrderList
 
 import styles from "./styles/InventoryReport.module.scss";
 import { InventoryReport, transformApiReport } from "./types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "<UNDEFINED>";
 
-export default function VendorDashboardPage() {
-  const VENDOR_ID = "683461e610d75a5ba7b773eb";
+const segmentsMap: Record<string, string> = {
+  dashboard: "Dashboard",
+  "inventory-reports": "Inventory Reports",
+  // You can define more segments here
+};
 
-  // two pieces of state
+export default function VendorDashboardPage() {
+  const VENDOR_ID = "6834622e10d75a5ba7b7740d";
+
+  const [activeSegment, setActiveSegment] = useState<string>("dashboard");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("activeSegment");
+    if (saved) setActiveSegment(saved);
+  }, []);
+
+  // Save active segment in localStorage
+  useEffect(() => {
+    localStorage.setItem("activeSegment", activeSegment);
+  }, [activeSegment]);
+
+  // For sidebar vendor display from report
+  const [vendorNameFromOrders, setVendorNameFromOrders] = useState<
+    string | undefined
+  >();
+  const [vendorIdFromOrders, setVendorIdFromOrders] = useState<
+    string | undefined
+  >();
+
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
@@ -24,20 +50,7 @@ export default function VendorDashboardPage() {
   const [report, setReport] = useState<InventoryReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeSegment, setActiveSegment] =
-    useState<string>("inventory-reports");
 
-  const segmentsMap: Record<string, string> = {
-    dashboard: "Dashboard",
-    "retail-inventory": "Retail Inventory",
-    "produce-inventory": "Produce Inventory",
-    "raw-materials": "Raw Materials",
-    "inventory-reports": "Inventory Reports",
-    "reorder-requests": "Reorder Requests",
-    settings: "Settings",
-  };
-
-  // fetch helper
   const fetchReport = async (date: string) => {
     setLoading(true);
     setError(null);
@@ -63,12 +76,12 @@ export default function VendorDashboardPage() {
     }
   };
 
-  // on mount, fetch for today's date
   useEffect(() => {
-    fetchReport(appliedDate);
-  }, [appliedDate]);
+    if (activeSegment === "inventory-reports") {
+      fetchReport(appliedDate);
+    }
+  }, [appliedDate, activeSegment]);
 
-  // when the user clicks Filter, we update appliedDate
   const applyFilter = () => {
     setAppliedDate(selectedDate);
   };
@@ -78,18 +91,17 @@ export default function VendorDashboardPage() {
       <Sidebar
         active={activeSegment}
         onSegmentChange={setActiveSegment}
-        vendorName={report?.vendorName}
-        vendorId={report?.vendorId}
+        vendorName={report?.vendorName || vendorNameFromOrders}
+        vendorId={report?.vendorId || vendorIdFromOrders}
       />
 
       <main className={styles.main}>
-        {activeSegment === "inventory-reports" ? (
+        {activeSegment === "inventory-reports" && (
           <>
             <div className={styles.header}>
               <h1>Inventory Reports</h1>
               <p>View and export detailed inventory reports</p>
             </div>
-
             <div className={styles.topBar}>
               <div className={styles.stats}>
                 {report ? (
@@ -112,7 +124,6 @@ export default function VendorDashboardPage() {
                   <div>Loading stats…</div>
                 )}
               </div>
-
               <div className={styles.controls}>
                 <DateFilter
                   date={selectedDate}
@@ -129,7 +140,6 @@ export default function VendorDashboardPage() {
                 )}
               </div>
             </div>
-
             {loading ? (
               <p>Loading report…</p>
             ) : error ? (
@@ -143,12 +153,31 @@ export default function VendorDashboardPage() {
               <p>No report data available.</p>
             )}
           </>
-        ) : (
-          <div className={styles.underConstruction}>
-            🚧 {segmentsMap[activeSegment] || activeSegment.replace(/-/g, " ")}{" "}
-            is under construction.
-          </div>
         )}
+
+        {activeSegment === "dashboard" && (
+          <>
+            <div className={styles.header}>
+              <h1>Active Orders</h1>
+              <p>Manage your incoming orders in real-time</p>
+            </div>
+            <OrderList
+              onLoaded={(vendorName, vendorId) => {
+                setVendorNameFromOrders(vendorName);
+                setVendorIdFromOrders(vendorId);
+              }}
+            />
+          </>
+        )}
+
+        {activeSegment !== "inventory-reports" &&
+          activeSegment !== "dashboard" && (
+            <div className={styles.underConstruction}>
+              🚧{" "}
+              {segmentsMap[activeSegment] || activeSegment.replace(/-/g, " ")}{" "}
+              is under construction.
+            </div>
+          )}
       </main>
     </div>
   );
