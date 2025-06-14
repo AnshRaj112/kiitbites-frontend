@@ -6,6 +6,7 @@ import ProductCard from "./ProductCard";
 interface SpecialOffersSectionProps {
   items: { [key: string]: FoodItem[] };
   sliderSettings: Settings;
+  userId?: string | null;
 }
 
 const categories = {
@@ -13,7 +14,7 @@ const categories = {
   produce: ["combos-veg", "combos-nonveg", "veg", "shakes", "juices", "soups", "non-veg"]
 };
 
-const SpecialOffersSection = ({ items, sliderSettings }: SpecialOffersSectionProps) => {
+const SpecialOffersSection = ({ items, sliderSettings, userId }: SpecialOffersSectionProps) => {
   // Flatten all items and filter for special items
   const specialItems = Object.values(items)
     .flat()
@@ -29,7 +30,12 @@ const SpecialOffersSection = ({ items, sliderSettings }: SpecialOffersSectionPro
       <div className={styles.carouselContainer}>
         <Slider {...sliderSettings} className={styles.slider}>
           {specialItems.map((item) => (
-            <ProductCard key={item.id} item={item} categories={categories} />
+            <ProductCard 
+              key={item.id} 
+              item={item} 
+              categories={categories} 
+              userId={userId}
+            />
           ))}
         </Slider>
       </div>

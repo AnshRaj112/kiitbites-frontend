@@ -109,10 +109,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { searchCartItems, addToSearchCart } = useSearchCart();
   const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      setIsAuthenticated(!!token);
+    };
+    checkAuth();
+    // Add event listener for storage changes
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
 
   useEffect(() => {
     if (universityId) {
@@ -133,6 +146,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
         const res = await fetch(`${BACKEND_URL}/api/user/auth/list`);
         const data = await res.json();
         setUniversities(data);
+        
+        // If user is not authenticated, select the first college
+        if (!isAuthenticated && data.length > 0) {
+          setSelectedUniversity(data[0]._id);
+        }
       } catch (err) {
         console.error("Failed to load universities:", err);
       }
@@ -140,6 +158,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
       try {
         const res = await fetch(`${BACKEND_URL}/api/user/auth/user`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -148,17 +170,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
         const user = await res.json();
         if (user?.uniID) {
           setSelectedUniversity(user.uniID);
+          setIsAuthenticated(true);
         } else {
           console.warn("No uniID found in user object");
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error("Failed to fetch user:", error);
+        setIsAuthenticated(false);
       }
     };
 
     fetchUniversities();
     fetchUser();
-  }, [hideUniversityDropdown]);
+  }, [hideUniversityDropdown, isAuthenticated]);
 
   // Load popular foods
   useEffect(() => {
@@ -188,14 +213,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   // Search foods and vendors
   const fetchSearchResults = async (searchText: string) => {
-    if (!selectedUniversity && !hideUniversityDropdown) return;
-
-    try {
-      if (vendorId) {
-        // If we're in a vendor page, search only within this vendor's items
+    // If we're in a vendor page, we don't need university ID
+    if (vendorId) {
+      try {
         const response = await fetch(`${BACKEND_URL}/items/getvendors/${vendorId}`);
         
-        // First check if response is ok
         if (!response.ok) {
           console.error("Vendor search failed:", response.status);
           setSearchResults([]);
@@ -204,7 +226,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
           return;
         }
 
-        // Try to parse the response as JSON
         let data: VendorData;
         try {
           data = await response.json();
@@ -235,9 +256,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
             type: 'produce',
             itemId: item.itemId || item._id || ''
           }))
-        ].filter(item => item.itemId); // Filter out items without an ID
+        ].filter(item => item.itemId);
 
-        // If search text is empty, show all items
         if (!searchText.trim()) {
           const results = allVendorItems
             .map(item => ({
@@ -260,13 +280,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
           return;
         }
 
-        // Filter items based on search query
         const searchLower = searchText.toLowerCase();
         const exactMatches = allVendorItems.filter(item => 
           item.name.toLowerCase().includes(searchLower)
         );
 
-        // Get items of the same type as matches for suggestions
         const matchedTypes = new Set(exactMatches.map(item => item.type));
         const suggestions = allVendorItems.filter(item => 
           matchedTypes.has(item.type) && !exactMatches.some(match => match.itemId === item.itemId)
@@ -306,42 +324,54 @@ const SearchBar: React.FC<SearchBarProps> = ({
           }));
         setSuggestedItems(suggestedResults);
         
-        // Call the callback with the filtered vendor items
         if (onSearchResults) onSearchResults(exactMatches);
-      } else {
-        // Normal search (both items and vendors)
-        const [itemsRes, vendorsRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/items/search/items?query=${searchText}&uniID=${selectedUniversity}&searchByType=true`),
-          fetch(`${BACKEND_URL}/items/search/vendors?query=${searchText}&uniID=${selectedUniversity}`)
-        ]);
-
-        if (!itemsRes.ok || !vendorsRes.ok) {
-          throw new Error(`HTTP error! status: ${itemsRes.status} ${vendorsRes.status}`);
-        }
-
-        const [itemsData, vendorsData] = await Promise.all([
-          itemsRes.json(),
-          vendorsRes.json()
-        ]);
-
-        let items: SearchResult[] = [];
-        let suggestions: SearchResult[] = [];
-
-        if ('message' in itemsData && itemsData.youMayAlsoLike) {
-          suggestions = (itemsData as SearchResponse).youMayAlsoLike || [];
-        } else if (Array.isArray(itemsData)) {
-          items = itemsData.filter(item => !item.isTypeMatch);
-          suggestions = itemsData.filter(item => item.isTypeMatch);
-        }
-
-        const vendors = Array.isArray(vendorsData) ? vendorsData.map(vendor => ({
-          ...vendor,
-          isVendor: true
-        })) : [];
-
-        setSearchResults([...items, ...vendors]);
-        setSuggestedItems(suggestions);
+      } catch (error) {
+        console.error("Error fetching vendor search results:", error);
+        setSearchResults([]);
+        setSuggestedItems([]);
+        if (onSearchResults) onSearchResults([]);
       }
+      return;
+    }
+
+    // For normal search, we need a university ID
+    if (!selectedUniversity && !hideUniversityDropdown) {
+      console.log("No university selected, skipping search");
+      return;
+    }
+
+    try {
+      const [itemsRes, vendorsRes] = await Promise.all([
+        fetch(`${BACKEND_URL}/items/search/items?query=${encodeURIComponent(searchText)}&uniID=${selectedUniversity}&searchByType=true`),
+        fetch(`${BACKEND_URL}/items/search/vendors?query=${encodeURIComponent(searchText)}&uniID=${selectedUniversity}`)
+      ]);
+
+      if (!itemsRes.ok || !vendorsRes.ok) {
+        throw new Error(`HTTP error! status: ${itemsRes.status} ${vendorsRes.status}`);
+      }
+
+      const [itemsData, vendorsData] = await Promise.all([
+        itemsRes.json(),
+        vendorsRes.json()
+      ]);
+
+      let items: SearchResult[] = [];
+      let suggestions: SearchResult[] = [];
+
+      if ('message' in itemsData && itemsData.youMayAlsoLike) {
+        suggestions = (itemsData as SearchResponse).youMayAlsoLike || [];
+      } else if (Array.isArray(itemsData)) {
+        items = itemsData.filter(item => !item.isTypeMatch);
+        suggestions = itemsData.filter(item => item.isTypeMatch);
+      }
+
+      const vendors = Array.isArray(vendorsData) ? vendorsData.map(vendor => ({
+        ...vendor,
+        isVendor: true
+      })) : [];
+
+      setSearchResults([...items, ...vendors]);
+      setSuggestedItems(suggestions);
     } catch (error) {
       console.error("Error fetching search results:", error);
       setSearchResults([]);
@@ -378,6 +408,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleAddToCart = async (item: SearchResult) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
     setSelectedItem(item);
     console.log('Selected item:', item);
 
@@ -530,6 +565,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     value={selectedUniversity}
                     onChange={handleUniversityChange}
                     className={styles.dropdown}
+                    disabled={!isAuthenticated}
                   >
                     {universities.map((uni) => (
                       <option key={uni._id} value={uni._id}>
@@ -612,16 +648,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
                               image={item.image || '/images/coffee.jpeg'}
                               variant="search-result"
                             />
-                            <SearchQuantityControls
-                              item={{
-                                id: item._id || item.id,
-                                name: item.name,
-                                type: item.type,
-                                vendorId: cartItem?.vendorId
-                              }}
-                              quantity={quantity}
-                              onAddToCart={() => handleAddToCart(item)}
-                            />
+                            {isAuthenticated && (
+                              <SearchQuantityControls
+                                item={{
+                                  id: item._id || item.id,
+                                  name: item.name,
+                                  type: item.type,
+                                  vendorId: cartItem?.vendorId
+                                }}
+                                quantity={quantity}
+                                onAddToCart={() => handleAddToCart(item)}
+                              />
+                            )}
                           </div>
                         )}
                       </div>
