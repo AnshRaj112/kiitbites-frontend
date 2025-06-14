@@ -43,7 +43,7 @@ export const useCart = () => {
 
 interface CartProviderProps {
   children: React.ReactNode;
-  userId: string;
+  userId: string | null;
 }
 
 export const CartProvider = ({ children, userId }: CartProviderProps) => {

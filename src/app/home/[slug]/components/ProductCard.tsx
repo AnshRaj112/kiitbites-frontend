@@ -10,9 +10,10 @@ import { checkItemAvailability } from '../utils/cartUtils';
 interface ProductCardProps {
   item: FoodItem;
   categories: { retail: string[]; produce: string[] };
+  userId?: string | null;
 }
 
-const ProductCard = ({ item, categories }: ProductCardProps) => {
+const ProductCard = ({ item, categories, userId }: ProductCardProps) => {
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -36,6 +37,11 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
   }, [cartItems, item.id, cartItem, quantity]);
 
   const handleAddToCart = async () => {
+    if (!userId) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
     try {
       setLoading(true);
       const { vendors } = await checkItemAvailability(item, null, categories);
@@ -93,6 +99,11 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
   };
 
   const handleIncreaseQuantity = async () => {
+    if (!userId) {
+      toast.error('Please login to modify cart');
+      return;
+    }
+
     if (!cartItem) {
       // If no item in cart, show vendor modal first
       handleAddToCart();
@@ -127,6 +138,11 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
   };
 
   const handleDecreaseQuantity = async () => {
+    if (!userId) {
+      toast.error('Please login to modify cart');
+      return;
+    }
+
     if (!cartItem) return;
     
     try {
@@ -159,38 +175,42 @@ const ProductCard = ({ item, categories }: ProductCardProps) => {
           </div>
           <h4 className={styles.foodTitle}>{item.title}</h4>
           <p className={styles.foodPrice}>₹{item.price}</p>
-          <div className={styles.quantityControls}>
-            <button
-              className={`${styles.quantityButton} ${quantity === 0 ? styles.disabled : ''}`}
-              onClick={handleDecreaseQuantity}
-              disabled={loading || quantity === 0}
-            >
-              <Minus size={16} />
-            </button>
-            <span className={styles.quantity}>{quantity}</span>
-            <button
-              className={styles.quantityButton}
-              onClick={handleIncreaseQuantity}
-              disabled={loading}
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-          {quantity === 0 && (
-            <button
-              className={`${styles.addToCartButton} ${loading ? styles.loading : ''}`}
-              onClick={handleAddToCart}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className={styles.spinner} size={16} />
-                  Adding...
-                </>
-              ) : (
-                'Add to Cart'
+          {userId && (
+            <>
+              <div className={styles.quantityControls}>
+                <button
+                  className={`${styles.quantityButton} ${quantity === 0 ? styles.disabled : ''}`}
+                  onClick={handleDecreaseQuantity}
+                  disabled={loading || quantity === 0}
+                >
+                  <Minus size={16} />
+                </button>
+                <span className={styles.quantity}>{quantity}</span>
+                <button
+                  className={styles.quantityButton}
+                  onClick={handleIncreaseQuantity}
+                  disabled={loading}
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              {quantity === 0 && (
+                <button
+                  className={`${styles.addToCartButton} ${loading ? styles.loading : ''}`}
+                  onClick={handleAddToCart}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className={styles.spinner} size={16} />
+                      Adding...
+                    </>
+                  ) : (
+                    'Add to Cart'
+                  )}
+                </button>
               )}
-            </button>
+            </>
           )}
         </div>
       </div>
