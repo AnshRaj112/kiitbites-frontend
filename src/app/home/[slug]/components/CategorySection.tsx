@@ -7,6 +7,7 @@ interface CategorySectionProps {
   categoryItems: FoodItem[];
   categoryTitle: string;
   sliderSettings: Settings;
+  userId?: string | null;
 }
 
 const categories = {
@@ -18,6 +19,7 @@ const CategorySection = ({
   categoryItems,
   categoryTitle,
   sliderSettings,
+  userId,
 }: CategorySectionProps) => {
   if (!categoryItems || categoryItems.length === 0) return null;
 
@@ -33,7 +35,12 @@ const CategorySection = ({
       <div className={styles.carouselContainer}>
         <Slider {...sliderSettings} className={styles.slider}>
           {categoryItems.map((item) => (
-            <ProductCard key={item.id} item={item} categories={categories} />
+            <ProductCard 
+              key={item.id} 
+              item={item} 
+              categories={categories} 
+              userId={userId}
+            />
           ))}
         </Slider>
       </div>
