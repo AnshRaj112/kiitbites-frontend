@@ -344,45 +344,47 @@ const VendorPage = () => {
                         </p>
                       )}
                     </div>
-                    <button 
-                      className={styles.heart} 
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevents navigating to item detail
-                        toggleFavourite(item);
-                      }}
-                    >
-                      {favouriteItems.includes(item.itemId) ? <FaHeart color="#4ea199" /> : <FaRegHeart color="#4ea199" />}
-                    </button>
-
-                    {/* <button className={styles.heart}><FaHeart /></button> */}
+                    {userData && (
+                      <button 
+                        className={styles.heart} 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevents navigating to item detail
+                          toggleFavourite(item);
+                        }}
+                      >
+                        {favouriteItems.includes(item.itemId) ? <FaHeart color="#4ea199" /> : <FaRegHeart color="#4ea199" />}
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className={styles.cartControls}>
-                  {quantity > 0 ? (
-                    <>
+                {userData && (
+                  <div className={styles.cartControls}>
+                    {quantity > 0 ? (
+                      <>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={() => handleDecreaseQuantity(item)}
+                        >
+                          -
+                        </button>
+                        <span className={styles.quantity}>{quantity}</span>
+                        <button 
+                          className={styles.quantityButton}
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          +
+                        </button>
+                      </>
+                    ) : (
                       <button 
-                        className={styles.quantityButton}
-                        onClick={() => handleDecreaseQuantity(item)}
-                      >
-                        -
-                      </button>
-                      <span className={styles.quantity}>{quantity}</span>
-                      <button 
-                        className={styles.quantityButton}
+                        className={styles.addToCartButton}
                         onClick={() => handleAddToCart(item)}
                       >
-                        +
+                        Add to Cart
                       </button>
-                    </>
-                  ) : (
-                    <button 
-                      className={styles.addToCartButton}
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      Add to Cart
-                    </button>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })

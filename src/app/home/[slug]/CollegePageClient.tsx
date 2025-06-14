@@ -72,9 +72,10 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
   const formatCollegeName = (name: string) => {
     if (!name) return '';
     console.log('Formatting name:', name);
+    // Split by hyphens and capitalize each word
     const formatted = name
       .split('-')
-      .map(word => word.toUpperCase())
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
     console.log('Formatted result:', formatted);
     return formatted;
@@ -373,8 +374,7 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
                 <span style={{ color: "#4ea199" }}>
                   {userFullName?.split(" ")[0] || "User"}
                 </span>
-                , what are you craving for{" "}
-                {collegeName}?
+                , what are you craving for?
               </>
             ) : (
               <>
@@ -412,7 +412,11 @@ const CollegePageClient = ({ slug = "" }: { slug?: string }) => {
             />
           )}
 
-          <SpecialOffersSection items={items} sliderSettings={sliderSettings} />
+          <SpecialOffersSection 
+            items={items} 
+            sliderSettings={sliderSettings} 
+            userId={userId}
+          />
         </div>
       </div>
     </CartProvider>
